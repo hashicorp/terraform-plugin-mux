@@ -29,11 +29,6 @@ type SchemaServerFactory struct {
 	// schema from
 	providerSchemaFrom     int
 	providerMetaSchemaFrom int
-
-	// this must be set manually, and will likely always be set to the
-	// position of SDKv2 in the server list, as newer server
-	// implementations don't need this RPC call.
-	PrepareProviderConfigServer int
 }
 
 func NewSchemaServerFactory(ctx context.Context, servers ...func() tfplugin5.ProviderServer) (SchemaServerFactory, error) {
@@ -42,7 +37,6 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfplugin5.Pro
 	// know when these are unset vs set to the element in pos 0
 	factory.providerSchemaFrom = -1
 	factory.providerMetaSchemaFrom = -1
-	factory.PrepareProviderConfigServer = -1
 
 	factory.servers = make([]func() tfplugin5.ProviderServer, len(servers))
 	for pos, server := range servers {
@@ -105,8 +99,9 @@ func (s SchemaServerFactory) getSchemaHandler(_ context.Context, _ *tfplugin5.Ge
 
 func (s SchemaServerFactory) Server() SchemaServer {
 	res := SchemaServer{
-		getSchemaHandler: s.getSchemaHandler,
-		servers:          make([]tfplugin5.ProviderServer, len(s.servers)),
+		getSchemaHandler:            s.getSchemaHandler,
+		prepareProviderConfigServer: s.providerSchemaFrom,
+		servers:                     make([]tfplugin5.ProviderServer, len(s.servers)),
 	}
 	for pos, server := range s.servers {
 		res.servers[pos] = server()
@@ -117,12 +112,6 @@ func (s SchemaServerFactory) Server() SchemaServer {
 	for ds, pos := range s.dataSources {
 		res.dataSources[ds] = res.servers[pos]
 	}
-	if len(res.servers) <= s.PrepareProviderConfigServer {
-		panic(fmt.Sprintf("Tried to use PrepareProviderConfig from server in 0-indexed position %d, but only %d servers are available.", s.PrepareProviderConfigServer, len(res.servers)))
-	}
-	if s.PrepareProviderConfigServer >= 0 {
-		res.prepareProviderConfigHandler = res.servers[s.PrepareProviderConfigServer].PrepareProviderConfig
-	}
 	return res
 }
 
@@ -131,8 +120,8 @@ type SchemaServer struct {
 	dataSources map[string]tfplugin5.ProviderServer
 	servers     []tfplugin5.ProviderServer
 
-	getSchemaHandler             func(context.Context, *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error)
-	prepareProviderConfigHandler func(context.Context, *tfplugin5.PrepareProviderConfig_Request) (*tfplugin5.PrepareProviderConfig_Response, error)
+	getSchemaHandler            func(context.Context, *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error)
+	prepareProviderConfigServer int
 }
 
 func (s SchemaServer) GetSchema(ctx context.Context, req *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error) {
@@ -140,12 +129,10 @@ func (s SchemaServer) GetSchema(ctx context.Context, req *tfplugin5.GetProviderS
 }
 
 func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfplugin5.PrepareProviderConfig_Request) (*tfplugin5.PrepareProviderConfig_Response, error) {
-	if s.prepareProviderConfigHandler == nil {
-		return &tfplugin5.PrepareProviderConfig_Response{
-			PreparedConfig: req.Config,
-		}, nil
+	if s.prepareProviderConfigServer < 0 || len(s.servers) <= s.prepareProviderConfigServer {
+		return nil, fmt.Errorf("no server is set to provide the provider's schema")
 	}
-	return s.prepareProviderConfigHandler(ctx, req)
+	return s.servers[s.prepareProviderConfigServer].PrepareProviderConfig(ctx, req)
 }
 
 func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfplugin5.ValidateResourceTypeConfig_Request) (*tfplugin5.ValidateResourceTypeConfig_Response, error) {
