@@ -3,22 +3,22 @@ package tfmux
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-mux/internal/tfplugin5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // NewResourceServer returns a Server that will use `server` for all requests,
 // except for resource-scoped requests for resources listed in `overrides`, for
 // which `overrideServer` will be used, instead.
-func NewResourceServer(server, overrideServer tfplugin5.ProviderServer, overrides []string) Server {
+func NewResourceServer(server, overrideServer tfprotov5.ProviderServer, overrides []string) Server {
 
-	validateResourceTypeConfig := map[string]func(ctx context.Context, req *tfplugin5.ValidateResourceTypeConfig_Request) (*tfplugin5.ValidateResourceTypeConfig_Response, error){}
-	validateDataSourceConfig := map[string]func(ctx context.Context, req *tfplugin5.ValidateDataSourceConfig_Request) (*tfplugin5.ValidateDataSourceConfig_Response, error){}
-	upgradeResourceState := map[string]func(ctx context.Context, req *tfplugin5.UpgradeResourceState_Request) (*tfplugin5.UpgradeResourceState_Response, error){}
-	importResourceState := map[string]func(ctx context.Context, req *tfplugin5.ImportResourceState_Request) (*tfplugin5.ImportResourceState_Response, error){}
-	readResource := map[string]func(ctx context.Context, req *tfplugin5.ReadResource_Request) (*tfplugin5.ReadResource_Response, error){}
-	readDataSource := map[string]func(ctx context.Context, req *tfplugin5.ReadDataSource_Request) (*tfplugin5.ReadDataSource_Response, error){}
-	planResourceChange := map[string]func(ctx context.Context, req *tfplugin5.PlanResourceChange_Request) (*tfplugin5.PlanResourceChange_Response, error){}
-	applyResourceChange := map[string]func(ctx context.Context, req *tfplugin5.ApplyResourceChange_Request) (*tfplugin5.ApplyResourceChange_Response, error){}
+	validateResourceTypeConfig := map[string]func(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) (*tfprotov5.ValidateResourceTypeConfigResponse, error){}
+	validateDataSourceConfig := map[string]func(ctx context.Context, req *tfprotov5.ValidateDataSourceConfigRequest) (*tfprotov5.ValidateDataSourceConfigResponse, error){}
+	upgradeResourceState := map[string]func(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error){}
+	importResourceState := map[string]func(ctx context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error){}
+	readResource := map[string]func(ctx context.Context, req *tfprotov5.ReadResourceRequest) (*tfprotov5.ReadResourceResponse, error){}
+	readDataSource := map[string]func(ctx context.Context, req *tfprotov5.ReadDataSourceRequest) (*tfprotov5.ReadDataSourceResponse, error){}
+	planResourceChange := map[string]func(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error){}
+	applyResourceChange := map[string]func(ctx context.Context, req *tfprotov5.ApplyResourceChangeRequest) (*tfprotov5.ApplyResourceChangeResponse, error){}
 
 	for _, override := range overrides {
 		validateResourceTypeConfig[override] = overrideServer.ValidateResourceTypeConfig
@@ -50,25 +50,25 @@ func NewResourceServer(server, overrideServer tfplugin5.ProviderServer, override
 	}
 
 	return Server{
-		GetSchemaHandler: func(context.Context, *tfplugin5.GetProviderSchema_Request) func(context.Context, *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error) {
-			return server.GetSchema
+		GetSchemaHandler: func(context.Context, *tfprotov5.GetProviderSchemaRequest) func(context.Context, *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
+			return server.GetProviderSchema
 		},
-		PrepareProviderConfigHandler: func(context.Context, *tfplugin5.PrepareProviderConfig_Request) func(context.Context, *tfplugin5.PrepareProviderConfig_Request) (*tfplugin5.PrepareProviderConfig_Response, error) {
+		PrepareProviderConfigHandler: func(context.Context, *tfprotov5.PrepareProviderConfigRequest) func(context.Context, *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
 			return server.PrepareProviderConfig
 		},
 		ValidateResourceTypeConfigHandler: mux.ValidateResourceTypeConfig,
 		ValidateDataSourceConfigHandler:   mux.ValidateDataSourceConfig,
 		UpgradeResourceStateHandler:       mux.UpgradeResourceState,
 		ImportResourceStateHandler:        mux.ImportResourceState,
-		ConfigureHandler: func(context.Context, *tfplugin5.Configure_Request) func(context.Context, *tfplugin5.Configure_Request) (*tfplugin5.Configure_Response, error) {
-			return server.Configure
+		ConfigureHandler: func(context.Context, *tfprotov5.ConfigureProviderRequest) func(context.Context, *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
+			return server.ConfigureProvider
 		},
 		ReadResourceHandler:        mux.ReadResource,
 		ReadDataSourceHandler:      mux.ReadDataSource,
 		PlanResourceChangeHandler:  mux.PlanResourceChange,
 		ApplyResourceChangeHandler: mux.ApplyResourceChange,
-		StopHandler: func(context.Context, *tfplugin5.Stop_Request) func(context.Context, *tfplugin5.Stop_Request) (*tfplugin5.Stop_Response, error) {
-			return server.Stop
+		StopHandler: func(context.Context, *tfprotov5.StopProviderRequest) func(context.Context, *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
+			return server.StopProvider
 		},
 	}
 }

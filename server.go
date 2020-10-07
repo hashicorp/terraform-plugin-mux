@@ -4,27 +4,27 @@ import (
 	"context"
 	"errors"
 
-	"github.com/hashicorp/terraform-plugin-mux/internal/tfplugin5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
-var _ tfplugin5.ProviderServer = Server{}
+var _ tfprotov5.ProviderServer = Server{}
 
 type Server struct {
-	GetSchemaHandler                  func(ctx context.Context, req *tfplugin5.GetProviderSchema_Request) func(ctx context.Context, req *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error)
-	PrepareProviderConfigHandler      func(ctx context.Context, req *tfplugin5.PrepareProviderConfig_Request) func(ctx context.Context, req *tfplugin5.PrepareProviderConfig_Request) (*tfplugin5.PrepareProviderConfig_Response, error)
-	ValidateResourceTypeConfigHandler func(ctx context.Context, req *tfplugin5.ValidateResourceTypeConfig_Request) func(ctx context.Context, req *tfplugin5.ValidateResourceTypeConfig_Request) (*tfplugin5.ValidateResourceTypeConfig_Response, error)
-	ValidateDataSourceConfigHandler   func(ctx context.Context, req *tfplugin5.ValidateDataSourceConfig_Request) func(ctx context.Context, req *tfplugin5.ValidateDataSourceConfig_Request) (*tfplugin5.ValidateDataSourceConfig_Response, error)
-	UpgradeResourceStateHandler       func(ctx context.Context, req *tfplugin5.UpgradeResourceState_Request) func(ctx context.Context, req *tfplugin5.UpgradeResourceState_Request) (*tfplugin5.UpgradeResourceState_Response, error)
-	ConfigureHandler                  func(ctx context.Context, req *tfplugin5.Configure_Request) func(ctx context.Context, req *tfplugin5.Configure_Request) (*tfplugin5.Configure_Response, error)
-	ReadResourceHandler               func(ctx context.Context, req *tfplugin5.ReadResource_Request) func(ctx context.Context, req *tfplugin5.ReadResource_Request) (*tfplugin5.ReadResource_Response, error)
-	PlanResourceChangeHandler         func(ctx context.Context, req *tfplugin5.PlanResourceChange_Request) func(ctx context.Context, req *tfplugin5.PlanResourceChange_Request) (*tfplugin5.PlanResourceChange_Response, error)
-	ApplyResourceChangeHandler        func(ctx context.Context, req *tfplugin5.ApplyResourceChange_Request) func(ctx context.Context, req *tfplugin5.ApplyResourceChange_Request) (*tfplugin5.ApplyResourceChange_Response, error)
-	ImportResourceStateHandler        func(ctx context.Context, req *tfplugin5.ImportResourceState_Request) func(ctx context.Context, req *tfplugin5.ImportResourceState_Request) (*tfplugin5.ImportResourceState_Response, error)
-	ReadDataSourceHandler             func(ctx context.Context, req *tfplugin5.ReadDataSource_Request) func(ctx context.Context, req *tfplugin5.ReadDataSource_Request) (*tfplugin5.ReadDataSource_Response, error)
-	StopHandler                       func(ctx context.Context, req *tfplugin5.Stop_Request) func(ctx context.Context, req *tfplugin5.Stop_Request) (*tfplugin5.Stop_Response, error)
+	GetSchemaHandler                  func(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) func(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error)
+	PrepareProviderConfigHandler      func(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) func(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error)
+	ValidateResourceTypeConfigHandler func(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) func(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) (*tfprotov5.ValidateResourceTypeConfigResponse, error)
+	ValidateDataSourceConfigHandler   func(ctx context.Context, req *tfprotov5.ValidateDataSourceConfigRequest) func(ctx context.Context, req *tfprotov5.ValidateDataSourceConfigRequest) (*tfprotov5.ValidateDataSourceConfigResponse, error)
+	UpgradeResourceStateHandler       func(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) func(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error)
+	ConfigureHandler                  func(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) func(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error)
+	ReadResourceHandler               func(ctx context.Context, req *tfprotov5.ReadResourceRequest) func(ctx context.Context, req *tfprotov5.ReadResourceRequest) (*tfprotov5.ReadResourceResponse, error)
+	PlanResourceChangeHandler         func(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) func(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error)
+	ApplyResourceChangeHandler        func(ctx context.Context, req *tfprotov5.ApplyResourceChangeRequest) func(ctx context.Context, req *tfprotov5.ApplyResourceChangeRequest) (*tfprotov5.ApplyResourceChangeResponse, error)
+	ImportResourceStateHandler        func(ctx context.Context, req *tfprotov5.ImportResourceStateRequest) func(ctx context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error)
+	ReadDataSourceHandler             func(ctx context.Context, req *tfprotov5.ReadDataSourceRequest) func(ctx context.Context, req *tfprotov5.ReadDataSourceRequest) (*tfprotov5.ReadDataSourceResponse, error)
+	StopHandler                       func(ctx context.Context, req *tfprotov5.StopProviderRequest) func(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error)
 }
 
-func (s Server) GetSchema(ctx context.Context, req *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error) {
+func (s Server) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	if s.GetSchemaHandler != nil {
 		return nil, errors.New("no GetSchema handler defined")
 	}
@@ -32,7 +32,7 @@ func (s Server) GetSchema(ctx context.Context, req *tfplugin5.GetProviderSchema_
 	return handler(ctx, req)
 }
 
-func (s Server) PrepareProviderConfig(ctx context.Context, req *tfplugin5.PrepareProviderConfig_Request) (*tfplugin5.PrepareProviderConfig_Response, error) {
+func (s Server) PrepareProviderConfig(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
 	if s.PrepareProviderConfigHandler != nil {
 		return nil, errors.New("no PrepareProviderConfig handler defined")
 	}
@@ -40,7 +40,7 @@ func (s Server) PrepareProviderConfig(ctx context.Context, req *tfplugin5.Prepar
 	return handler(ctx, req)
 }
 
-func (s Server) ValidateResourceTypeConfig(ctx context.Context, req *tfplugin5.ValidateResourceTypeConfig_Request) (*tfplugin5.ValidateResourceTypeConfig_Response, error) {
+func (s Server) ValidateResourceTypeConfig(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) (*tfprotov5.ValidateResourceTypeConfigResponse, error) {
 	if s.ValidateResourceTypeConfigHandler != nil {
 		return nil, errors.New("no ValidateResourceTypeConfig handler defined")
 	}
@@ -48,7 +48,7 @@ func (s Server) ValidateResourceTypeConfig(ctx context.Context, req *tfplugin5.V
 	return handler(ctx, req)
 }
 
-func (s Server) ValidateDataSourceConfig(ctx context.Context, req *tfplugin5.ValidateDataSourceConfig_Request) (*tfplugin5.ValidateDataSourceConfig_Response, error) {
+func (s Server) ValidateDataSourceConfig(ctx context.Context, req *tfprotov5.ValidateDataSourceConfigRequest) (*tfprotov5.ValidateDataSourceConfigResponse, error) {
 	if s.ValidateDataSourceConfigHandler != nil {
 		return nil, errors.New("no ValidateDataSourceConfig handler defined")
 	}
@@ -56,7 +56,7 @@ func (s Server) ValidateDataSourceConfig(ctx context.Context, req *tfplugin5.Val
 	return handler(ctx, req)
 }
 
-func (s Server) UpgradeResourceState(ctx context.Context, req *tfplugin5.UpgradeResourceState_Request) (*tfplugin5.UpgradeResourceState_Response, error) {
+func (s Server) UpgradeResourceState(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error) {
 	if s.UpgradeResourceStateHandler != nil {
 		return nil, errors.New("no UpgradeResourceState handler defined")
 	}
@@ -64,7 +64,7 @@ func (s Server) UpgradeResourceState(ctx context.Context, req *tfplugin5.Upgrade
 	return handler(ctx, req)
 }
 
-func (s Server) Configure(ctx context.Context, req *tfplugin5.Configure_Request) (*tfplugin5.Configure_Response, error) {
+func (s Server) ConfigureProvider(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
 	if s.ConfigureHandler != nil {
 		return nil, errors.New("no Configure handler defined")
 	}
@@ -72,7 +72,7 @@ func (s Server) Configure(ctx context.Context, req *tfplugin5.Configure_Request)
 	return handler(ctx, req)
 }
 
-func (s Server) ReadResource(ctx context.Context, req *tfplugin5.ReadResource_Request) (*tfplugin5.ReadResource_Response, error) {
+func (s Server) ReadResource(ctx context.Context, req *tfprotov5.ReadResourceRequest) (*tfprotov5.ReadResourceResponse, error) {
 	if s.ReadResourceHandler != nil {
 		return nil, errors.New("no ReadResource handler defined")
 	}
@@ -80,7 +80,7 @@ func (s Server) ReadResource(ctx context.Context, req *tfplugin5.ReadResource_Re
 	return handler(ctx, req)
 }
 
-func (s Server) PlanResourceChange(ctx context.Context, req *tfplugin5.PlanResourceChange_Request) (*tfplugin5.PlanResourceChange_Response, error) {
+func (s Server) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
 	if s.PlanResourceChangeHandler != nil {
 		return nil, errors.New("no PlanResourceChange handler defined")
 	}
@@ -88,7 +88,7 @@ func (s Server) PlanResourceChange(ctx context.Context, req *tfplugin5.PlanResou
 	return handler(ctx, req)
 }
 
-func (s Server) ApplyResourceChange(ctx context.Context, req *tfplugin5.ApplyResourceChange_Request) (*tfplugin5.ApplyResourceChange_Response, error) {
+func (s Server) ApplyResourceChange(ctx context.Context, req *tfprotov5.ApplyResourceChangeRequest) (*tfprotov5.ApplyResourceChangeResponse, error) {
 	if s.ApplyResourceChangeHandler != nil {
 		return nil, errors.New("no ApplyResourceChange handler defined")
 	}
@@ -96,7 +96,7 @@ func (s Server) ApplyResourceChange(ctx context.Context, req *tfplugin5.ApplyRes
 	return handler(ctx, req)
 }
 
-func (s Server) ImportResourceState(ctx context.Context, req *tfplugin5.ImportResourceState_Request) (*tfplugin5.ImportResourceState_Response, error) {
+func (s Server) ImportResourceState(ctx context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {
 	if s.ImportResourceStateHandler != nil {
 		return nil, errors.New("no ImportResourceState handler defined")
 	}
@@ -104,7 +104,7 @@ func (s Server) ImportResourceState(ctx context.Context, req *tfplugin5.ImportRe
 	return handler(ctx, req)
 }
 
-func (s Server) ReadDataSource(ctx context.Context, req *tfplugin5.ReadDataSource_Request) (*tfplugin5.ReadDataSource_Response, error) {
+func (s Server) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDataSourceRequest) (*tfprotov5.ReadDataSourceResponse, error) {
 	if s.ReadDataSourceHandler != nil {
 		return nil, errors.New("no ReadDataSource handler defined")
 	}
@@ -112,7 +112,7 @@ func (s Server) ReadDataSource(ctx context.Context, req *tfplugin5.ReadDataSourc
 	return handler(ctx, req)
 }
 
-func (s Server) Stop(ctx context.Context, req *tfplugin5.Stop_Request) (*tfplugin5.Stop_Response, error) {
+func (s Server) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
 	if s.StopHandler != nil {
 		return nil, errors.New("no Stop handler defined")
 	}
