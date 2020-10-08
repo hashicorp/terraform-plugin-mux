@@ -1,15 +1,15 @@
 package tfmux
 
 import (
-	"github.com/hashicorp/terraform-plugin-mux/internal/tfplugin5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 func ExampleNewResourceServer_v2v3() {
 	// the ProviderServer from SDKv2
-	var sdkv2 tfplugin5.ProviderServer
+	var sdkv2 tfprotov5.ProviderServer
 
 	// the ProviderServer from SDKv3
-	var sdkv3 tfplugin5.ProviderServer
+	var sdkv3 tfprotov5.ProviderServer
 
 	// all RPC requests will be handled by SDKv2, except
 	// for requests related to test_instance, test_resource,

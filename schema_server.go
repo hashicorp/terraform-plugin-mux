@@ -4,25 +4,25 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-mux/internal/tfplugin5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
-var _ tfplugin5.ProviderServer = SchemaServer{}
+var _ tfprotov5.ProviderServer = SchemaServer{}
 
 type SchemaServerFactory struct {
 	// determine which servers will respond to which requests
 	resources   map[string]int
 	dataSources map[string]int
-	servers     []func() tfplugin5.ProviderServer
+	servers     []func() tfprotov5.ProviderServer
 
 	// we respond to GetSchema requests using these schemas
-	resourceSchemas    map[string]*tfplugin5.Schema
-	dataSourceSchemas  map[string]*tfplugin5.Schema
-	providerSchema     *tfplugin5.Schema
-	providerMetaSchema *tfplugin5.Schema
+	resourceSchemas    map[string]*tfprotov5.Schema
+	dataSourceSchemas  map[string]*tfprotov5.Schema
+	providerSchema     *tfprotov5.Schema
+	providerMetaSchema *tfprotov5.Schema
 
 	// any non-error diagnostics should get bubbled up, so we store them here
-	diagnostics []*tfplugin5.Diagnostic
+	diagnostics []*tfprotov5.Diagnostic
 
 	// we just store these to surface better errors
 	// track which server we got the provider schema and provider meta
@@ -31,17 +31,17 @@ type SchemaServerFactory struct {
 	providerMetaSchemaFrom int
 }
 
-func NewSchemaServerFactory(ctx context.Context, servers ...func() tfplugin5.ProviderServer) (SchemaServerFactory, error) {
+func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.ProviderServer) (SchemaServerFactory, error) {
 	var factory SchemaServerFactory
 
 	// know when these are unset vs set to the element in pos 0
 	factory.providerSchemaFrom = -1
 	factory.providerMetaSchemaFrom = -1
 
-	factory.servers = make([]func() tfplugin5.ProviderServer, len(servers))
+	factory.servers = make([]func() tfprotov5.ProviderServer, len(servers))
 	for pos, server := range servers {
 		s := server()
-		resp, err := s.GetSchema(ctx, &tfplugin5.GetProviderSchema_Request{})
+		resp, err := s.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
 		if err != nil {
 			return factory, fmt.Errorf("error retrieving schema for %T: %w", s, err)
 		}
@@ -52,7 +52,7 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfplugin5.Pro
 			if diag == nil {
 				continue
 			}
-			if diag.Severity != tfplugin5.Diagnostic_ERROR {
+			if diag.Severity != tfprotov5.DiagnosticSeverityError {
 				factory.diagnostics = append(factory.diagnostics, diag)
 				continue
 			}
@@ -88,8 +88,8 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfplugin5.Pro
 	return factory, nil
 }
 
-func (s SchemaServerFactory) getSchemaHandler(_ context.Context, _ *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error) {
-	return &tfplugin5.GetProviderSchema_Response{
+func (s SchemaServerFactory) getSchemaHandler(_ context.Context, _ *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
+	return &tfprotov5.GetProviderSchemaResponse{
 		Provider:          s.providerSchema,
 		ResourceSchemas:   s.resourceSchemas,
 		DataSourceSchemas: s.dataSourceSchemas,
@@ -101,7 +101,7 @@ func (s SchemaServerFactory) Server() SchemaServer {
 	res := SchemaServer{
 		getSchemaHandler:            s.getSchemaHandler,
 		prepareProviderConfigServer: s.providerSchemaFrom,
-		servers:                     make([]tfplugin5.ProviderServer, len(s.servers)),
+		servers:                     make([]tfprotov5.ProviderServer, len(s.servers)),
 	}
 	for pos, server := range s.servers {
 		res.servers[pos] = server()
@@ -116,26 +116,26 @@ func (s SchemaServerFactory) Server() SchemaServer {
 }
 
 type SchemaServer struct {
-	resources   map[string]tfplugin5.ProviderServer
-	dataSources map[string]tfplugin5.ProviderServer
-	servers     []tfplugin5.ProviderServer
+	resources   map[string]tfprotov5.ProviderServer
+	dataSources map[string]tfprotov5.ProviderServer
+	servers     []tfprotov5.ProviderServer
 
-	getSchemaHandler            func(context.Context, *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error)
+	getSchemaHandler            func(context.Context, *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error)
 	prepareProviderConfigServer int
 }
 
-func (s SchemaServer) GetSchema(ctx context.Context, req *tfplugin5.GetProviderSchema_Request) (*tfplugin5.GetProviderSchema_Response, error) {
+func (s SchemaServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	return s.getSchemaHandler(ctx, req)
 }
 
-func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfplugin5.PrepareProviderConfig_Request) (*tfplugin5.PrepareProviderConfig_Response, error) {
+func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
 	if s.prepareProviderConfigServer < 0 || len(s.servers) <= s.prepareProviderConfigServer {
 		return nil, fmt.Errorf("no server is set to provide the provider's schema")
 	}
 	return s.servers[s.prepareProviderConfigServer].PrepareProviderConfig(ctx, req)
 }
 
-func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfplugin5.ValidateResourceTypeConfig_Request) (*tfplugin5.ValidateResourceTypeConfig_Response, error) {
+func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) (*tfprotov5.ValidateResourceTypeConfigResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
@@ -143,7 +143,7 @@ func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfplu
 	return h.ValidateResourceTypeConfig(ctx, req)
 }
 
-func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfplugin5.ValidateDataSourceConfig_Request) (*tfplugin5.ValidateDataSourceConfig_Response, error) {
+func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfprotov5.ValidateDataSourceConfigRequest) (*tfprotov5.ValidateDataSourceConfigResponse, error) {
 	h, ok := s.dataSources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
@@ -151,7 +151,7 @@ func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfplugi
 	return h.ValidateDataSourceConfig(ctx, req)
 }
 
-func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfplugin5.UpgradeResourceState_Request) (*tfplugin5.UpgradeResourceState_Response, error) {
+func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
@@ -159,10 +159,10 @@ func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfplugin5.U
 	return h.UpgradeResourceState(ctx, req)
 }
 
-func (s SchemaServer) Configure(ctx context.Context, req *tfplugin5.Configure_Request) (*tfplugin5.Configure_Response, error) {
-	var diags []*tfplugin5.Diagnostic
+func (s SchemaServer) ConfigureProvider(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
+	var diags []*tfprotov5.Diagnostic
 	for _, server := range s.servers {
-		resp, err := server.Configure(ctx, req)
+		resp, err := server.ConfigureProvider(ctx, req)
 		if err != nil {
 			return resp, fmt.Errorf("error configuring %T: %w", server, err)
 		}
@@ -171,17 +171,17 @@ func (s SchemaServer) Configure(ctx context.Context, req *tfplugin5.Configure_Re
 				continue
 			}
 			diags = append(diags, diag)
-			if diag.Severity != tfplugin5.Diagnostic_ERROR {
+			if diag.Severity != tfprotov5.DiagnosticSeverityError {
 				continue
 			}
 			resp.Diagnostics = diags
 			return resp, err
 		}
 	}
-	return &tfplugin5.Configure_Response{Diagnostics: diags}, nil
+	return &tfprotov5.ConfigureProviderResponse{Diagnostics: diags}, nil
 }
 
-func (s SchemaServer) ReadResource(ctx context.Context, req *tfplugin5.ReadResource_Request) (*tfplugin5.ReadResource_Response, error) {
+func (s SchemaServer) ReadResource(ctx context.Context, req *tfprotov5.ReadResourceRequest) (*tfprotov5.ReadResourceResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
@@ -189,7 +189,7 @@ func (s SchemaServer) ReadResource(ctx context.Context, req *tfplugin5.ReadResou
 	return h.ReadResource(ctx, req)
 }
 
-func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfplugin5.PlanResourceChange_Request) (*tfplugin5.PlanResourceChange_Response, error) {
+func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
@@ -197,7 +197,7 @@ func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfplugin5.Pla
 	return h.PlanResourceChange(ctx, req)
 }
 
-func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfplugin5.ApplyResourceChange_Request) (*tfplugin5.ApplyResourceChange_Response, error) {
+func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfprotov5.ApplyResourceChangeRequest) (*tfprotov5.ApplyResourceChangeResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
@@ -205,7 +205,7 @@ func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfplugin5.Ap
 	return h.ApplyResourceChange(ctx, req)
 }
 
-func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfplugin5.ImportResourceState_Request) (*tfplugin5.ImportResourceState_Response, error) {
+func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
@@ -213,7 +213,7 @@ func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfplugin5.Im
 	return h.ImportResourceState(ctx, req)
 }
 
-func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfplugin5.ReadDataSource_Request) (*tfplugin5.ReadDataSource_Response, error) {
+func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDataSourceRequest) (*tfprotov5.ReadDataSourceResponse, error) {
 	h, ok := s.dataSources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
@@ -221,9 +221,9 @@ func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfplugin5.ReadDat
 	return h.ReadDataSource(ctx, req)
 }
 
-func (s SchemaServer) Stop(ctx context.Context, req *tfplugin5.Stop_Request) (*tfplugin5.Stop_Response, error) {
+func (s SchemaServer) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
 	for _, server := range s.servers {
-		resp, err := server.Stop(ctx, req)
+		resp, err := server.StopProvider(ctx, req)
 		if err != nil {
 			return resp, fmt.Errorf("error stopping %T: %w", server, err)
 		}
@@ -231,5 +231,5 @@ func (s SchemaServer) Stop(ctx context.Context, req *tfplugin5.Stop_Request) (*t
 			return resp, err
 		}
 	}
-	return &tfplugin5.Stop_Response{}, nil
+	return &tfprotov5.StopProviderResponse{}, nil
 }

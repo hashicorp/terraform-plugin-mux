@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/hashicorp/terraform-plugin-mux/internal/tfplugin5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 func ExampleNewSchemaServerFactory_v2protocol() {
@@ -13,10 +13,10 @@ func ExampleNewSchemaServerFactory_v2protocol() {
 
 	// the ProviderServer from SDKv2
 	// usually this is the Provider function
-	var sdkv2 func() tfplugin5.ProviderServer
+	var sdkv2 func() tfprotov5.ProviderServer
 
 	// the ProviderServer from the new protocol package
-	var protocolServer func() tfplugin5.ProviderServer
+	var protocolServer func() tfprotov5.ProviderServer
 
 	// requests will be routed to whichever server advertises support for
 	// them in the GetSchema response. Only one server may advertise
