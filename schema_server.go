@@ -39,6 +39,11 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.Pro
 	factory.providerMetaSchemaFrom = -1
 
 	factory.servers = make([]func() tfprotov5.ProviderServer, len(servers))
+	factory.resources = make(map[string]int)
+	factory.resourceSchemas = make(map[string]*tfprotov5.Schema)
+	factory.dataSources = make(map[string]int)
+	factory.dataSourceSchemas = make(map[string]*tfprotov5.Schema)
+
 	for pos, server := range servers {
 		s := server()
 		resp, err := s.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
@@ -106,9 +111,11 @@ func (s SchemaServerFactory) Server() SchemaServer {
 	for pos, server := range s.servers {
 		res.servers[pos] = server()
 	}
+	res.resources = make(map[string]tfprotov5.ProviderServer)
 	for r, pos := range s.resources {
 		res.resources[r] = res.servers[pos]
 	}
+	res.dataSources = make(map[string]tfprotov5.ProviderServer)
 	for ds, pos := range s.dataSources {
 		res.dataSources[ds] = res.servers[pos]
 	}
