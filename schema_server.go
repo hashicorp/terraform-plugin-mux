@@ -3,6 +3,7 @@ package tfmux
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
@@ -129,6 +130,9 @@ type SchemaServer struct {
 
 	getSchemaHandler            func(context.Context, *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error)
 	prepareProviderConfigServer int
+
+	stopCh chan struct{}
+	stopMu sync.Mutex
 }
 
 func (s SchemaServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
@@ -229,6 +233,14 @@ func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDat
 }
 
 func (s SchemaServer) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
+	s.stopMu.Lock()
+	defer s.stopMu.Unlock()
+
+	// stop
+	close(s.stopCh)
+	// reset the stop signal
+	s.stopCh = make(chan struct{})
+
 	for _, server := range s.servers {
 		resp, err := server.StopProvider(ctx, req)
 		if err != nil {
@@ -239,4 +251,28 @@ func (s SchemaServer) StopProvider(ctx context.Context, req *tfprotov5.StopProvi
 		}
 	}
 	return &tfprotov5.StopProviderResponse{}, nil
+}
+
+// mergeStop is called in a goroutine and waits for the global stop signal
+// and propagates cancellation to the passed in ctx/cancel func. The ctx is
+// also passed to this function and waited upon so no goroutine leak is caused.
+func mergeStop(ctx context.Context, cancel context.CancelFunc, stopCh chan struct{}) {
+	select {
+	case <-ctx.Done():
+		return
+	case <-stopCh:
+		cancel()
+	}
+}
+
+// StopContext derives a new context from the passed in grpc context.
+// It creates a goroutine to wait for the server stop and propagates
+// cancellation to the derived grpc context.
+func (s SchemaServer) StopContext(ctx context.Context) context.Context {
+	s.stopMu.Lock()
+	defer s.stopMu.Unlock()
+
+	stoppable, cancel := context.WithCancel(ctx)
+	go mergeStop(stoppable, cancel, s.stopCh)
+	return stoppable
 }
