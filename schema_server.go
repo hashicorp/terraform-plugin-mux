@@ -9,6 +9,12 @@ import (
 
 var _ tfprotov5.ProviderServer = SchemaServer{}
 
+// SchemaServerFactory is a generator for SchemaServers, which are Terraform
+// gRPC servers that route requests to different gRPC provider implementations
+// based on which gRPC provider implementation supports the resource the
+// request is for.
+//
+// SchemaServerFactory should always be instantiated by NewSchemaServerFactory.
 type SchemaServerFactory struct {
 	// determine which servers will respond to which requests
 	resources   map[string]int
@@ -31,6 +37,14 @@ type SchemaServerFactory struct {
 	providerMetaSchemaFrom int
 }
 
+// NewSchemaServerFactory returns a SchemaServerFactory that will route gRPC
+// requests between the tfprotov5.ProviderServers specified. Each function
+// specified will be called, and the tfprotov5.ProviderServer will have its
+// GetProviderSchema method called. The schemas will be used to determine which
+// server handles each requests, with requests for resources and data sources
+// directed to the server that specified that data source or resource in its
+// schema. Data sources and resources can only be specified in the schema of
+// one ProviderServer.
 func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.ProviderServer) (SchemaServerFactory, error) {
 	var factory SchemaServerFactory
 
@@ -102,6 +116,8 @@ func (s SchemaServerFactory) getSchemaHandler(_ context.Context, _ *tfprotov5.Ge
 	}, nil
 }
 
+// Server returns the SchemaServer that will mux between the
+// tfprotov5.ProviderServers associated with the SchemaServerFactory.
 func (s SchemaServerFactory) Server() SchemaServer {
 	res := SchemaServer{
 		getSchemaHandler:            s.getSchemaHandler,
@@ -122,6 +138,9 @@ func (s SchemaServerFactory) Server() SchemaServer {
 	return res
 }
 
+// SchemaServer is a gRPC server implementation that stands in front of other
+// gRPC servers, routing requests to them as if they were a single server. It
+// should always be instantiated by calling SchemaServerFactory.Server().
 type SchemaServer struct {
 	resources   map[string]tfprotov5.ProviderServer
 	dataSources map[string]tfprotov5.ProviderServer
@@ -131,10 +150,17 @@ type SchemaServer struct {
 	prepareProviderConfigServer int
 }
 
+// GetProviderSchema merges the schemas returned by the
+// tfprotov5.ProviderServers associated with SchemaServer into a single schema.
+// Resources and data sources must be returned from only one server. Provider
+// and ProviderMeta schemas must be identical between all servers.
 func (s SchemaServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	return s.getSchemaHandler(ctx, req)
 }
 
+// PrepareProviderConfig will call the PrepareProviderConfig method on each
+// server in order, passing `req`. Only one may respond with a non-nil
+// PreparedConfig or a non-empty Diagnostics.
 func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
 	if s.prepareProviderConfigServer < 0 || len(s.servers) <= s.prepareProviderConfigServer {
 		return nil, fmt.Errorf("no server is set to provide the provider's schema")
@@ -142,6 +168,9 @@ func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.
 	return s.servers[s.prepareProviderConfigServer].PrepareProviderConfig(ctx, req)
 }
 
+// ValidateResourceTypeConfig will call the ValidateResourceTypeConfig method,
+// passing `req`, on the provider that returned the resource specified by
+// req.TypeName in its schema.
 func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) (*tfprotov5.ValidateResourceTypeConfigResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
@@ -150,6 +179,9 @@ func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfpro
 	return h.ValidateResourceTypeConfig(ctx, req)
 }
 
+// ValidateDataSourceConfig will call the ValidateDataSourceConfig method,
+// passing `req`, on the provider that returned the data source specified by
+// req.TypeName in its schema.
 func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfprotov5.ValidateDataSourceConfigRequest) (*tfprotov5.ValidateDataSourceConfigResponse, error) {
 	h, ok := s.dataSources[req.TypeName]
 	if !ok {
@@ -158,6 +190,9 @@ func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfproto
 	return h.ValidateDataSourceConfig(ctx, req)
 }
 
+// UpgradeResourceState will call the UpgradeResourceState method, passing
+// `req`, on the provider that returned the resource specified by req.TypeName
+// in its schema.
 func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
@@ -166,6 +201,10 @@ func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfprotov5.U
 	return h.UpgradeResourceState(ctx, req)
 }
 
+// ConfigureProvider will call each provider's ConfigureProvider method, one at
+// a time, passing `req`. Any Diagnostic with severity error will abort the
+// process and return immediately; non-Error severity Diagnostics will be
+// combined and returned.
 func (s SchemaServer) ConfigureProvider(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
 	var diags []*tfprotov5.Diagnostic
 	for _, server := range s.servers {
@@ -188,6 +227,8 @@ func (s SchemaServer) ConfigureProvider(ctx context.Context, req *tfprotov5.Conf
 	return &tfprotov5.ConfigureProviderResponse{Diagnostics: diags}, nil
 }
 
+// ReadResource will call the ReadResource method, passing `req`, on the
+// provider that returned the resource specified by req.TypeName in its schema.
 func (s SchemaServer) ReadResource(ctx context.Context, req *tfprotov5.ReadResourceRequest) (*tfprotov5.ReadResourceResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
@@ -196,6 +237,9 @@ func (s SchemaServer) ReadResource(ctx context.Context, req *tfprotov5.ReadResou
 	return h.ReadResource(ctx, req)
 }
 
+// PlanResourceChange will call the PlanResourceChange method, passing `req`,
+// on the provider that returned the resource specified by req.TypeName in its
+// schema.
 func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
@@ -204,6 +248,9 @@ func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfprotov5.Pla
 	return h.PlanResourceChange(ctx, req)
 }
 
+// ApplyResourceChange will call the ApplyResourceChange method, passing `req`,
+// on the provider that returned the resource specified by req.TypeName in its
+// schema.
 func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfprotov5.ApplyResourceChangeRequest) (*tfprotov5.ApplyResourceChangeResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
@@ -212,6 +259,9 @@ func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfprotov5.Ap
 	return h.ApplyResourceChange(ctx, req)
 }
 
+// ImportResourceState will call the ImportResourceState method, passing `req`,
+// on the provider that returned the resource specified by req.TypeName in its
+// schema.
 func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
@@ -220,6 +270,9 @@ func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfprotov5.Im
 	return h.ImportResourceState(ctx, req)
 }
 
+// ReadDataSource will call the ReadDataSource method, passing `req`, on the
+// provider that returned the data source specified by req.TypeName in its
+// schema.
 func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDataSourceRequest) (*tfprotov5.ReadDataSourceResponse, error) {
 	h, ok := s.dataSources[req.TypeName]
 	if !ok {
@@ -228,6 +281,10 @@ func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDat
 	return h.ReadDataSource(ctx, req)
 }
 
+// StopProvider will call the StopProvider function for each provider
+// associated with the SchemaServer, one at a time. All Error fields will be
+// joined together and returned, but will not prevent the rest of the
+// providers' StopProvider methods from being called.
 func (s SchemaServer) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
 	for _, server := range s.servers {
 		resp, err := server.StopProvider(ctx, req)
