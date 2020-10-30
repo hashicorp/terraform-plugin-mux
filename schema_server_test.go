@@ -141,15 +141,231 @@ func TestSchemaServerGetProviderSchema_combined(t *testing.T) {
 }
 
 func TestSchemaServerGetProviderSchema_errorDuplicateResource(t *testing.T) {
+	server1 := testFactory(&testServer{
+		resourceSchemas: map[string]*tfprotov5.Schema{
+			"test_foo": {},
+		},
+	})
+	server2 := testFactory(&testServer{
+		resourceSchemas: map[string]*tfprotov5.Schema{
+			"test_foo": {},
+		},
+	})
+
+	_, err := NewSchemaServerFactory(context.Background(), server1, server2)
+	if !strings.Contains(err.Error(), "resource \"test_foo\" supported by multiple server implementations") {
+		t.Errorf("expected error about duplicated resources, got %q", err)
+	}
 }
 
 func TestSchemaServerGetProviderSchema_errorDuplicateDataSource(t *testing.T) {
+	server1 := testFactory(&testServer{
+		dataSourceSchemas: map[string]*tfprotov5.Schema{
+			"test_foo": {},
+		},
+	})
+	server2 := testFactory(&testServer{
+		dataSourceSchemas: map[string]*tfprotov5.Schema{
+			"test_foo": {},
+		},
+	})
+
+	_, err := NewSchemaServerFactory(context.Background(), server1, server2)
+	if !strings.Contains(err.Error(), "data source \"test_foo\" supported by multiple server implementations") {
+		t.Errorf("expected error about duplicated data sources, got %q", err)
+	}
 }
 
 func TestSchemaServerGetProviderSchema_errorProviderMismatch(t *testing.T) {
+	server1 := testFactory(&testServer{
+		providerSchema: &tfprotov5.Schema{
+			Version: 1,
+			Block: &tfprotov5.SchemaBlock{
+				Version: 1,
+				Attributes: []*tfprotov5.SchemaAttribute{
+					{
+						Name:            "account_id",
+						Type:            tftypes.String,
+						Required:        true,
+						Description:     "the account ID to make requests for",
+						DescriptionKind: tfprotov5.StringKindPlain,
+					},
+				},
+				BlockTypes: []*tfprotov5.SchemaNestedBlock{
+					{
+						TypeName: "feature",
+						Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+						Block: &tfprotov5.SchemaBlock{
+							Version:         1,
+							Description:     "features to enable on the provider",
+							DescriptionKind: tfprotov5.StringKindPlain,
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "feature_id",
+									Type:            tftypes.Number,
+									Required:        true,
+									Description:     "The ID of the feature",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+								{
+									Name:            "enabled",
+									Type:            tftypes.Bool,
+									Required:        true,
+									Description:     "whether the feature is enabled",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	server2 := testFactory(&testServer{
+		providerSchema: &tfprotov5.Schema{
+			Version: 1,
+			Block: &tfprotov5.SchemaBlock{
+				Version: 1,
+				Attributes: []*tfprotov5.SchemaAttribute{
+					{
+						Name:            "account_id",
+						Type:            tftypes.String,
+						Required:        true,
+						Description:     "the account ID to make requests for",
+						DescriptionKind: tfprotov5.StringKindPlain,
+					},
+				},
+				BlockTypes: []*tfprotov5.SchemaNestedBlock{
+					{
+						TypeName: "feature",
+						Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+						Block: &tfprotov5.SchemaBlock{
+							Version:         1,
+							Description:     "features to enable on the provider",
+							DescriptionKind: tfprotov5.StringKindPlain,
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "feature_id",
+									Type:            tftypes.Number,
+									Required:        true,
+									Description:     "The ID of the feature",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+								{
+									Name:            "enabled",
+									Type:            tftypes.Bool,
+									Optional:        true,
+									Description:     "whether the feature is enabled",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
+	_, err := NewSchemaServerFactory(context.Background(), server1, server2)
+	if !strings.Contains(err.Error(), "got a different provider schema from two servers") {
+		t.Errorf("expected error about mismatched provider schemas, got %q", err)
+	}
 }
 
 func TestSchemaServerGetProviderSchema_errorProviderMetaMismatch(t *testing.T) {
+	server1 := testFactory(&testServer{
+		providerMetaSchema: &tfprotov5.Schema{
+			Version: 1,
+			Block: &tfprotov5.SchemaBlock{
+				Version: 1,
+				Attributes: []*tfprotov5.SchemaAttribute{
+					{
+						Name:            "account_id",
+						Type:            tftypes.String,
+						Required:        true,
+						Description:     "the account ID to make requests for",
+						DescriptionKind: tfprotov5.StringKindPlain,
+					},
+				},
+				BlockTypes: []*tfprotov5.SchemaNestedBlock{
+					{
+						TypeName: "feature",
+						Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+						Block: &tfprotov5.SchemaBlock{
+							Version:         1,
+							Description:     "features to enable on the provider",
+							DescriptionKind: tfprotov5.StringKindPlain,
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "feature_id",
+									Type:            tftypes.Number,
+									Required:        true,
+									Description:     "The ID of the feature",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+								{
+									Name:            "enabled",
+									Type:            tftypes.Bool,
+									Required:        true,
+									Description:     "whether the feature is enabled",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+	server2 := testFactory(&testServer{
+		providerMetaSchema: &tfprotov5.Schema{
+			Version: 1,
+			Block: &tfprotov5.SchemaBlock{
+				Version: 1,
+				Attributes: []*tfprotov5.SchemaAttribute{
+					{
+						Name:            "account_id",
+						Type:            tftypes.String,
+						Required:        true,
+						Description:     "the account ID to make requests for",
+						DescriptionKind: tfprotov5.StringKindPlain,
+					},
+				},
+				BlockTypes: []*tfprotov5.SchemaNestedBlock{
+					{
+						TypeName: "feature",
+						Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+						Block: &tfprotov5.SchemaBlock{
+							Version:         1,
+							Description:     "features to enable on the provider",
+							DescriptionKind: tfprotov5.StringKindPlain,
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "feature_id",
+									Type:            tftypes.Number,
+									Required:        true,
+									Description:     "The ID of the feature",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+								{
+									Name:            "enabled",
+									Type:            tftypes.Bool,
+									Optional:        true,
+									Description:     "whether the feature is enabled",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
+	_, err := NewSchemaServerFactory(context.Background(), server1, server2)
+	if !strings.Contains(err.Error(), "got a different provider_meta schema from two servers") {
+		t.Errorf("expected error about mismatched provider_meta schemas, got %q", err)
+	}
 }
 
 func TestSchemaServerPrepareProviderConfig_errorMultipleResponses(t *testing.T) {
@@ -318,7 +534,291 @@ func TestSchemaServerStopProvider_stoppedEveryone(t *testing.T) {
 }
 
 func TestSchemaServer_resourceRouting(t *testing.T) {
+	server1 := testFactory(&testServer{
+		resourcesCalled: map[string]bool{},
+		resourceSchemas: map[string]*tfprotov5.Schema{
+			"test_foo": {},
+		},
+	})
+	server2 := testFactory(&testServer{
+		resourcesCalled: map[string]bool{},
+		resourceSchemas: map[string]*tfprotov5.Schema{
+			"test_bar": {},
+		},
+	})
+
+	factory, err := NewSchemaServerFactory(context.Background(), server1, server2)
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	_, err = factory.Server().ValidateResourceTypeConfig(context.Background(), &tfprotov5.ValidateResourceTypeConfigRequest{
+		TypeName: "test_foo",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server1().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo to be called on server1, was not")
+	}
+	if server2().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo not to be called on server2, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ValidateResourceTypeConfig(context.Background(), &tfprotov5.ValidateResourceTypeConfigRequest{
+		TypeName: "test_bar",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server2().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar to be called on server2, was not")
+	}
+	if server1().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar not to be called on server1, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().UpgradeResourceState(context.Background(), &tfprotov5.UpgradeResourceStateRequest{
+		TypeName: "test_foo",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server1().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo to be called on server1, was not")
+	}
+	if server2().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo not to be called on server2, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().UpgradeResourceState(context.Background(), &tfprotov5.UpgradeResourceStateRequest{
+		TypeName: "test_bar",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server2().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar to be called on server2, was not")
+	}
+	if server1().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar not to be called on server1, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ReadResource(context.Background(), &tfprotov5.ReadResourceRequest{
+		TypeName: "test_foo",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server1().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo to be called on server1, was not")
+	}
+	if server2().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo not to be called on server2, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ReadResource(context.Background(), &tfprotov5.ReadResourceRequest{
+		TypeName: "test_bar",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server2().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar to be called on server2, was not")
+	}
+	if server1().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar not to be called on server1, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().PlanResourceChange(context.Background(), &tfprotov5.PlanResourceChangeRequest{
+		TypeName: "test_foo",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server1().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo to be called on server1, was not")
+	}
+	if server2().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo not to be called on server2, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().PlanResourceChange(context.Background(), &tfprotov5.PlanResourceChangeRequest{
+		TypeName: "test_bar",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server2().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar to be called on server2, was not")
+	}
+	if server1().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar not to be called on server1, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ApplyResourceChange(context.Background(), &tfprotov5.ApplyResourceChangeRequest{
+		TypeName: "test_foo",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server1().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo to be called on server1, was not")
+	}
+	if server2().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo not to be called on server2, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ApplyResourceChange(context.Background(), &tfprotov5.ApplyResourceChangeRequest{
+		TypeName: "test_bar",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server2().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar to be called on server2, was not")
+	}
+	if server1().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar not to be called on server1, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ImportResourceState(context.Background(), &tfprotov5.ImportResourceStateRequest{
+		TypeName: "test_foo",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server1().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo to be called on server1, was not")
+	}
+	if server2().(*testServer).resourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo not to be called on server2, was")
+	}
+
+	server1().(*testServer).resourcesCalled = map[string]bool{}
+	server2().(*testServer).resourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ImportResourceState(context.Background(), &tfprotov5.ImportResourceStateRequest{
+		TypeName: "test_bar",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server2().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar to be called on server2, was not")
+	}
+	if server1().(*testServer).resourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar not to be called on server1, was")
+	}
 }
 
 func TestSchemaServer_dataSourceRouting(t *testing.T) {
+	server1 := testFactory(&testServer{
+		dataSourcesCalled: map[string]bool{},
+		dataSourceSchemas: map[string]*tfprotov5.Schema{
+			"test_foo": {},
+		},
+	})
+	server2 := testFactory(&testServer{
+		dataSourcesCalled: map[string]bool{},
+		dataSourceSchemas: map[string]*tfprotov5.Schema{
+			"test_bar": {},
+		},
+	})
+
+	factory, err := NewSchemaServerFactory(context.Background(), server1, server2)
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	_, err = factory.Server().ValidateDataSourceConfig(context.Background(), &tfprotov5.ValidateDataSourceConfigRequest{
+		TypeName: "test_foo",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server1().(*testServer).dataSourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo to be called on server1, was not")
+	}
+	if server2().(*testServer).dataSourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo not to be called on server2, was")
+	}
+
+	server1().(*testServer).dataSourcesCalled = map[string]bool{}
+	server2().(*testServer).dataSourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ReadDataSource(context.Background(), &tfprotov5.ReadDataSourceRequest{
+		TypeName: "test_foo",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server1().(*testServer).dataSourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo to be called on server1, was not")
+	}
+	if server2().(*testServer).dataSourcesCalled["test_foo"] {
+		t.Errorf("expected test_foo not to be called on server2, was")
+	}
+
+	server1().(*testServer).dataSourcesCalled = map[string]bool{}
+	server2().(*testServer).dataSourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ValidateDataSourceConfig(context.Background(), &tfprotov5.ValidateDataSourceConfigRequest{
+		TypeName: "test_bar",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server2().(*testServer).dataSourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar to be called on server2, was not")
+	}
+	if server1().(*testServer).dataSourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar not to be called on server1, was")
+	}
+
+	server1().(*testServer).dataSourcesCalled = map[string]bool{}
+	server2().(*testServer).dataSourcesCalled = map[string]bool{}
+
+	_, err = factory.Server().ReadDataSource(context.Background(), &tfprotov5.ReadDataSourceRequest{
+		TypeName: "test_bar",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	if !server2().(*testServer).dataSourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar to be called on server2, was not")
+	}
+	if server1().(*testServer).dataSourcesCalled["test_bar"] {
+		t.Errorf("expected test_bar not to be called on server1, was")
+	}
 }
