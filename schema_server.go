@@ -3,7 +3,9 @@ package tfmux
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
@@ -77,14 +79,14 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.Pro
 			}
 			return factory, fmt.Errorf("error retrieving schema for %T:\n\n\tAttribute: %s\n\tSummary: %s\n\tDetail: %s", s, diag.Attribute, diag.Summary, diag.Detail)
 		}
-		if resp.Provider != nil && factory.providerSchema != nil {
-			return factory, fmt.Errorf("provider schema supported by multiple server implementations (%T, %T), remove support from one", factory.servers[factory.providerSchemaFrom], s)
+		if resp.Provider != nil && factory.providerSchema != nil && !cmp.Equal(resp.Provider, factory.providerSchema) {
+			return factory, fmt.Errorf("got a different provider schema from two servers (%T, %T). Provider schemas must be identical across providers.", factory.servers[factory.providerSchemaFrom](), s)
 		} else if resp.Provider != nil {
 			factory.providerSchemaFrom = pos
 			factory.providerSchema = resp.Provider
 		}
-		if resp.ProviderMeta != nil && factory.providerMetaSchema != nil {
-			return factory, fmt.Errorf("provider_meta schema supported by multiple server implementations (%T, %T), remove support from one", factory.servers[factory.providerMetaSchemaFrom], s)
+		if resp.ProviderMeta != nil && factory.providerMetaSchema != nil && !cmp.Equal(resp.ProviderMeta, factory.providerMetaSchema) {
+			return factory, fmt.Errorf("got a different provider_meta schema from two servers (%T, %T). Provider metadata schemas must be identical across providers.", factory.servers[factory.providerMetaSchemaFrom](), s)
 		} else if resp.ProviderMeta != nil {
 			factory.providerMetaSchemaFrom = pos
 			factory.providerMetaSchema = resp.ProviderMeta
@@ -162,10 +164,26 @@ func (s SchemaServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetP
 // in order, passing `req`. Only one may respond with a non-nil PreparedConfig
 // or a non-empty Diagnostics.
 func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
-	if s.prepareProviderConfigServer < 0 || len(s.servers) <= s.prepareProviderConfigServer {
-		return nil, fmt.Errorf("no server is set to provide the provider's schema")
+	respondedServer := -1
+	var resp *tfprotov5.PrepareProviderConfigResponse
+	for pos, server := range s.servers {
+		res, err := server.PrepareProviderConfig(ctx, req)
+		if err != nil {
+			return resp, fmt.Errorf("error from %T preparing provider config: %w", server, err)
+		}
+		if res == nil {
+			continue
+		}
+		if res.PreparedConfig != nil || len(res.Diagnostics) > 0 {
+			if respondedServer >= 0 {
+				return nil, fmt.Errorf("got a PrepareProviderConfig response from multiple servers, %d and %d, not sure which to use", respondedServer, pos)
+			}
+			resp = res
+			respondedServer = pos
+			continue
+		}
 	}
-	return s.servers[s.prepareProviderConfigServer].PrepareProviderConfig(ctx, req)
+	return resp, nil
 }
 
 // ValidateResourceTypeConfig calls the ValidateResourceTypeConfig method,
@@ -286,14 +304,17 @@ func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDat
 // together and returned, but will not prevent the rest of the providers'
 // StopProvider methods from being called.
 func (s SchemaServer) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
+	var errs []string
 	for _, server := range s.servers {
 		resp, err := server.StopProvider(ctx, req)
 		if err != nil {
 			return resp, fmt.Errorf("error stopping %T: %w", server, err)
 		}
 		if resp.Error != "" {
-			return resp, err
+			errs = append(errs, resp.Error)
 		}
 	}
-	return &tfprotov5.StopProviderResponse{}, nil
+	return &tfprotov5.StopProviderResponse{
+		Error: strings.Join(errs, "\n"),
+	}, nil
 }
