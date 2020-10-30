@@ -198,76 +198,72 @@ func TestSchemaServerPrepareProviderConfig_errorMultipleResponses(t *testing.T) 
 		t.Errorf("unexpected error when no servers replied to PrepareProviderConfig: %s", err)
 	}
 
-	server1 = testFactory(&testServer{
-		respondToPrepareProviderConfig: true,
-	})
-	server2 = testFactory(&testServer{})
-	server3 = testFactory(&testServer{
-		respondToPrepareProviderConfig: true,
-	})
-	factory, err = NewSchemaServerFactory(context.Background(), server1, server2, server3)
-	if err != nil {
-		t.Fatalf("error setting up muxer: %s", err)
-	}
-	_, err = factory.Server().PrepareProviderConfig(context.Background(), &tfprotov5.PrepareProviderConfigRequest{
-		Config: &config,
-	})
-	if !strings.Contains(err.Error(), "got a PrepareProviderConfig response from multiple servers") {
-		t.Errorf("expected error about multiple servers returning PrepareProviderConfigResponses, got %q", err)
-	}
-
-	server1 = testFactory(&testServer{
-		respondToPrepareProviderConfig: true,
-	})
-	server2 = testFactory(&testServer{})
-	server3 = testFactory(&testServer{
-		errorOnPrepareProviderConfig: true,
-	})
-	factory, err = NewSchemaServerFactory(context.Background(), server1, server2, server3)
-	if err != nil {
-		t.Fatalf("error setting up muxer: %s", err)
-	}
-	_, err = factory.Server().PrepareProviderConfig(context.Background(), &tfprotov5.PrepareProviderConfigRequest{
-		Config: &config,
-	})
-	if !strings.Contains(err.Error(), "got a PrepareProviderConfig response from multiple servers") {
-		t.Errorf("expected error about multiple servers returning PrepareProviderConfigResponses, got %q", err)
-	}
-
-	server1 = testFactory(&testServer{
-		respondToPrepareProviderConfig: true,
-	})
-	server2 = testFactory(&testServer{})
-	server3 = testFactory(&testServer{
-		warnOnPrepareProviderConfig: true,
-	})
-	factory, err = NewSchemaServerFactory(context.Background(), server1, server2, server3)
-	if err != nil {
-		t.Fatalf("error setting up muxer: %s", err)
-	}
-	_, err = factory.Server().PrepareProviderConfig(context.Background(), &tfprotov5.PrepareProviderConfigRequest{
-		Config: &config,
-	})
-	if !strings.Contains(err.Error(), "got a PrepareProviderConfig response from multiple servers") {
-		t.Errorf("expected error about multiple servers returning PrepareProviderConfigResponses, got %q", err)
-	}
-
-	server1 = testFactory(&testServer{
-		errorOnPrepareProviderConfig: true,
-	})
-	server2 = testFactory(&testServer{})
-	server3 = testFactory(&testServer{
-		warnOnPrepareProviderConfig: true,
-	})
-	factory, err = NewSchemaServerFactory(context.Background(), server1, server2, server3)
-	if err != nil {
-		t.Fatalf("error setting up muxer: %s", err)
-	}
-	_, err = factory.Server().PrepareProviderConfig(context.Background(), &tfprotov5.PrepareProviderConfigRequest{
-		Config: &config,
-	})
-	if !strings.Contains(err.Error(), "got a PrepareProviderConfig response from multiple servers") {
-		t.Errorf("expected error about multiple servers returning PrepareProviderConfigResponses, got %q", err)
+	for _, fs := range [][]func() tfprotov5.ProviderServer{
+		{
+			testFactory(&testServer{
+				respondToPrepareProviderConfig: true,
+			}),
+			testFactory(&testServer{}),
+			testFactory(&testServer{
+				respondToPrepareProviderConfig: true,
+			}),
+		},
+		{
+			testFactory(&testServer{
+				respondToPrepareProviderConfig: true,
+			}),
+			testFactory(&testServer{}),
+			testFactory(&testServer{
+				errorOnPrepareProviderConfig: true,
+			}),
+		},
+		{
+			testFactory(&testServer{
+				respondToPrepareProviderConfig: true,
+			}),
+			testFactory(&testServer{}),
+			testFactory(&testServer{
+				warnOnPrepareProviderConfig: true,
+			}),
+		},
+		{
+			testFactory(&testServer{
+				errorOnPrepareProviderConfig: true,
+			}),
+			testFactory(&testServer{}),
+			testFactory(&testServer{
+				warnOnPrepareProviderConfig: true,
+			}),
+		},
+		{
+			testFactory(&testServer{
+				errorOnPrepareProviderConfig: true,
+			}),
+			testFactory(&testServer{}),
+			testFactory(&testServer{
+				errorOnPrepareProviderConfig: true,
+			}),
+		},
+		{
+			testFactory(&testServer{
+				warnOnPrepareProviderConfig: true,
+			}),
+			testFactory(&testServer{}),
+			testFactory(&testServer{
+				warnOnPrepareProviderConfig: true,
+			}),
+		},
+	} {
+		factory, err = NewSchemaServerFactory(context.Background(), fs...)
+		if err != nil {
+			t.Fatalf("error setting up muxer: %s", err)
+		}
+		_, err = factory.Server().PrepareProviderConfig(context.Background(), &tfprotov5.PrepareProviderConfigRequest{
+			Config: &config,
+		})
+		if !strings.Contains(err.Error(), "got a PrepareProviderConfig response from multiple servers") {
+			t.Errorf("expected error about multiple servers returning PrepareProviderConfigResponses, got %q", err)
+		}
 	}
 }
 
