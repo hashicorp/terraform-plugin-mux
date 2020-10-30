@@ -1,4 +1,4 @@
-// Package tfmux providers a multiplexer that allows joining multiple Terraform
+// Package tfmux provides a multiplexer that allows joining multiple Terraform
 // provider servers into a single gRPC server.
 //
 // This allows providers to use any framework or SDK built on
