@@ -39,9 +39,9 @@ type SchemaServerFactory struct {
 
 // NewSchemaServerFactory returns a SchemaServerFactory that will route gRPC
 // requests between the tfprotov5.ProviderServers specified. Each function
-// specified will be called, and the tfprotov5.ProviderServer will have its
-// GetProviderSchema method called. The schemas will be used to determine which
-// server handles each requests, with requests for resources and data sources
+// specified is called, and the tfprotov5.ProviderServer has its
+// GetProviderSchema method called. The schemas are used to determine which
+// server handles each request, with requests for resources and data sources
 // directed to the server that specified that data source or resource in its
 // schema. Data sources and resources can only be specified in the schema of
 // one ProviderServer.
@@ -116,7 +116,7 @@ func (s SchemaServerFactory) getSchemaHandler(_ context.Context, _ *tfprotov5.Ge
 	}, nil
 }
 
-// Server returns the SchemaServer that will mux between the
+// Server returns the SchemaServer that muxes between the
 // tfprotov5.ProviderServers associated with the SchemaServerFactory.
 func (s SchemaServerFactory) Server() SchemaServer {
 	res := SchemaServer{
@@ -158,9 +158,9 @@ func (s SchemaServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetP
 	return s.getSchemaHandler(ctx, req)
 }
 
-// PrepareProviderConfig will call the PrepareProviderConfig method on each
-// server in order, passing `req`. Only one may respond with a non-nil
-// PreparedConfig or a non-empty Diagnostics.
+// PrepareProviderConfig calls the PrepareProviderConfig method on each server
+// in order, passing `req`. Only one may respond with a non-nil PreparedConfig
+// or a non-empty Diagnostics.
 func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
 	if s.prepareProviderConfigServer < 0 || len(s.servers) <= s.prepareProviderConfigServer {
 		return nil, fmt.Errorf("no server is set to provide the provider's schema")
@@ -168,7 +168,7 @@ func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.
 	return s.servers[s.prepareProviderConfigServer].PrepareProviderConfig(ctx, req)
 }
 
-// ValidateResourceTypeConfig will call the ValidateResourceTypeConfig method,
+// ValidateResourceTypeConfig calls the ValidateResourceTypeConfig method,
 // passing `req`, on the provider that returned the resource specified by
 // req.TypeName in its schema.
 func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) (*tfprotov5.ValidateResourceTypeConfigResponse, error) {
@@ -179,8 +179,8 @@ func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfpro
 	return h.ValidateResourceTypeConfig(ctx, req)
 }
 
-// ValidateDataSourceConfig will call the ValidateDataSourceConfig method,
-// passing `req`, on the provider that returned the data source specified by
+// ValidateDataSourceConfig calls the ValidateDataSourceConfig method, passing
+// `req`, on the provider that returned the data source specified by
 // req.TypeName in its schema.
 func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfprotov5.ValidateDataSourceConfigRequest) (*tfprotov5.ValidateDataSourceConfigResponse, error) {
 	h, ok := s.dataSources[req.TypeName]
@@ -190,9 +190,9 @@ func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfproto
 	return h.ValidateDataSourceConfig(ctx, req)
 }
 
-// UpgradeResourceState will call the UpgradeResourceState method, passing
-// `req`, on the provider that returned the resource specified by req.TypeName
-// in its schema.
+// UpgradeResourceState calls the UpgradeResourceState method, passing `req`,
+// on the provider that returned the resource specified by req.TypeName in its
+// schema.
 func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
@@ -201,8 +201,8 @@ func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfprotov5.U
 	return h.UpgradeResourceState(ctx, req)
 }
 
-// ConfigureProvider will call each provider's ConfigureProvider method, one at
-// a time, passing `req`. Any Diagnostic with severity error will abort the
+// ConfigureProvider calls each provider's ConfigureProvider method, one at a
+// time, passing `req`. Any Diagnostic with severity error will abort the
 // process and return immediately; non-Error severity Diagnostics will be
 // combined and returned.
 func (s SchemaServer) ConfigureProvider(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
@@ -227,8 +227,8 @@ func (s SchemaServer) ConfigureProvider(ctx context.Context, req *tfprotov5.Conf
 	return &tfprotov5.ConfigureProviderResponse{Diagnostics: diags}, nil
 }
 
-// ReadResource will call the ReadResource method, passing `req`, on the
-// provider that returned the resource specified by req.TypeName in its schema.
+// ReadResource calls the ReadResource method, passing `req`, on the provider
+// that returned the resource specified by req.TypeName in its schema.
 func (s SchemaServer) ReadResource(ctx context.Context, req *tfprotov5.ReadResourceRequest) (*tfprotov5.ReadResourceResponse, error) {
 	h, ok := s.resources[req.TypeName]
 	if !ok {
@@ -237,8 +237,8 @@ func (s SchemaServer) ReadResource(ctx context.Context, req *tfprotov5.ReadResou
 	return h.ReadResource(ctx, req)
 }
 
-// PlanResourceChange will call the PlanResourceChange method, passing `req`,
-// on the provider that returned the resource specified by req.TypeName in its
+// PlanResourceChange calls the PlanResourceChange method, passing `req`, on
+// the provider that returned the resource specified by req.TypeName in its
 // schema.
 func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
 	h, ok := s.resources[req.TypeName]
@@ -248,8 +248,8 @@ func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfprotov5.Pla
 	return h.PlanResourceChange(ctx, req)
 }
 
-// ApplyResourceChange will call the ApplyResourceChange method, passing `req`,
-// on the provider that returned the resource specified by req.TypeName in its
+// ApplyResourceChange calls the ApplyResourceChange method, passing `req`, on
+// the provider that returned the resource specified by req.TypeName in its
 // schema.
 func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfprotov5.ApplyResourceChangeRequest) (*tfprotov5.ApplyResourceChangeResponse, error) {
 	h, ok := s.resources[req.TypeName]
@@ -259,8 +259,8 @@ func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfprotov5.Ap
 	return h.ApplyResourceChange(ctx, req)
 }
 
-// ImportResourceState will call the ImportResourceState method, passing `req`,
-// on the provider that returned the resource specified by req.TypeName in its
+// ImportResourceState calls the ImportResourceState method, passing `req`, on
+// the provider that returned the resource specified by req.TypeName in its
 // schema.
 func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {
 	h, ok := s.resources[req.TypeName]
@@ -270,7 +270,7 @@ func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfprotov5.Im
 	return h.ImportResourceState(ctx, req)
 }
 
-// ReadDataSource will call the ReadDataSource method, passing `req`, on the
+// ReadDataSource calls the ReadDataSource method, passing `req`, on the
 // provider that returned the data source specified by req.TypeName in its
 // schema.
 func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDataSourceRequest) (*tfprotov5.ReadDataSourceResponse, error) {
@@ -281,10 +281,10 @@ func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDat
 	return h.ReadDataSource(ctx, req)
 }
 
-// StopProvider will call the StopProvider function for each provider
-// associated with the SchemaServer, one at a time. All Error fields will be
-// joined together and returned, but will not prevent the rest of the
-// providers' StopProvider methods from being called.
+// StopProvider calls the StopProvider function for each provider associated
+// with the SchemaServer, one at a time. All Error fields will be joined
+// together and returned, but will not prevent the rest of the providers'
+// StopProvider methods from being called.
 func (s SchemaServer) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
 	for _, server := range s.servers {
 		resp, err := server.StopProvider(ctx, req)
