@@ -70,8 +70,36 @@ function starts the server and lets Terraform connect to it.
 
 ## Testing
 
- TODO: insert information here on how to use `helper/resource` to test
-providers written with terraform-plugin-mux.
+The Terraform Plugin SDK's [`helper/resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource) package can be used to test any provider that implements the [`tfprotov5.ProviderServer`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov5#ProviderServer) interface, which includes muxed providers created using `tfmux.NewSchemaServerFactory`.
+
+You may wish to test a terraform-plugin-go provider's resources by supplying only that provider, and not the muxed provider, to the test framework: please see the example in https://github.com/hashicorp/terraform-plugin-go#testing in this case.
+
+Otherwise, you should initialise a muxed provider in your testing code (conventionally in `provider_test.go`), and set this as the value of `ProtoV5ProviderFactories` in each [`TestCase`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase). For example:
+
+```go
+var testAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){}
+
+func init() {
+  testAccProtoV5ProviderFactories["myprovider"] = func() (tfprotov5.ProviderServer, error) {
+    ctx := context.Background()
+    
+    // the ProviderServer from SDKv2
+    sdkv2 := sdkv2provider.Provider().GRPCProvider
+
+    // the terraform-plugin-go provider
+    tpg := protoprovider.Provider
+
+    factory, err := tfmux.NewSchemaServerFactory(ctx, sdkv2, tpg)
+    if err != nil {
+      return nil, err
+    }
+    return factory.Server(), nil
+  }
+}
+```
+
+Here each `TestCase` in which you want to use the muxed provider should include `ProtoV5ProviderFactories: testAccProtoV5ProviderFactories`. Note that the test framework will return an error if you attempt to register the same provider using both `ProviderFactories` and `ProtoV5ProviderFactories`.
+
 
 ## Documentation
 
