@@ -9,7 +9,7 @@ labels: bug
 Inspect your go.mod as below to find the version, and paste the result between
 the ``` marks below.
 
-go list -m github.com/hashicorp/terraform-plugin-mux
+go list -m github.com/hashicorp/terraform-plugin-mux/...
 
 If you are not running the latest version of terraform-plugin-mux, please try
 upgrading because your bug may have already been fixed.
