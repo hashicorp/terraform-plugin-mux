@@ -3,6 +3,7 @@ package tfmux
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
@@ -10,6 +11,13 @@ import (
 )
 
 var _ tfprotov5.ProviderServer = SchemaServer{}
+
+var sortCmpTransformer = cmp.Transformer("Sort", func(in []*tfprotov5.SchemaAttribute) []*tfprotov5.SchemaAttribute {
+	copied := make([]*tfprotov5.SchemaAttribute, len(in))
+	copy(copied, in)
+	sort.Slice(copied, func(i, j int) bool { return copied[i].Name < copied[j].Name })
+	return in
+})
 
 // SchemaServerFactory is a generator for SchemaServers, which are Terraform
 // gRPC servers that route requests to different gRPC provider implementations
@@ -79,13 +87,13 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.Pro
 			}
 			return factory, fmt.Errorf("error retrieving schema for %T:\n\n\tAttribute: %s\n\tSummary: %s\n\tDetail: %s", s, diag.Attribute, diag.Summary, diag.Detail)
 		}
-		if resp.Provider != nil && factory.providerSchema != nil && !cmp.Equal(resp.Provider, factory.providerSchema) {
+		if resp.Provider != nil && factory.providerSchema != nil && !cmp.Equal(resp.Provider, factory.providerSchema, sortCmpTransformer) {
 			return factory, fmt.Errorf("got a different provider schema from two servers (%T, %T). Provider schemas must be identical across providers.", factory.servers[factory.providerSchemaFrom](), s)
 		} else if resp.Provider != nil {
 			factory.providerSchemaFrom = pos
 			factory.providerSchema = resp.Provider
 		}
-		if resp.ProviderMeta != nil && factory.providerMetaSchema != nil && !cmp.Equal(resp.ProviderMeta, factory.providerMetaSchema) {
+		if resp.ProviderMeta != nil && factory.providerMetaSchema != nil && !cmp.Equal(resp.ProviderMeta, factory.providerMetaSchema, sortCmpTransformer) {
 			return factory, fmt.Errorf("got a different provider_meta schema from two servers (%T, %T). Provider metadata schemas must be identical across providers.", factory.servers[factory.providerMetaSchemaFrom](), s)
 		} else if resp.ProviderMeta != nil {
 			factory.providerMetaSchemaFrom = pos
