@@ -1,9 +1,9 @@
-# 0.1.1 (Unreleased)
+# 0.1.1 (February 10, 2021)
 
 BUG FIXES:
 
-* Compare schemas in an order-insensitive way when deciding whether two server implementations are returning the same schema. [GH-18]
-* Surface the difference between schemas when provider and provider_meta schemas differ. [GH-18]
+* Compare schemas in an order-insensitive way when deciding whether two server implementations are returning the same schema. ([#18](https://github.com/hashicorp/terraform-plugin-mux/issues/18))
+* Surface the difference between schemas when provider and provider_meta schemas differ. ([#18](https://github.com/hashicorp/terraform-plugin-mux/issues/18))
 
 # 0.1.0 (November 02, 2020)
 
