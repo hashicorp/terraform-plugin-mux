@@ -23,15 +23,15 @@ commands:
             - "bin/"
 
 jobs:
-  "docker-go114 build":
+  "docker-go117 build":
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
     steps:
       - get_dependencies
       - run: go build ./...
-  "docker-go114 test":
+  "docker-go117 test":
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
         environment:
           TF_ACC_TERRAFORM_VERSION: "0.12.26"
     parameters:
@@ -51,28 +51,28 @@ jobs:
           destination: raw-test-output
       - store_test_results:
           path: << parameters.test_results >>
-  "docker-go114 vet":
+  "docker-go117 vet":
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
     steps:
       - get_dependencies
       - run: go vet ./...
-  "docker-go114 gofmt":
+  "docker-go117 gofmt":
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
     steps:
       - get_dependencies
       - run: ./scripts/gofmtcheck.sh
-  "docker-go114 golangci-lint":
+  "docker-go117 golangci-lint":
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
     steps:
       - get_dependencies
       - get_golangci_lint
       - run: bin/golangci-lint run -v ./...
-  "docker-go114 release":
+  "docker-go117 release":
     docker:
-      - image: circleci/golang:1.14
+      - image: circleci/golang:1.17
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -84,48 +84,48 @@ workflows:
   version: 2
   pr:
     jobs:
-      - "docker-go114 build"
-      - "docker-go114 test":
+      - "docker-go117 build"
+      - "docker-go117 test":
           requires:
-            - "docker-go114 build"
-      - "docker-go114 vet":
+            - "docker-go117 build"
+      - "docker-go117 vet":
           requires:
-            - "docker-go114 build"
-      - "docker-go114 gofmt":
+            - "docker-go117 build"
+      - "docker-go117 gofmt":
           requires:
-            - "docker-go114 build"
-      - "docker-go114 golangci-lint":
+            - "docker-go117 build"
+      - "docker-go117 golangci-lint":
           requires:
-            - "docker-go114 build"
+            - "docker-go117 build"
   release:
     jobs:
-      - "docker-go114 build"
-      - "docker-go114 test":
+      - "docker-go117 build"
+      - "docker-go117 test":
           requires:
-            - "docker-go114 build"
-      - "docker-go114 vet":
+            - "docker-go117 build"
+      - "docker-go117 vet":
           requires:
-            - "docker-go114 build"
-      - "docker-go114 gofmt":
+            - "docker-go117 build"
+      - "docker-go117 gofmt":
           requires:
-            - "docker-go114 build"
-      - "docker-go114 golangci-lint":
+            - "docker-go117 build"
+      - "docker-go117 golangci-lint":
           requires:
-            - "docker-go114 build"
+            - "docker-go117 build"
       - trigger-release:
           filters:
             branches:
               only:
                 - main
           type: approval
-      - "docker-go114 release":
+      - "docker-go117 release":
           filters:
             branches:
               only:
                 - main
           requires:
             - trigger-release
-            - "docker-go114 test"
-            - "docker-go114 vet"
-            - "docker-go114 gofmt"
-            - "docker-go114 golangci-lint"
+            - "docker-go117 test"
+            - "docker-go117 vet"
+            - "docker-go117 gofmt"
+            - "docker-go117 golangci-lint"
