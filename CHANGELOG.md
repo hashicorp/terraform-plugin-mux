@@ -1,3 +1,9 @@
+# 0.4.0 (Unreleased)
+
+NOTES:
+
+* Upgraded terraform-plugin-go to v0.5.0. Provider built against versions of terraform-plugin-go prior to v0.5.0 will run into compatibility issues due to breaking changes in terraform-plugin-go.
+
 # 0.3.0 (September 24, 2021)
 
 NOTES:
