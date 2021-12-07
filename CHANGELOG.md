@@ -1,4 +1,4 @@
-# 0.4.0 (Unreleased)
+# 0.4.0 (December 07, 2021)
 
 NOTES:
 
