@@ -8,11 +8,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/hashicorp/terraform-plugin-log/tfsdklog"
+	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
 )
-
-const tflogSubsystemName = "mux"
 
 var _ tfprotov5.ProviderServer = SchemaServer{}
 
@@ -23,18 +20,6 @@ var cmpOptions = []cmp.Option{
 	cmpopts.SortSlices(func(i, j *tfprotov5.SchemaNestedBlock) bool {
 		return i.TypeName < j.TypeName
 	}),
-}
-
-func withLogger(ctx context.Context) context.Context {
-	return tfsdklog.NewSubsystem(ctx, tflogSubsystemName,
-		tfsdklog.WithLevelFromEnv("TF_LOG_SDK_MUX"))
-}
-
-func withProviderLogger(ctx context.Context, p tfprotov5.ProviderServer) context.Context {
-	ctx = tflog.With(ctx, "tf_mux_provider", fmt.Sprintf("%T", p))
-	ctx = tfsdklog.With(ctx, "tf_mux_provider", fmt.Sprintf("%T", p))
-	ctx = withLogger(ctx)
-	return tfsdklog.SubsystemWith(ctx, tflogSubsystemName, "tf_mux_provider", fmt.Sprintf("%T", p))
 }
 
 // SchemaServerFactory is a generator for SchemaServers, which are Terraform
@@ -74,6 +59,8 @@ type SchemaServerFactory struct {
 // schema. Data sources and resources can only be specified in the schema of
 // one ProviderServer.
 func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.ProviderServer) (SchemaServerFactory, error) {
+	ctx = logging.InitContext(ctx)
+
 	var factory SchemaServerFactory
 
 	// know when these are unset vs set to the element in pos 0
@@ -88,8 +75,8 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.Pro
 
 	for pos, server := range servers {
 		s := server()
-		ctx = withProviderLogger(ctx, s)
-		tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "getting provider schema to build server factory")
+		ctx = logging.Tfprotov5ProviderServerContext(ctx, s)
+		logging.MuxTrace(ctx, "getting provider schema to build server factory")
 		resp, err := s.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
 		if err != nil {
 			return factory, fmt.Errorf("error retrieving schema for %T: %w", s, err)
@@ -120,7 +107,7 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.Pro
 			factory.providerMetaSchema = resp.ProviderMeta
 		}
 		for resource, schema := range resp.ResourceSchemas {
-			tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "getting resource schema to build server factory", "resource", resource)
+			logging.MuxTrace(ctx, "getting resource schema to build server factory", "resource", resource)
 			if v, ok := factory.resources[resource]; ok {
 				return factory, fmt.Errorf("resource %q supported by multiple server implementations (%T, %T); remove support from one", resource, factory.servers[v], s)
 			}
@@ -128,7 +115,7 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.Pro
 			factory.resourceSchemas[resource] = schema
 		}
 		for data, schema := range resp.DataSourceSchemas {
-			tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "getting data source schema to build server factory", "data_source", data)
+			logging.MuxTrace(ctx, "getting data source schema to build server factory", "data_source", data)
 			if v, ok := factory.dataSources[data]; ok {
 				return factory, fmt.Errorf("data source %q supported by multiple server implementations (%T, %T); remove support from one", data, factory.servers[v], s)
 			}
@@ -140,7 +127,7 @@ func NewSchemaServerFactory(ctx context.Context, servers ...func() tfprotov5.Pro
 }
 
 func (s SchemaServerFactory) getSchemaHandler(ctx context.Context, _ *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "serving cached schemas")
+	logging.MuxTrace(ctx, "serving cached schemas")
 	return &tfprotov5.GetProviderSchemaResponse{
 		Provider:          s.providerSchema,
 		ResourceSchemas:   s.resourceSchemas,
@@ -188,7 +175,7 @@ type SchemaServer struct {
 // Resources and data sources must be returned from only one server. Provider
 // and ProviderMeta schemas must be identical between all servers.
 func (s SchemaServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
-	ctx = withLogger(ctx)
+	ctx = logging.InitContext(ctx)
 	return s.getSchemaHandler(ctx, req)
 }
 
@@ -196,10 +183,11 @@ func (s SchemaServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetP
 // in order, passing `req`. Only one may respond with a non-nil PreparedConfig
 // or a non-empty Diagnostics.
 func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.PrepareProviderConfigRequest) (*tfprotov5.PrepareProviderConfigResponse, error) {
+	ctx = logging.InitContext(ctx)
 	respondedServer := -1
 	var resp *tfprotov5.PrepareProviderConfigResponse
 	for pos, server := range s.servers {
-		ctx = withProviderLogger(ctx, server)
+		ctx = logging.Tfprotov5ProviderServerContext(ctx, server)
 		res, err := server.PrepareProviderConfig(ctx, req)
 		if err != nil {
 			return resp, fmt.Errorf("error from %T preparing provider config: %w", server, err)
@@ -208,7 +196,7 @@ func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.
 			continue
 		}
 		if res.PreparedConfig != nil || len(res.Diagnostics) > 0 {
-			tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "found a server that supports PrepareProviderConfig")
+			logging.MuxTrace(ctx, "found a server that supports PrepareProviderConfig")
 			if respondedServer >= 0 {
 				return nil, fmt.Errorf("got a PrepareProviderConfig response from multiple servers, %d and %d, not sure which to use", respondedServer, pos)
 			}
@@ -224,12 +212,13 @@ func (s SchemaServer) PrepareProviderConfig(ctx context.Context, req *tfprotov5.
 // passing `req`, on the provider that returned the resource specified by
 // req.TypeName in its schema.
 func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) (*tfprotov5.ValidateResourceTypeConfigResponse, error) {
+	ctx = logging.InitContext(ctx)
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
 	}
-	ctx = withProviderLogger(ctx, h)
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "validating resource type config")
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, h)
+	logging.MuxTrace(ctx, "validating resource type config")
 	return h.ValidateResourceTypeConfig(ctx, req)
 }
 
@@ -237,12 +226,13 @@ func (s SchemaServer) ValidateResourceTypeConfig(ctx context.Context, req *tfpro
 // `req`, on the provider that returned the data source specified by
 // req.TypeName in its schema.
 func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfprotov5.ValidateDataSourceConfigRequest) (*tfprotov5.ValidateDataSourceConfigResponse, error) {
+	ctx = logging.InitContext(ctx)
 	h, ok := s.dataSources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
 	}
-	ctx = withProviderLogger(ctx, h)
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "validating data source config")
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, h)
+	logging.MuxTrace(ctx, "validating data source config")
 	return h.ValidateDataSourceConfig(ctx, req)
 }
 
@@ -250,12 +240,13 @@ func (s SchemaServer) ValidateDataSourceConfig(ctx context.Context, req *tfproto
 // on the provider that returned the resource specified by req.TypeName in its
 // schema.
 func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error) {
+	ctx = logging.InitContext(ctx)
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
 	}
-	ctx = withProviderLogger(ctx, h)
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "upgrading resource state")
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, h)
+	logging.MuxTrace(ctx, "upgrading resource state")
 	return h.UpgradeResourceState(ctx, req)
 }
 
@@ -264,10 +255,11 @@ func (s SchemaServer) UpgradeResourceState(ctx context.Context, req *tfprotov5.U
 // process and return immediately; non-Error severity Diagnostics will be
 // combined and returned.
 func (s SchemaServer) ConfigureProvider(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
+	ctx = logging.InitContext(ctx)
 	var diags []*tfprotov5.Diagnostic
 	for _, server := range s.servers {
-		ctx = withProviderLogger(ctx, server)
-		tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "configuring provider")
+		ctx = logging.Tfprotov5ProviderServerContext(ctx, server)
+		logging.MuxTrace(ctx, "configuring provider")
 		resp, err := server.ConfigureProvider(ctx, req)
 		if err != nil {
 			return resp, fmt.Errorf("error configuring %T: %w", server, err)
@@ -290,12 +282,13 @@ func (s SchemaServer) ConfigureProvider(ctx context.Context, req *tfprotov5.Conf
 // ReadResource calls the ReadResource method, passing `req`, on the provider
 // that returned the resource specified by req.TypeName in its schema.
 func (s SchemaServer) ReadResource(ctx context.Context, req *tfprotov5.ReadResourceRequest) (*tfprotov5.ReadResourceResponse, error) {
+	ctx = logging.InitContext(ctx)
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
 	}
-	ctx = withProviderLogger(ctx, h)
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "reading resource state")
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, h)
+	logging.MuxTrace(ctx, "reading resource state")
 	return h.ReadResource(ctx, req)
 }
 
@@ -303,12 +296,13 @@ func (s SchemaServer) ReadResource(ctx context.Context, req *tfprotov5.ReadResou
 // the provider that returned the resource specified by req.TypeName in its
 // schema.
 func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
+	ctx = logging.InitContext(ctx)
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
 	}
-	ctx = withProviderLogger(ctx, h)
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "planning resource change")
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, h)
+	logging.MuxTrace(ctx, "planning resource change")
 	return h.PlanResourceChange(ctx, req)
 }
 
@@ -316,12 +310,13 @@ func (s SchemaServer) PlanResourceChange(ctx context.Context, req *tfprotov5.Pla
 // the provider that returned the resource specified by req.TypeName in its
 // schema.
 func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfprotov5.ApplyResourceChangeRequest) (*tfprotov5.ApplyResourceChangeResponse, error) {
+	ctx = logging.InitContext(ctx)
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
 	}
-	ctx = withProviderLogger(ctx, h)
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "applying resource change")
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, h)
+	logging.MuxTrace(ctx, "applying resource change")
 	return h.ApplyResourceChange(ctx, req)
 }
 
@@ -329,12 +324,13 @@ func (s SchemaServer) ApplyResourceChange(ctx context.Context, req *tfprotov5.Ap
 // the provider that returned the resource specified by req.TypeName in its
 // schema.
 func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {
+	ctx = logging.InitContext(ctx)
 	h, ok := s.resources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
 	}
-	ctx = withProviderLogger(ctx, h)
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "importing resource")
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, h)
+	logging.MuxTrace(ctx, "importing resource")
 	return h.ImportResourceState(ctx, req)
 }
 
@@ -342,12 +338,13 @@ func (s SchemaServer) ImportResourceState(ctx context.Context, req *tfprotov5.Im
 // provider that returned the data source specified by req.TypeName in its
 // schema.
 func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDataSourceRequest) (*tfprotov5.ReadDataSourceResponse, error) {
+	ctx = logging.InitContext(ctx)
 	h, ok := s.dataSources[req.TypeName]
 	if !ok {
 		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
 	}
-	ctx = withProviderLogger(ctx, h)
-	tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "reading data source")
+	ctx = logging.Tfprotov5ProviderServerContext(ctx, h)
+	logging.MuxTrace(ctx, "reading data source")
 	return h.ReadDataSource(ctx, req)
 }
 
@@ -356,10 +353,11 @@ func (s SchemaServer) ReadDataSource(ctx context.Context, req *tfprotov5.ReadDat
 // together and returned, but will not prevent the rest of the providers'
 // StopProvider methods from being called.
 func (s SchemaServer) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
+	ctx = logging.InitContext(ctx)
 	var errs []string
 	for _, server := range s.servers {
-		ctx = withProviderLogger(ctx, server)
-		tfsdklog.SubsystemTrace(ctx, tflogSubsystemName, "stopping provider")
+		ctx = logging.Tfprotov5ProviderServerContext(ctx, server)
+		logging.MuxTrace(ctx, "stopping provider")
 		resp, err := server.StopProvider(ctx, req)
 		if err != nil {
 			return resp, fmt.Errorf("error stopping %T: %w", server, err)
