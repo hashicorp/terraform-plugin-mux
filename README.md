@@ -37,7 +37,47 @@ Plugin SDK or higher to be able to be used with terraform-plugin-mux.
 
 ## Getting Started
 
-terraform-plugin-mux exposes a minimal interface:
+Functionality for a provider server is based on the protocol version. There are currently two main protocol versions in use today, protocol version 5 and protocol version 6, based on the development framework being used:
+
+- terraform-plugin-framwork: Implements protocol version 6.
+- terraform-plugin-sdk: Implements protocol version 5.
+- terraform-plugin-go: Implements either protocol version, based on whether the `tf5server` package (protocol version 5) or `tf6server` package (protocol version 6) is being used.
+
+To combine providers together, each must implement the same protocol version.
+
+### Protocol Version 6
+
+Protocol version 6 providers can be combined using the [`tf6muxserver.NewMuxServer` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux/tf6muxserver#NewMuxServer):
+
+```go
+func main() {
+	ctx := context.Background()
+	providers := []func() tfprotov6.ProviderServer{
+		// Example terraform-plugin-framework ProviderServer function
+		// frameworkprovider.Provider().ProviderServer,
+		//
+		// Example terraform-plugin-go ProviderServer function
+		// goprovider.Provider(),
+	}
+
+	muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
+
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	// Use the result to start a muxed provider
+	err = tf6server.Serve("registry.terraform.io/namespace/example", muxServer.ProviderServer)
+
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+}
+```
+
+### Protocol Version 5
+
+Protocol version 5 providers can be combined using the root package [`NewSchemaServerFactory()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux#NewSchemaServerFactory):
 
 ```go
 func main() {
