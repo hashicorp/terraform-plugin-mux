@@ -1,0 +1,3 @@
+```release-note:breaking-change
+The root package `SchemaServer` types and `NewSchemaServerFactory` function have been migrated to the `tf5muxserver` package. To upgrade, replace `tfmux.NewSchemaServerFactory` with `tf5muxserver.NewMuxServer` and replace any invocations of the previous `SchemaServerFactory` type `Server()` method with `ProviderServer()`. The underlying types are no longer exported.
+```

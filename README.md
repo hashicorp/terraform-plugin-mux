@@ -77,40 +77,33 @@ func main() {
 
 ### Protocol Version 5
 
-Protocol version 5 providers can be combined using the root package [`NewSchemaServerFactory()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux#NewSchemaServerFactory):
+Protocol version 5 providers can be combined using the [`tf5muxserver.NewMuxServer` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux/tf5muxserver#NewMuxServer):
 
 ```go
 func main() {
 	ctx := context.Background()
-
-	// the ProviderServer from SDKv2
-	sdkv2 := sdkv2provider.Provider().GRPCProvider
-
-	// the terraform-plugin-go provider
-	tpg := protoprovider.Provider
-
-	factory, err := tfmux.NewSchemaServerFactory(ctx, sdkv2, tpg)
-	if err != nil {
-		log.Println(err.Error())
-		os.Exit(1)
+	providers := []func() tfprotov5.ProviderServer{
+		// Example terraform-plugin-sdk ProviderServer function
+		// sdkprovider.Provider().ProviderServer,
+		//
+		// Example terraform-plugin-go ProviderServer function
+		// goprovider.Provider(),
 	}
-
-	tf5server.Serve("registry.terraform.io/myorg/myprovider", factory.Server)
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	// Use the result to start a muxed provider
+	err = tf5server.Serve("registry.terraform.io/namespace/example", muxServer.ProviderServer)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
 }
 ```
 
-Each server needs a function that returns a
-[`tfprotov5.ProviderServer`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov5#ProviderServer).
-Those get passed into a
-[`NewSchemaServerFactory`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux#NewSchemaServerFactory)
-function, which returns a factory capable of standing up Terraform provider
-servers. Passing that factory into the
-[`tf5server.Serve`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov5/server#Serve)
-function starts the server and lets Terraform connect to it.
-
 ## Testing
 
-The Terraform Plugin SDK's [`helper/resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource) package can be used to test any provider that implements the [`tfprotov5.ProviderServer`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov5#ProviderServer) interface, which includes muxed providers created using `tfmux.NewSchemaServerFactory`.
+The Terraform Plugin SDK's [`helper/resource`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource) package can be used to test any provider that implements the [`tfprotov5.ProviderServer`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov5#ProviderServer) interface, which includes muxed providers created using `tf5muxserver.NewMuxServer`.
 
 You may wish to test a terraform-plugin-go provider's resources by supplying only that provider, and not the muxed provider, to the test framework: please see the example in https://github.com/hashicorp/terraform-plugin-go#testing in this case.
 
@@ -129,11 +122,11 @@ func init() {
     // the terraform-plugin-go provider
     tpg := protoprovider.Provider
 
-    factory, err := tfmux.NewSchemaServerFactory(ctx, sdkv2, tpg)
+    muxServer, err := tf5muxserver.NewMuxServer(ctx, sdkv2, tpg)
     if err != nil {
       return nil, err
     }
-    return factory.Server(), nil
+    return muxServer.ProviderServer(), nil
   }
 }
 ```
