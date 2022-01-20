@@ -39,7 +39,7 @@ Plugin SDK or higher to be able to be used with terraform-plugin-mux.
 
 Functionality for a provider server is based on the protocol version. There are currently two main protocol versions in use today, protocol version 5 and protocol version 6, based on the development framework being used:
 
-- terraform-plugin-framwork: Implements protocol version 6.
+- terraform-plugin-framework: Implements protocol version 6.
 - terraform-plugin-sdk: Implements protocol version 5.
 - terraform-plugin-go: Implements either protocol version, based on whether the `tf5server` package (protocol version 5) or `tf6server` package (protocol version 6) is being used.
 
