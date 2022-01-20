@@ -18,6 +18,8 @@ type TestServer struct {
 
 	ConfigureProviderCalled bool
 
+	GetProviderSchemaCalled bool
+
 	ImportResourceStateCalled map[string]bool
 
 	PlanResourceChangeCalled map[string]bool
@@ -58,6 +60,8 @@ func (s *TestServer) ConfigureProvider(_ context.Context, _ *tfprotov6.Configure
 }
 
 func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
+	s.GetProviderSchemaCalled = true
+
 	if s.DataSourceSchemas == nil {
 		s.DataSourceSchemas = make(map[string]*tfprotov6.Schema)
 	}

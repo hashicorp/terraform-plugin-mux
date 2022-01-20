@@ -1,0 +1,11 @@
+```release-note:note
+Providers can now be muxed with a combination of terraform-plugin-sdk and terraform-plugin-framework server implementations. One option is the terraform-plugin-sdk server can be upgraded to protocol version 6, then muxed with the terraform-plugin-framework server. This allows using new protocol features in the framework implementation, such as nested attributes, but requires Terraform CLI 1.1.5 or later. The other option is the terraform-plugin-framework server can be downgraded to protocol version 5, then muxed with the terraform-plugin-sdk server. This prevents using new protocol features in the framework implementation, however it remains compatible with Terraform CLI 0.12 and later.
+```
+
+```release-note:feature
+Added `tf5to6server` package, for upgrading a protocol version 5 server to protocol version 6
+```
+
+```release-note:feature
+Added `tf6to5server` package, for downgrading a protocol version 6 server to protocol version 5
+```
