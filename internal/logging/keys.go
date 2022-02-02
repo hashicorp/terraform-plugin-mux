@@ -7,4 +7,7 @@ package logging
 const (
 	// Go type of the provider selected by mux.
 	KeyTfMuxProvider = "tf_mux_provider"
+
+	// The RPC being run, such as "ApplyResourceChange"
+	KeyTfRpc = "tf_rpc"
 )

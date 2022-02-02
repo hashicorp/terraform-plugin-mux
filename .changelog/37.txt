@@ -1,0 +1,3 @@
+```release-note:feature
+Added `tf6muxserver` package, a protocol version 6 compatible mux server
+```
