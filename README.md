@@ -133,6 +133,47 @@ func init() {
 
 Here each `TestCase` in which you want to use the muxed provider should include `ProtoV5ProviderFactories: testAccProtoV5ProviderFactories`. Note that the test framework will return an error if you attempt to register the same provider using both `ProviderFactories` and `ProtoV5ProviderFactories`.
 
+## Debugging
+
+The terraform-plugin-go [`tf5server`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server) and [`tf6server`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server) packages used to serve providers support the additional [`tf5server.WithManagedDebug()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server#WithManagedDebug) and [`tf6server.WithManagedDebug()`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server#WithManagedDebug) server options to enable debugger support.
+
+For example, a provider `main` function that takes a `-debug` flag to enable debugging support:
+
+```go
+func main() {
+	debugFlag := flag.Bool("debug", false, "Start provider in debug mode.")
+	flag.Parse()
+
+	ctx := context.Background()
+	providers := []func() tfprotov6.ProviderServer{
+		// Example terraform-plugin-framework ProviderServer function
+		// frameworkprovider.Provider().ProviderServer,
+		//
+		// Example terraform-plugin-go ProviderServer function
+		// goprovider.Provider(),
+	}
+
+	muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
+
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	var serveOpts []tf6server.ServeOpt
+
+	if *debugFlag {
+		serveOpts = append(serveOpts, tf6server.WithManagedDebug())
+	}
+
+	err = tf6server.Serve("registry.terraform.io/namespace/example", muxServer.ProviderServer, serveOpts...)
+
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+}
+```
+
+Refer to the [Terraform documentation](https://www.terraform.io/plugin/sdkv2/debugging) for more information about how to start and attach a debugger once the `main` function is setup.
 
 ## Documentation
 
