@@ -43,9 +43,9 @@ Functionality for a provider server is based on the protocol version. There are 
 - [terraform-plugin-sdk/v2](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2): Implements protocol version 5.
 - [terraform-plugin-go](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go): Implements either protocol version, based on whether the `tf5server` package (protocol version 5) or `tf6server` package (protocol version 6) is being used.
 
-To combine providers together, each must implement the same protocol version.
+To combine providers together, each must implement the same protocol version. Different protocol version providers can be combined by either [upgrading protocol version 5 server to version 6](#upgrading-protocol-version-5-server-to-version-6) or [downgrading protocol version 6 server to version 5](#downgrading-protocol-version-6-server-to-version-5), depending on the appropriate use case.
 
-### Protocol Version 6
+### Combining Protocol Version 6 Servers
 
 Protocol version 6 providers can be combined using the [`tf6muxserver.NewMuxServer` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux/tf6muxserver#NewMuxServer):
 
@@ -75,7 +75,7 @@ func main() {
 }
 ```
 
-### Protocol Version 5
+### Combining Protocol Version 5 Servers
 
 Protocol version 5 providers can be combined using the [`tf5muxserver.NewMuxServer` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux/tf5muxserver#NewMuxServer):
 
@@ -99,6 +99,58 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 }
+```
+
+### Upgrading Protocol Version 5 Server to Version 6
+
+Protocol version 5 servers can be upgraded to protocol version 6 using the [`tf5to6server.UpgradeServer()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux/tf5to6server#UpgradeServer). For example, this enables a terraform-plugin-sdk/v2 provider to be combined with a terraform-plugin-framework provider, while taking advantage of newer protocol features such as nested attributes for newer/migrated resources and practitioners can still use older/unmigrated resources. Since protocol version 6 is forwards compatible with protocol version 5, no additional validation is required during upgrade.
+
+_**NOTE:** While protocol version 6 servers are compatible with Terraform CLI 1.0 and later, terraform-plugin-sdk/v2 servers that are upgraded to protocol version 6 require Terraform CLI 1.1.15 and later._
+
+```go
+ctx := context.Background()
+
+// Example terraform-plugin-sdk/v2 upgrade
+upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, sdkprovider.Provider().ProviderServer)
+
+if err != nil {
+	log.Fatal(err)
+}
+
+providers := []func() tfprotov6.ProviderServer{
+	upgradedSdkProvider.ProviderServer,
+
+	// Example terraform-plugin-framework provider
+	frameworkprovider.Provider().ProviderServer,
+}
+
+muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
+// ...
+```
+
+### Downgrading Protocol Version 6 Server to Version 5
+
+Protocol version 6 servers can be downgraded to protocol version 5 using the [`tf6to5server.DowngradeServer()` function](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux/tf6to5server#DowngradeServer). For example, this enables a terraform-plugin-sdk/v2 provider to be combined with a terraform-plugin-framework provider, while keeping compatibility with Terraform CLI 0.12 and later versions. Since protocol version 6 is not fully backwards compatible with protocol version 5, additional validation is performed upfront to verify that unsupported features, such as nested attributes, are not being used.
+
+```go
+ctx := context.Background()
+
+// Example terraform-plugin-framework downgrade
+downgradedFrameworkProvider, err := tf6to5server.DowngradeServer(ctx, frameworkprovider.Provider().ProviderServer)
+
+if err != nil {
+	log.Fatal(err)
+}
+
+providers := []func() tfprotov6.ProviderServer{
+	downgradedFrameworkProvider.ProviderServer,
+
+	// Example terraform-plugin-sdk/v2 provider
+	sdkprovider.Provider().ProviderServer,
+}
+
+muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
+// ...
 ```
 
 ## Testing
