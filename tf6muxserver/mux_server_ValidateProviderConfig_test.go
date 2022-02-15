@@ -32,6 +32,33 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		t.Fatalf("error constructing config: %s", err)
 	}
 
+	config2, err := tfprotov6.NewDynamicValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"hello": tftypes.String,
+		},
+	}, tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"hello": tftypes.String,
+		},
+	}, map[string]tftypes.Value{
+		"hello": tftypes.NewValue(tftypes.String, "goodbye"),
+	}))
+
+	if err != nil {
+		t.Fatalf("error constructing config: %s", err)
+	}
+
+	configSchema := tfprotov6.Schema{
+		Block: &tfprotov6.SchemaBlock{
+			Attributes: []*tfprotov6.SchemaAttribute{
+				{
+					Name: "hello",
+					Type: tftypes.String,
+				},
+			},
+		},
+	}
+
 	testCases := map[string]struct {
 		servers          []func() tfprotov6.ProviderServer
 		expectedError    error
@@ -222,6 +249,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		"PreparedConfig-once": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
@@ -236,12 +264,16 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		"PreparedConfig-once-and-error": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
 				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -267,12 +299,16 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		"PreparedConfig-once-and-warning": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
 				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -295,21 +331,47 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 				PreparedConfig: &config,
 			},
 		},
-		"PreparedConfig-multiple": {
+		"PreparedConfig-multiple-different": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
 				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
+					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
+						PreparedConfig: &config2,
+					},
+				}).ProviderServer,
+			},
+			expectedError: fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
+		},
+		"PreparedConfig-multiple-equal": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
+					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
+						PreparedConfig: &config,
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 				}).ProviderServer,
 			},
-			expectedError: fmt.Errorf("got a ValidateProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
+			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
+				PreparedConfig: &config,
+			},
 		},
 	}
 

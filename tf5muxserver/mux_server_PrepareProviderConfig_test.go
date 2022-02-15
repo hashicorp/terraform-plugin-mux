@@ -32,6 +32,33 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		t.Fatalf("error constructing config: %s", err)
 	}
 
+	config2, err := tfprotov5.NewDynamicValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"hello": tftypes.String,
+		},
+	}, tftypes.NewValue(tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"hello": tftypes.String,
+		},
+	}, map[string]tftypes.Value{
+		"hello": tftypes.NewValue(tftypes.String, "goodbye"),
+	}))
+
+	if err != nil {
+		t.Fatalf("error constructing config: %s", err)
+	}
+
+	configSchema := tfprotov5.Schema{
+		Block: &tfprotov5.SchemaBlock{
+			Attributes: []*tfprotov5.SchemaAttribute{
+				{
+					Name: "hello",
+					Type: tftypes.String,
+				},
+			},
+		},
+	}
+
 	testCases := map[string]struct {
 		servers          []func() tfprotov5.ProviderServer
 		expectedError    error
@@ -225,6 +252,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
+					ProviderSchema: &configSchema,
 				}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
@@ -239,6 +267,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
+					ProviderSchema: &configSchema,
 				}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{
@@ -250,7 +279,9 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 								Detail:   "test error details",
 							},
 						},
+						PreparedConfig: &config,
 					},
+					ProviderSchema: &configSchema,
 				}).ProviderServer,
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
@@ -270,6 +301,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
+					ProviderSchema: &configSchema,
 				}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{
@@ -295,21 +327,43 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 				PreparedConfig: &config,
 			},
 		},
-		"PreparedConfig-multiple": {
+		"PreparedConfig-multiple-different": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
+					ProviderSchema: &configSchema,
+				}).ProviderServer,
+				(&tf5testserver.TestServer{}).ProviderServer,
+				(&tf5testserver.TestServer{
+					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
+						PreparedConfig: &config2,
+					},
+					ProviderSchema: &configSchema,
+				}).ProviderServer,
+			},
+			expectedError: fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
+		},
+		"PreparedConfig-multiple-equal": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
+						PreparedConfig: &config,
+					},
+					ProviderSchema: &configSchema,
 				}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
+					ProviderSchema: &configSchema,
 				}).ProviderServer,
 			},
-			expectedError: fmt.Errorf("got a PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
+			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
+				PreparedConfig: &config,
+			},
 		},
 	}
 
