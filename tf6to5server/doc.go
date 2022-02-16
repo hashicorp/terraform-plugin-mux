@@ -6,7 +6,7 @@
 //
 // - github.com/hashicorp/terraform-plugin-framework
 // - github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server
-// - github.com/hashicorp/terraform-plugin-mux/tf5to6server
+// - github.com/hashicorp/terraform-plugin-mux/tf6muxserver
 //
 // Refer to the DowngradeServer() function for wrapping a server.
 package tf6to5server
