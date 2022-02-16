@@ -54,7 +54,9 @@ func main() {
 	ctx := context.Background()
 	providers := []func() tfprotov6.ProviderServer{
 		// Example terraform-plugin-framework ProviderServer function
-		// frameworkprovider.Provider().ProviderServer,
+		// func() tfprotov6.ProviderServer {
+		//   return tfsdk.NewProtocol6Server(frameworkprovider.New("version")())
+		// },
 		//
 		// Example terraform-plugin-go ProviderServer function
 		// goprovider.Provider(),
@@ -84,7 +86,7 @@ func main() {
 	ctx := context.Background()
 	providers := []func() tfprotov5.ProviderServer{
 		// Example terraform-plugin-sdk ProviderServer function
-		// sdkprovider.Provider().ProviderServer,
+		// sdkprovider.New("version")().GRPCProvider,
 		//
 		// Example terraform-plugin-go ProviderServer function
 		// goprovider.Provider(),
@@ -111,7 +113,7 @@ _**NOTE:** While protocol version 6 servers are compatible with Terraform CLI 1.
 ctx := context.Background()
 
 // Example terraform-plugin-sdk/v2 upgrade
-upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, sdkprovider.Provider().ProviderServer)
+upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, sdkprovider.New("version")().GRPCProvider)
 
 if err != nil {
 	log.Fatal(err)
@@ -121,7 +123,9 @@ providers := []func() tfprotov6.ProviderServer{
 	upgradedSdkProvider.ProviderServer,
 
 	// Example terraform-plugin-framework provider
-	frameworkprovider.Provider().ProviderServer,
+	func() tfprotov6.ProviderServer {
+		return tfsdk.NewProtocol6Server(frameworkprovider.New("version")())
+	},
 }
 
 muxServer, err := tf6muxserver.NewMuxServer(ctx, providers...)
@@ -136,7 +140,9 @@ Protocol version 6 servers can be downgraded to protocol version 5 using the [`t
 ctx := context.Background()
 
 // Example terraform-plugin-framework downgrade
-downgradedFrameworkProvider, err := tf6to5server.DowngradeServer(ctx, frameworkprovider.Provider().ProviderServer)
+downgradedFrameworkProvider, err := tf6to5server.DowngradeServer(ctx, func() tfprotov6.ProviderServer {
+	return tfsdk.NewProtocol6Server(frameworkprovider.New("version")())
+})
 
 if err != nil {
 	log.Fatal(err)
@@ -146,7 +152,7 @@ providers := []func() tfprotov6.ProviderServer{
 	downgradedFrameworkProvider.ProviderServer,
 
 	// Example terraform-plugin-sdk/v2 provider
-	sdkprovider.Provider().ProviderServer,
+	sdkprovider.New("version")().GRPCProvider,
 }
 
 muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
@@ -199,7 +205,9 @@ func main() {
 	ctx := context.Background()
 	providers := []func() tfprotov6.ProviderServer{
 		// Example terraform-plugin-framework ProviderServer function
-		// frameworkprovider.Provider().ProviderServer,
+		// func() tfprotov6.ProviderServer {
+		//   return tfsdk.NewProtocol6Server(frameworkprovider.New("version")())
+		// },
 		//
 		// Example terraform-plugin-go ProviderServer function
 		// goprovider.Provider(),

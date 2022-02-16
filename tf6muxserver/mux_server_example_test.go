@@ -13,7 +13,9 @@ func ExampleNewMuxServer() {
 	ctx := context.Background()
 	providers := []func() tfprotov6.ProviderServer{
 		// Example terraform-plugin-framework ProviderServer function
-		// frameworkprovider.Provider().ProviderServer,
+		// func() tfprotov6.ProviderServer {
+		//   return tfsdk.NewProtocol6Server(frameworkprovider.New("version")())
+		// },
 		//
 		// Example terraform-plugin-go ProviderServer function
 		// goprovider.Provider(),
