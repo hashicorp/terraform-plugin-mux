@@ -1,3 +1,10 @@
+# 0.5.1
+
+BUG FIXES:
+
+* tf5muxserver: Prevent `PrepareProviderConfig` RPC error for multiple `PreparedConfig` responses when combining terraform-plugin-sdk/v2 providers ([#54](https://github.com/hashicorp/terraform-plugin-mux/issues/54))
+* tf6muxserver: Prevent `ValidateProviderConfig` RPC error for multiple `PreparedConfig` responses when combining terraform-plugin-framework providers ([#54](https://github.com/hashicorp/terraform-plugin-mux/issues/54))
+
 # 0.5.0
 
 NOTES:
