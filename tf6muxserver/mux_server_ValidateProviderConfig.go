@@ -9,8 +9,9 @@ import (
 )
 
 // ValidateProviderConfig calls the ValidateProviderConfig method on each server
-// in order, passing `req`. Only one may respond with a non-nil PreparedConfig
-// or a non-empty Diagnostics.
+// in order, passing `req`. Response diagnostics are appended from all servers.
+// Response PreparedConfig must be equal across all servers with nil values
+// skipped.
 func (s muxServer) ValidateProviderConfig(ctx context.Context, req *tfprotov6.ValidateProviderConfigRequest) (*tfprotov6.ValidateProviderConfigResponse, error) {
 	rpc := "ValidateProviderConfig"
 	ctx = logging.InitContext(ctx)
@@ -42,16 +43,22 @@ func (s muxServer) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Va
 			resp.Diagnostics = append(resp.Diagnostics, res.Diagnostics...)
 		}
 
-		if res.PreparedConfig != nil {
-			// This could check equality to bypass the error, however
-			// DynamicValue does not implement Equals() and previous mux server
-			// implementations have not requested the enhancement.
-			if resp.PreparedConfig != nil {
-				return nil, fmt.Errorf("got a ValidateProviderConfig PreparedConfig response from multiple servers, not sure which to use")
-			}
-
-			resp.PreparedConfig = res.PreparedConfig
+		// Do not check equality on missing PreparedConfig or unset PreparedConfig
+		if res.PreparedConfig == nil {
+			continue
 		}
+
+		equal, err := dynamicValueEquals(schemaType(s.providerSchema), res.PreparedConfig, resp.PreparedConfig)
+
+		if err != nil {
+			return nil, fmt.Errorf("unable to compare PrepareProviderConfig PreparedConfig responses: %w", err)
+		}
+
+		if !equal {
+			return nil, fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use")
+		}
+
+		resp.PreparedConfig = res.PreparedConfig
 	}
 
 	return resp, nil
