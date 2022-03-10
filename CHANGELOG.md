@@ -1,3 +1,9 @@
+# 0.6.0 (March 10, 2022)
+
+NOTES:
+
+* The underlying `terraform-plugin-log` dependency has been updated to v0.3.0, which includes a breaking change in the optional additional fields parameter of logging function calls to ensure correctness and catch coding errors during compilation. Any early adopter provider logging which calls those functions may require updates. ([#63](https://github.com/hashicorp/terraform-plugin-mux/issues/63))
+
 # 0.5.1
 
 BUG FIXES:
