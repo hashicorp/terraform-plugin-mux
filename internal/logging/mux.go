@@ -12,6 +12,6 @@ const (
 )
 
 // MuxTrace emits a mux subsystem log at TRACE level.
-func MuxTrace(ctx context.Context, msg string, args ...interface{}) {
-	tfsdklog.SubsystemTrace(ctx, SubsystemMux, msg, args)
+func MuxTrace(ctx context.Context, msg string, additionalFields ...map[string]interface{}) {
+	tfsdklog.SubsystemTrace(ctx, SubsystemMux, msg, additionalFields...)
 }
