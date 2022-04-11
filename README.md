@@ -35,6 +35,12 @@ is unsupported by the Terraform Plugin SDK team.
 Providers built on the Terraform Plugin SDK must be using version 2.2.0 of the
 Plugin SDK or higher to be able to be used with terraform-plugin-mux.
 
+## Go Compatibility
+
+This project follows the [support policy](https://golang.org/doc/devel/release.html#policy) of Go as its support policy. The two latest major releases of Go are supported by the project.
+
+Currently, that means Go **1.17** or later must be used when including this project as a dependency.
+
 ## Getting Started
 
 Functionality for a provider server is based on the protocol version. There are currently two main protocol versions in use today, protocol version 5 and protocol version 6, based on the development framework being used:
