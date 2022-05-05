@@ -1,6 +1,5 @@
 WEBSITE_REPO=github.com/hashicorp/terraform-website
-BRANCH=kevin/terraform-plugin-mux-split
-PWD=$$(pwd)
+BRANCH=master
 REPO=$$(basename `git rev-parse --show-toplevel`)
 DOCKER_IMAGE="hashicorp/terraform-website:full"
 DOCKER_IMAGE_LOCAL="hashicorp-terraform-website-local"
