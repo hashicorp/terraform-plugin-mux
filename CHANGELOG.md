@@ -1,3 +1,10 @@
+# 0.7.0 (July 15, 2022)
+
+NOTES:
+
+* The underlying `terraform-plugin-log` dependency has been updated to v0.6.0, which includes log filtering support and breaking changes of `With()` to `SetField()` function names. Any provider logging which calls those functions may require updates. ([#92](https://github.com/hashicorp/terraform-plugin-mux/issues/92))
+* This Go module has been updated to Go 1.17 per the [Go support policy](https://golang.org/doc/devel/release.html#policy). Any consumers building on earlier Go versions may experience errors. ([#73](https://github.com/hashicorp/terraform-plugin-mux/issues/73))
+
 # 0.6.0 (March 10, 2022)
 
 NOTES:
