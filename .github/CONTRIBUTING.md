@@ -36,7 +36,7 @@ described at https://www.hashicorp.com/security#vulnerability-reporting
 ## New Issue
 
 We welcome issues of all kinds, including feature requests, bug reports, or
-documentation suggestions/contributions. Below are guidelines for well-formed issues of each
+documentation contributions. Below are guidelines for well-formed issues of each
 type.
 
 ### Bug Reports
