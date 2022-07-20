@@ -81,9 +81,7 @@ type.
    "how do servers' schemas get merged?" in mind. This helps us ensure the
    documentation is targeted, specific, and framed in a useful way.
 
- - [ ] **Contribute**: This repository contains source files that power
-   versioned documentation for [terraform.io/plugin/mux](https://www.terraform.io/plugin/mux). Feel free to open a pull request with documentation changes.
-   See the [website README](../website/README.md) for additional information.
+ - [ ] **Contribute**: This repository contains the markdown files that generate versioned documentation for [terraform.io/plugin/mux](https://www.terraform.io/plugin/mux). Please open a pull request with documentation changes. Refer to the [website README](../website/README.md) for more information.
 
 ## New Pull Request
 
