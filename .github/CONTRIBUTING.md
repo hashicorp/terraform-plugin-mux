@@ -36,7 +36,7 @@ described at https://www.hashicorp.com/security#vulnerability-reporting
 ## New Issue
 
 We welcome issues of all kinds, including feature requests, bug reports, or
-documentation suggestions. Below are guidelines for well-formed issues of each
+documentation suggestions/contributions. Below are guidelines for well-formed issues of each
 type.
 
 ### Bug Reports
@@ -69,7 +69,7 @@ type.
    the wider Terraform ecosystem. A use case in the context of 1 provider is
    good, a use case in the context of many providers is better.
 
-### Documentation Suggestions
+### Documentation Suggestions/Contributions
 
  - [ ] **Search for possible duplicate suggestions**: It's helpful to keep
    suggestions consolidated to one thread, so do a quick search on existing
@@ -80,6 +80,10 @@ type.
    It's very helpful when writing documentation to have specific questions like
    "how do servers' schemas get merged?" in mind. This helps us ensure the
    documentation is targeted, specific, and framed in a useful way.
+
+ - [ ] **Contribute**: This repository contains source files that power
+   versioned documentation for [terraform.io/plugin/mux](https://www.terraform.io/plugin/mux). Feel free to open a pull request with documentation changes.
+   See the [website README](../website/README.md) for additional information.
 
 ## New Pull Request
 
