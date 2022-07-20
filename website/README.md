@@ -13,7 +13,9 @@ Updates to the sidebar navigation of Terraform docs can be made in the [nav-data
 
 ## Previewing Changes
 
-You should preview all of your changes locally before creating a pull request. The build includes content from this repository and the [`terraform-website`](https://github.com/hashicorp/terraform-website/) repository, allowing you to preview the entire Terraform documentation site.
+You should preview your changes locally to ensure that the content is rendering properly before you create a pull request. The build includes content from this repository and the [`terraform-website`](https://github.com/hashicorp/terraform-website/) repository, allowing you to preview the entire Terraform documentation site.
+
+To preview your content, complete the following steps:
 
 **Set Up Local Environment**
 
