@@ -9,7 +9,11 @@ a whole.
 
 ## Updating Sidebar Navigation
 
-Updates to the sidebar navigation of Terraform docs can be made in the [nav-data] file. For details on structuring of sidebar navigation, see https://github.com/hashicorp/terraform-website#editing-navigation-sidebars
+You must update the sidebar navigation for the `terraform-plugin-mux` documentation any time that you add or delete a documentation page. The website builds the sidebar navigation menu from the [nav-data json] file. For more details about how to update this file, refer to https://github.com/hashicorp/terraform-website#editing-navigation-sidebars.
+
+## Adding Redirects
+
+You must add a redirect when you move, rename, or delete documentation pages. Refer to https://github.com/hashicorp/terraform-website#redirects for details.
 
 ## Previewing Changes
 
