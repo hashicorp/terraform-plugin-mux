@@ -7,7 +7,7 @@ The files in this directory are intended to be used in conjunction with
 different documentation sources together and contains the scripts for testing and building the site as
 a whole.
 
-## Modifying Sidebar Navigation
+## Updating Sidebar Navigation
 
 Updates to the sidebar navigation of Terraform docs can be made in the [nav-data] file. For details on structuring of sidebar navigation, see https://github.com/hashicorp/terraform-website#editing-navigation-sidebars
 
