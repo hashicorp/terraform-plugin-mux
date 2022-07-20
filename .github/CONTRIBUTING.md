@@ -69,7 +69,7 @@ type.
    the wider Terraform ecosystem. A use case in the context of 1 provider is
    good, a use case in the context of many providers is better.
 
-### Documentation Suggestions/Contributions
+### Documentation Contributions
 
  - [ ] **Search for possible duplicate suggestions**: It's helpful to keep
    suggestions consolidated to one thread, so do a quick search on existing
