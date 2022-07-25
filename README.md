@@ -252,7 +252,7 @@ with requests for additional documentation you would find useful.
 
 ## Contributing
 
-Refer to [`.github/CONTRIBUTING.md`](https://github.com/hashicorp/terraform-plugin-mux/blob/master/.github/CONTRIBUTING.md). The [website directory README](/website.README.md) contains details about how to contribute to the documentation on terraform.io.
+Refer to [`.github/CONTRIBUTING.md`](https://github.com/hashicorp/terraform-plugin-mux/blob/master/.github/CONTRIBUTING.md). The [website directory README](/website/README.md) contains details about how to contribute to the documentation on terraform.io.
 
 ## License
 
