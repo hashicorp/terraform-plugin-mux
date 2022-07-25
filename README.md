@@ -243,20 +243,16 @@ Refer to the [Terraform documentation](https://www.terraform.io/plugin/sdkv2/deb
 
 ## Documentation
 
-Documentation is a work in progress. The GoDoc for packages, types, functions,
-and methods should have complete information, but we're working to add a
-section to [terraform.io](https://terraform.io/) with more information about
-the module, its common uses, and patterns developers may wish to take advantage
-of.
+Refer to the GoDoc for information about packages, types, functions,
+and methods. We also have documentation about how to use the module, 
+including use cases and examples, on [terraform.io](https://www.terraform.io/plugin/mux).
 
-Please bear with us as we work to get this information published, and please
-[open
-issues](https://github.com/hashicorp/terraform-plugin-mux/issues/new/choose)
-with requests for the kind of documentation you would find useful.
+Please [open issues](https://github.com/hashicorp/terraform-plugin-mux/issues/new/choose)
+with requests for additional documentation you would find useful.
 
 ## Contributing
 
-Please see [`.github/CONTRIBUTING.md`](https://github.com/hashicorp/terraform-plugin-mux/blob/master/.github/CONTRIBUTING.md).
+Refer to [`.github/CONTRIBUTING.md`](https://github.com/hashicorp/terraform-plugin-mux/blob/master/.github/CONTRIBUTING.md). The [website directory README](/website/README.md) contains details about how to contribute to the documentation on terraform.io.
 
 ## License
 
