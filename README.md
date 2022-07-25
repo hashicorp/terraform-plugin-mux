@@ -247,7 +247,7 @@ Refer to the GoDoc for information about packages, types, functions,
 and methods. We also have documentation about how to use the module, 
 including use cases and examples, on [terraform.io](https://www.terraform.io/plugin/mux).
 
-Please[open issues](https://github.com/hashicorp/terraform-plugin-mux/issues/new/choose)
+Please [open issues](https://github.com/hashicorp/terraform-plugin-mux/issues/new/choose)
 with requests for additional documentation you would find useful.
 
 ## Contributing
