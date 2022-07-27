@@ -13,7 +13,7 @@ You must update the sidebar navigation for the `terraform-plugin-mux` documentat
 
 ## Adding Redirects
 
-You must add a redirect when you move, rename, or delete documentation pages. Refer to https://github.com/hashicorp/terraform-website#redirects for details.
+You must add a redirect when you move, rename, or delete documentation pages. Refer to [Redirects in the `terraform-website` repository](https://github.com/hashicorp/terraform-website#redirects) for details.
 
 ## Previewing Changes
 
