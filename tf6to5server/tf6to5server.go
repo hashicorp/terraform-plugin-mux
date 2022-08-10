@@ -13,8 +13,8 @@ import (
 // version 5 server. Protocol version 5 is not backwards compatible with
 // protocol version 6, so additional validation is performed:
 //
-// - GetProviderSchema is called to ensure SchemaAttribute.NestedType
-//   (nested attributes) are not implemented.
+//   - GetProviderSchema is called to ensure SchemaAttribute.NestedType
+//     (nested attributes) are not implemented.
 //
 // Protocol version 5 servers require Terraform CLI 0.12 or later.
 func DowngradeServer(ctx context.Context, v6server func() tfprotov6.ProviderServer) (tfprotov5.ProviderServer, error) {
