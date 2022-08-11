@@ -4,9 +4,9 @@
 // the tfprotov6.ProviderServer (https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6#ProviderServer)
 // interface, such as:
 //
-//     - https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework
-//     - https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server
-//     - https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux/tf6muxserver
+//   - https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework
+//   - https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server
+//   - https://pkg.go.dev/github.com/hashicorp/terraform-plugin-mux/tf6muxserver
 //
 // Refer to the DowngradeServer() function for wrapping a server.
 package tf6to5server

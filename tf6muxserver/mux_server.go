@@ -39,10 +39,10 @@ func (s muxServer) ProviderServer() tfprotov6.ProviderServer {
 // tfprotov6.ProviderServers specified. The GetProviderSchema method of each
 // is called to verify that the overall muxed server is compatible by ensuring:
 //
-//  - All provider schemas exactly match
-//  - All provider meta schemas exactly match
-//  - Only one provider implements each managed resource
-//  - Only one provider implements each data source
+//   - All provider schemas exactly match
+//   - All provider meta schemas exactly match
+//   - Only one provider implements each managed resource
+//   - Only one provider implements each data source
 //
 // The various schemas are cached and used to respond to the GetProviderSchema
 // method of the muxed server.
