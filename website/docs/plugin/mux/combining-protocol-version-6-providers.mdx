@@ -19,7 +19,7 @@ Protocol version 6 provider servers are compatible with Terraform CLI 1.0 and la
 
 The following provider server implementations are supported:
 
-* [terraform-plugin-framework](/plugin/framework/): A higher-level SDK that makes Terraform provider development easier by abstracting implementation details.
+* [terraform-plugin-framework](/plugin/framework): A higher-level SDK that makes Terraform provider development easier by abstracting implementation details.
 * [terraform-plugin-go tf6server](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server): A lower-level SDK to develop Terraform providers for more advanced use cases.
 * [tf5to6server](/plugin/mux/translating-protocol-version-5-to-6): A package to translate protocol version 5 providers into protocol version 6.
 
@@ -31,7 +31,7 @@ To be combined, provider servers must meet the following requirements:
 * All provider meta schemas must match.
 * Only one provider may implement each resource and data source.
 
-If publishing to the [Terraform Registry](/registry), set `metadata.protocol_versions` to `["6.0"]` in the [Terraform Registry manifest file](https://www.terraform.io/registry/providers/publishing#terraform-registry-manifest-file).
+If publishing to the [Terraform Registry](/registry), set `metadata.protocol_versions` to `["6.0"]` in the [Terraform Registry manifest file](/registry/providers/publishing#terraform-registry-manifest-file).
 
 ## Code Implementation
 
