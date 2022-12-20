@@ -1,3 +1,14 @@
+# 0.8.0 (December 20, 2022)
+
+NOTES:
+
+* This Go module has been updated to Go 1.18 per the [Go support policy](https://golang.org/doc/devel/release.html#policy). Any consumers building on earlier Go versions may experience errors. ([#101](https://github.com/hashicorp/terraform-plugin-mux/issues/101))
+
+BUG FIXES:
+
+* tf5muxserver+tf6muxserver: Allow differing provider schema block `MinItems` and `MaxItems` as terraform-plugin-framework does not use those fields for configuration validation ([#118](https://github.com/hashicorp/terraform-plugin-mux/issues/118))
+* tf5muxserver+tf6muxserver: Deferred combined server implementation errors until `GetProviderSchema` RPC to prevent confusing Terraform CLI plugin startup errors ([#121](https://github.com/hashicorp/terraform-plugin-mux/issues/121))
+
 # 0.7.0 (July 15, 2022)
 
 NOTES:
