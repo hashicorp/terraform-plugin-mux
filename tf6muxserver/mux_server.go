@@ -23,6 +23,18 @@ type muxServer struct {
 	// Underlying servers for requests that should be handled by all servers
 	servers []tfprotov6.ProviderServer
 
+	// Server errors are cached during server creation and deferred until
+	// the GetProviderSchema call. This is to prevent confusing Terraform CLI
+	// errors about the plugin not starting properly, which do not display the
+	// stderr output from the plugin.
+	//
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/77
+	// Reference: https://github.com/hashicorp/terraform/issues/31363
+	serverDataSourceSchemaDuplicates    []string
+	serverProviderSchemaDifferences     []string
+	serverProviderMetaSchemaDifferences []string
+	serverResourceSchemaDuplicates      []string
+
 	// Schemas are cached during server creation
 	dataSourceSchemas  map[string]*tfprotov6.Schema
 	providerMetaSchema *tfprotov6.Schema
@@ -79,36 +91,36 @@ func NewMuxServer(ctx context.Context, servers ...func() tfprotov6.ProviderServe
 
 		if resp.Provider != nil {
 			if result.providerSchema != nil && !schemaEquals(resp.Provider, result.providerSchema) {
-				return result, fmt.Errorf("got a different provider schema across servers. Provider schemas must be identical across providers. Diff: %s", schemaDiff(resp.Provider, result.providerSchema))
+				result.serverProviderSchemaDifferences = append(result.serverProviderSchemaDifferences, schemaDiff(resp.Provider, result.providerSchema))
+			} else {
+				result.providerSchema = resp.Provider
 			}
-
-			result.providerSchema = resp.Provider
 		}
 
 		if resp.ProviderMeta != nil {
 			if result.providerMetaSchema != nil && !schemaEquals(resp.ProviderMeta, result.providerMetaSchema) {
-				return result, fmt.Errorf("got a different provider meta schema across servers. Provider metadata schemas must be identical across providers. Diff: %s", schemaDiff(resp.ProviderMeta, result.providerMetaSchema))
+				result.serverProviderMetaSchemaDifferences = append(result.serverProviderMetaSchemaDifferences, schemaDiff(resp.ProviderMeta, result.providerMetaSchema))
+			} else {
+				result.providerMetaSchema = resp.ProviderMeta
 			}
-
-			result.providerMetaSchema = resp.ProviderMeta
 		}
 
 		for resourceType, schema := range resp.ResourceSchemas {
 			if _, ok := result.resources[resourceType]; ok {
-				return result, fmt.Errorf("resource %q is implemented by multiple servers; only one implementation allowed", resourceType)
+				result.serverResourceSchemaDuplicates = append(result.serverResourceSchemaDuplicates, resourceType)
+			} else {
+				result.resources[resourceType] = server
+				result.resourceSchemas[resourceType] = schema
 			}
-
-			result.resources[resourceType] = server
-			result.resourceSchemas[resourceType] = schema
 		}
 
 		for dataSourceType, schema := range resp.DataSourceSchemas {
 			if _, ok := result.dataSources[dataSourceType]; ok {
-				return result, fmt.Errorf("data source %q is implemented by multiple servers; only one implementation allowed", dataSourceType)
+				result.serverDataSourceSchemaDuplicates = append(result.serverDataSourceSchemaDuplicates, dataSourceType)
+			} else {
+				result.dataSources[dataSourceType] = server
+				result.dataSourceSchemas[dataSourceType] = schema
 			}
-
-			result.dataSources[dataSourceType] = server
-			result.dataSourceSchemas[dataSourceType] = schema
 		}
 
 		result.servers = append(result.servers, server)

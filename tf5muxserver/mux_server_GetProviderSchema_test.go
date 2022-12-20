@@ -17,6 +17,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 	testCases := map[string]struct {
 		servers                    []func() tfprotov5.ProviderServer
 		expectedDataSourceSchemas  map[string]*tfprotov5.Schema
+		expectedDiagnostics        []*tfprotov5.Diagnostic
 		expectedProviderSchema     *tfprotov5.Schema
 		expectedProviderMetaSchema *tfprotov5.Schema
 		expectedResourceSchemas    map[string]*tfprotov5.Schema
@@ -416,6 +417,210 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 		},
+		"duplicate-data-source-type": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					DataSourceSchemas: map[string]*tfprotov5.Schema{
+						"test_foo": {},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					DataSourceSchemas: map[string]*tfprotov5.Schema{
+						"test_foo": {},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_foo": {},
+			},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Summary: "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same data source type across providers. " +
+						"Data source types must be implemented by only one provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate data source type: test_foo",
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+		},
+		"duplicate-resource-type": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					ResourceSchemas: map[string]*tfprotov5.Schema{
+						"test_foo": {},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					ResourceSchemas: map[string]*tfprotov5.Schema{
+						"test_foo": {},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Summary: "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same resource type across providers. " +
+						"Resource types must be implemented by only one provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate resource type: test_foo",
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_foo": {},
+			},
+		},
+		"provider-mismatch": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					ProviderSchema: &tfprotov5.Schema{
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "testattribute1",
+									Type:     tftypes.String,
+									Required: true,
+								},
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					ProviderSchema: &tfprotov5.Schema{
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "testattribute2",
+									Type:     tftypes.String,
+									Required: true,
+								},
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Summary: "Invalid Provider Server Combination",
+					Detail: "The combined provider has differing provider schema implementations across providers. " +
+						"Provider schemas must be identical across providers. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Provider schema difference: " + cmp.Diff(
+						&tfprotov5.Schema{
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "testattribute2",
+										Type:     tftypes.String,
+										Required: true,
+									},
+								},
+							},
+						},
+						&tfprotov5.Schema{
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "testattribute1",
+										Type:     tftypes.String,
+										Required: true,
+									},
+								},
+							},
+						},
+					),
+				},
+			},
+			expectedProviderSchema: &tfprotov5.Schema{
+				Block: &tfprotov5.SchemaBlock{
+					Attributes: []*tfprotov5.SchemaAttribute{
+						{
+							Name:     "testattribute1",
+							Type:     tftypes.String,
+							Required: true,
+						},
+					},
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+		},
+		"provider-meta-mismatch": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					ProviderMetaSchema: &tfprotov5.Schema{
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "testattribute1",
+									Type:     tftypes.String,
+									Required: true,
+								},
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					ProviderMetaSchema: &tfprotov5.Schema{
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:     "testattribute2",
+									Type:     tftypes.String,
+									Required: true,
+								},
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Summary: "Invalid Provider Server Combination",
+					Detail: "The combined provider has differing provider meta schema implementations across providers. " +
+						"Provider meta schemas must be identical across providers. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Provider meta schema difference: " + cmp.Diff(
+						&tfprotov5.Schema{
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "testattribute2",
+										Type:     tftypes.String,
+										Required: true,
+									},
+								},
+							},
+						},
+						&tfprotov5.Schema{
+							Block: &tfprotov5.SchemaBlock{
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:     "testattribute1",
+										Type:     tftypes.String,
+										Required: true,
+									},
+								},
+							},
+						},
+					),
+				},
+			},
+			expectedProviderMetaSchema: &tfprotov5.Schema{
+				Block: &tfprotov5.SchemaBlock{
+					Attributes: []*tfprotov5.SchemaAttribute{
+						{
+							Name:     "testattribute1",
+							Type:     tftypes.String,
+							Required: true,
+						},
+					},
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -438,6 +643,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 
 			if diff := cmp.Diff(resp.DataSourceSchemas, testCase.expectedDataSourceSchemas); diff != "" {
 				t.Errorf("data source schemas didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.Diagnostics, testCase.expectedDiagnostics); diff != "" {
+				t.Errorf("diagnostics didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.Provider, testCase.expectedProviderSchema); diff != "" {
