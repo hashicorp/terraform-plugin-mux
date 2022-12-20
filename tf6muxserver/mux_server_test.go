@@ -547,6 +547,54 @@ func TestNewMuxServer(t *testing.T) {
 				}).ProviderServer,
 			},
 		},
+		"nested block MinItems and MaxItems diff are ignored": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					ProviderSchema: &tfprotov6.Schema{
+						Version: 1,
+						Block: &tfprotov6.SchemaBlock{
+							Version: 1,
+							BlockTypes: []*tfprotov6.SchemaNestedBlock{
+								{
+									TypeName: "feature",
+									Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+									Block: &tfprotov6.SchemaBlock{
+										Version:         1,
+										Description:     "features to enable on the provider",
+										DescriptionKind: tfprotov6.StringKindPlain,
+										Attributes:      []*tfprotov6.SchemaAttribute{},
+									},
+									MinItems: 1,
+									MaxItems: 2,
+								},
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					ProviderSchema: &tfprotov6.Schema{
+						Version: 1,
+						Block: &tfprotov6.SchemaBlock{
+							Version: 1,
+							BlockTypes: []*tfprotov6.SchemaNestedBlock{
+								{
+									TypeName: "feature",
+									Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+									Block: &tfprotov6.SchemaBlock{
+										Version:         1,
+										Description:     "features to enable on the provider",
+										DescriptionKind: tfprotov6.StringKindPlain,
+										Attributes:      []*tfprotov6.SchemaAttribute{},
+									},
+									MinItems: 0,
+									MaxItems: 0,
+								},
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
