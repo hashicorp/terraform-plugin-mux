@@ -2,7 +2,6 @@ package tf5muxserver_test
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -32,7 +31,7 @@ func TestNewMuxServer(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
-			expectedError: fmt.Errorf("data source \"test_foo\" is implemented by multiple servers; only one implementation allowed"),
+			expectedError: nil, // deferred to GetProviderSchema
 		},
 		"duplicate-resource": {
 			servers: []func() tfprotov5.ProviderServer{
@@ -47,7 +46,7 @@ func TestNewMuxServer(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
-			expectedError: fmt.Errorf("resource \"test_foo\" is implemented by multiple servers; only one implementation allowed"),
+			expectedError: nil, // deferred to GetProviderSchema
 		},
 		"provider-mismatch": {
 			servers: []func() tfprotov5.ProviderServer{
@@ -140,7 +139,7 @@ func TestNewMuxServer(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
-			expectedError: fmt.Errorf("got a different provider schema across servers. Provider schemas must be identical across providers"),
+			expectedError: nil, // deferred to GetProviderSchema
 		},
 		"provider-ordering": {
 			servers: []func() tfprotov5.ProviderServer{
@@ -389,7 +388,7 @@ func TestNewMuxServer(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
-			expectedError: fmt.Errorf("got a different provider meta schema across servers. Provider metadata schemas must be identical across providers"),
+			expectedError: nil, // deferred to GetProviderSchema
 		},
 		"provider-meta-ordering": {
 			servers: []func() tfprotov5.ProviderServer{
