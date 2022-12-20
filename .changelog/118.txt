@@ -1,0 +1,3 @@
+```release-note:bug
+tf5muxserver+tf6muxserver: Allow differing provider schema block `MinItems` and `MaxItems` as terraform-plugin-framework does not use those fields for configuration validation
+```
