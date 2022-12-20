@@ -46,7 +46,9 @@ The following example uses [`tf5server`](https://pkg.go.dev/github.com/hashicorp
 ```go
 err = tf5server.Serve(
 	"registry.terraform.io/example/example",
-	downgradedFrameworkProvider.ProviderServer,
+	func() tfprotov5.ProviderServer {
+		return downgradedFrameworkProvider
+	},
 )
 ```
 
@@ -54,7 +56,9 @@ The following example uses [`tf5muxserver`](/plugin/mux/combining-protocol-versi
 
 ```go
 providers := []func() tfprotov5.ProviderServer{
-	downgradedFrameworkProvider.ProviderServer,
+	func() tfprotov5.ProviderServer {
+		return downgradedFrameworkProvider
+	},
 
 	// Example terraform-plugin-sdk/v2 provider
 	sdkprovider.New(version)().GRPCProvider,
@@ -76,17 +80,10 @@ resource.Test(t, resource.TestCase{
 	// ... other TestCase fields ...
 	ProtoV5ProviderFactories: map[string]func() (tfprotov5.ProviderServer, error) {
 		"example": func() (tfprotov5.ProviderServer, error) {
-			ctx := context.Background()
-			downgradedFrameworkProvider, err := tf6to5server.DowngradeServer(
-				ctx,
-				providerserver.NewProtocol6(frameworkprovider.New("test")())
+			return tf6to5server.DowngradeServer(
+				context.Background(),
+				providerserver.NewProtocol6(frameworkprovider.New("test")()),
 			)
-
-			if err != nil {
-				return nil, err
-			}
-
-			return downgradedFrameworkProvider.ProviderServer(), nil
 		},
 	},
 })

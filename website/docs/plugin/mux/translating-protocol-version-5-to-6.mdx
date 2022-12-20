@@ -46,7 +46,9 @@ The following example uses [`tf6server`](https://pkg.go.dev/github.com/hashicorp
 ```go
 err = tf6server.Serve(
 	"registry.terraform.io/example/example",
-	upgradedSdkProvider.ProviderServer,
+	func() tfprotov6.ProviderServer {
+		return upgradedSdkProvider
+	},
 )
 ```
 
@@ -54,7 +56,9 @@ The following example uses [`tf6muxserver`](/plugin/mux/combining-protocol-versi
 
 ```go
 providers := []func() tfprotov6.ProviderServer{
-	upgradedSdkProvider.ProviderServer,
+	func() tfprotov6.ProviderServer {
+		return upgradedSdkProvider
+	},
 
 	// Example terraform-plugin-framework provider
 	providerserver.NewProtocol6(frameworkprovider.New(version)())
@@ -76,17 +80,10 @@ resource.Test(t, resource.TestCase{
 	// ... other TestCase fields ...
 	ProtoV6ProviderFactories: map[string]func() (tfprotov6.ProviderServer, error) {
 		"example": func() (tfprotov6.ProviderServer, error) {
-			ctx := context.Background()
-			upgradedSdkProvider, err := tf5to6server.UpgradeServer(
-				ctx,
+			return tf5to6server.UpgradeServer(
+				context.Background(),
 				sdkprovider.New("test")().GRPCProvider,
 			)
-
-			if err != nil {
-				return nil, err
-			}
-
-			return upgradedSdkProvider.ProviderServer(), nil
 		},
 	},
 })
