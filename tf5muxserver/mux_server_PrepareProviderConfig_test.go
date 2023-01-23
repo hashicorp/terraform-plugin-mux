@@ -60,13 +60,13 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 	}
 
 	testCases := map[string]struct {
-		servers          []func() tfprotov5.ProviderServer
+		testServers      [3]*tf5testserver.TestServer
 		expectedError    error
 		expectedResponse *tfprotov5.PrepareProviderConfigResponse
 	}{
 		"error-once": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -76,9 +76,9 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
+				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -91,8 +91,8 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 			},
 		},
 		"error-multiple": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -102,9 +102,9 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{
+				},
+				{},
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -114,7 +114,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -132,8 +132,8 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 			},
 		},
 		"warning-once": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -143,9 +143,9 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
+				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -158,8 +158,8 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 			},
 		},
 		"warning-multiple": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -169,9 +169,9 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{
+				},
+				{},
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -181,7 +181,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -199,8 +199,8 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 			},
 		},
 		"warning-then-error": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -210,9 +210,9 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{
+				},
+				{},
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -222,7 +222,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -240,37 +240,37 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 			},
 		},
 		"no-response": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
+			testServers: [3]*tf5testserver.TestServer{
+				{},
+				{},
+				{},
 			},
 		},
 		"PreparedConfig-once": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
+				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				PreparedConfig: &config,
 			},
 		},
 		"PreparedConfig-once-and-error": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{
+				},
+				{},
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -282,7 +282,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						PreparedConfig: &config,
 					},
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -296,15 +296,15 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 			},
 		},
 		"PreparedConfig-once-and-warning": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{
+				},
+				{},
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -314,7 +314,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -328,38 +328,38 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 			},
 		},
 		"PreparedConfig-multiple-different": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{
+				},
+				{},
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config2,
 					},
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
+				},
 			},
 			expectedError: fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
 		},
 		"PreparedConfig-multiple-equal": {
-			servers: []func() tfprotov5.ProviderServer{
-				(&tf5testserver.TestServer{
+			testServers: [3]*tf5testserver.TestServer{
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf5testserver.TestServer{}).ProviderServer,
-				(&tf5testserver.TestServer{
+				},
+				{},
+				{
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				PreparedConfig: &config,
@@ -373,7 +373,13 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			muxServer, err := tf5muxserver.NewMuxServer(context.Background(), testCase.servers...)
+			servers := []func() tfprotov5.ProviderServer{
+				testCase.testServers[0].ProviderServer,
+				testCase.testServers[1].ProviderServer,
+				testCase.testServers[2].ProviderServer,
+			}
+
+			muxServer, err := tf5muxserver.NewMuxServer(context.Background(), servers...)
 
 			if err != nil {
 				t.Fatalf("error setting up muxer: %s", err)
@@ -401,8 +407,8 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 				t.Errorf("unexpected response: %s", cmp.Diff(got, testCase.expectedResponse))
 			}
 
-			for num, server := range testCase.servers {
-				if !server().(*tf5testserver.TestServer).PrepareProviderConfigCalled {
+			for num, testServer := range testCase.testServers {
+				if !testServer.PrepareProviderConfigCalled {
 					t.Errorf("PrepareProviderConfig not called on server%d", num+1)
 				}
 			}
