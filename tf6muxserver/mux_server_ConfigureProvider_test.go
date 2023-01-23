@@ -12,12 +12,14 @@ import (
 func TestMuxServerConfigureProvider(t *testing.T) {
 	t.Parallel()
 
+	testServers := [5]*tf6testserver.TestServer{{}, {}, {}, {}, {}}
+
 	servers := []func() tfprotov6.ProviderServer{
-		(&tf6testserver.TestServer{}).ProviderServer,
-		(&tf6testserver.TestServer{}).ProviderServer,
-		(&tf6testserver.TestServer{}).ProviderServer,
-		(&tf6testserver.TestServer{}).ProviderServer,
-		(&tf6testserver.TestServer{}).ProviderServer,
+		testServers[0].ProviderServer,
+		testServers[1].ProviderServer,
+		testServers[2].ProviderServer,
+		testServers[3].ProviderServer,
+		testServers[4].ProviderServer,
 	}
 
 	muxServer, err := tf6muxserver.NewMuxServer(context.Background(), servers...)
@@ -32,8 +34,8 @@ func TestMuxServerConfigureProvider(t *testing.T) {
 		t.Fatalf("error calling ConfigureProvider: %s", err)
 	}
 
-	for num, server := range servers {
-		if !server().(*tf6testserver.TestServer).ConfigureProviderCalled {
+	for num, testServer := range testServers {
+		if !testServer.ConfigureProviderCalled {
 			t.Errorf("configure not called on server%d", num+1)
 		}
 	}
