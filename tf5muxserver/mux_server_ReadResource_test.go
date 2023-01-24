@@ -13,19 +13,18 @@ func TestMuxServerReadResource(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	servers := []func() tfprotov5.ProviderServer{
-		(&tf5testserver.TestServer{
-			ResourceSchemas: map[string]*tfprotov5.Schema{
-				"test_resource_server1": {},
-			},
-		}).ProviderServer,
-		(&tf5testserver.TestServer{
-			ResourceSchemas: map[string]*tfprotov5.Schema{
-				"test_resource_server2": {},
-			},
-		}).ProviderServer,
+	testServer1 := &tf5testserver.TestServer{
+		ResourceSchemas: map[string]*tfprotov5.Schema{
+			"test_resource_server1": {},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		ResourceSchemas: map[string]*tfprotov5.Schema{
+			"test_resource_server2": {},
+		},
 	}
 
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
 	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
 
 	if err != nil {
@@ -40,11 +39,11 @@ func TestMuxServerReadResource(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	if !servers[0]().(*tf5testserver.TestServer).ReadResourceCalled["test_resource_server1"] {
+	if !testServer1.ReadResourceCalled["test_resource_server1"] {
 		t.Errorf("expected test_resource_server1 ReadResource to be called on server1")
 	}
 
-	if servers[1]().(*tf5testserver.TestServer).ReadResourceCalled["test_resource_server1"] {
+	if testServer2.ReadResourceCalled["test_resource_server1"] {
 		t.Errorf("unexpected test_resource_server1 ReadResource called on server2")
 	}
 
@@ -56,11 +55,11 @@ func TestMuxServerReadResource(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	if servers[0]().(*tf5testserver.TestServer).ReadResourceCalled["test_resource_server2"] {
+	if testServer1.ReadResourceCalled["test_resource_server2"] {
 		t.Errorf("unexpected test_resource_server2 ReadResource called on server1")
 	}
 
-	if !servers[1]().(*tf5testserver.TestServer).ReadResourceCalled["test_resource_server2"] {
+	if !testServer2.ReadResourceCalled["test_resource_server2"] {
 		t.Errorf("expected test_resource_server2 ReadResource to be called on server2")
 	}
 }

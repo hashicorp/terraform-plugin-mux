@@ -13,19 +13,18 @@ func TestMuxServerValidateResourceConfig(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	servers := []func() tfprotov6.ProviderServer{
-		(&tf6testserver.TestServer{
-			ResourceSchemas: map[string]*tfprotov6.Schema{
-				"test_resource_server1": {},
-			},
-		}).ProviderServer,
-		(&tf6testserver.TestServer{
-			ResourceSchemas: map[string]*tfprotov6.Schema{
-				"test_resource_server2": {},
-			},
-		}).ProviderServer,
+	testServer1 := &tf6testserver.TestServer{
+		ResourceSchemas: map[string]*tfprotov6.Schema{
+			"test_resource_server1": {},
+		},
+	}
+	testServer2 := &tf6testserver.TestServer{
+		ResourceSchemas: map[string]*tfprotov6.Schema{
+			"test_resource_server2": {},
+		},
 	}
 
+	servers := []func() tfprotov6.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
 	muxServer, err := tf6muxserver.NewMuxServer(ctx, servers...)
 
 	if err != nil {
@@ -40,11 +39,11 @@ func TestMuxServerValidateResourceConfig(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	if !servers[0]().(*tf6testserver.TestServer).ValidateResourceConfigCalled["test_resource_server1"] {
+	if !testServer1.ValidateResourceConfigCalled["test_resource_server1"] {
 		t.Errorf("expected test_resource_server1 ValidateResourceConfig to be called on server1")
 	}
 
-	if servers[1]().(*tf6testserver.TestServer).ValidateResourceConfigCalled["test_resource_server1"] {
+	if testServer2.ValidateResourceConfigCalled["test_resource_server1"] {
 		t.Errorf("unexpected test_resource_server1 ValidateResourceConfig called on server2")
 	}
 
@@ -56,11 +55,11 @@ func TestMuxServerValidateResourceConfig(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	if servers[0]().(*tf6testserver.TestServer).ValidateResourceConfigCalled["test_resource_server2"] {
+	if testServer1.ValidateResourceConfigCalled["test_resource_server2"] {
 		t.Errorf("unexpected test_resource_server2 ValidateResourceConfig called on server1")
 	}
 
-	if !servers[1]().(*tf6testserver.TestServer).ValidateResourceConfigCalled["test_resource_server2"] {
+	if !testServer2.ValidateResourceConfigCalled["test_resource_server2"] {
 		t.Errorf("expected test_resource_server2 ValidateResourceConfig to be called on server2")
 	}
 }

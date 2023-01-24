@@ -12,16 +12,14 @@ import (
 func TestMuxServerStopProvider(t *testing.T) {
 	t.Parallel()
 
+	testServers := [5]*tf5testserver.TestServer{{}, {StopProviderError: "error in server2"}, {}, {StopProviderError: "error in server4"}, {}}
+
 	servers := []func() tfprotov5.ProviderServer{
-		(&tf5testserver.TestServer{}).ProviderServer,
-		(&tf5testserver.TestServer{
-			StopProviderError: "error in server2",
-		}).ProviderServer,
-		(&tf5testserver.TestServer{}).ProviderServer,
-		(&tf5testserver.TestServer{
-			StopProviderError: "error in server4",
-		}).ProviderServer,
-		(&tf5testserver.TestServer{}).ProviderServer,
+		testServers[0].ProviderServer,
+		testServers[1].ProviderServer,
+		testServers[2].ProviderServer,
+		testServers[3].ProviderServer,
+		testServers[4].ProviderServer,
 	}
 
 	muxServer, err := tf5muxserver.NewMuxServer(context.Background(), servers...)
@@ -36,8 +34,8 @@ func TestMuxServerStopProvider(t *testing.T) {
 		t.Fatalf("error calling StopProvider: %s", err)
 	}
 
-	for num, server := range servers {
-		if !server().(*tf5testserver.TestServer).StopProviderCalled {
+	for num, testServer := range testServers {
+		if !testServer.StopProviderCalled {
 			t.Errorf("StopProvider not called on server%d", num+1)
 		}
 	}

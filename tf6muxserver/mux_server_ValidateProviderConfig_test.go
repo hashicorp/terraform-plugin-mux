@@ -60,13 +60,13 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 	}
 
 	testCases := map[string]struct {
-		servers          []func() tfprotov6.ProviderServer
+		testServers      [3]*tf6testserver.TestServer
 		expectedError    error
 		expectedResponse *tfprotov6.ValidateProviderConfigResponse
 	}{
 		"error-once": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -76,9 +76,9 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
+				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -91,8 +91,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 			},
 		},
 		"error-multiple": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -102,9 +102,9 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{},
+				{
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -114,7 +114,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -132,8 +132,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 			},
 		},
 		"warning-once": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -143,9 +143,9 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
+				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -158,8 +158,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 			},
 		},
 		"warning-multiple": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -169,9 +169,9 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{},
+				{
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -181,7 +181,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -199,8 +199,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 			},
 		},
 		"warning-then-error": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -210,9 +210,9 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{},
+				{
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -222,7 +222,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -240,39 +240,39 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 			},
 		},
 		"no-response": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
+			testServers: [3]*tf6testserver.TestServer{
+				{},
+				{},
+				{},
 			},
 		},
 		"PreparedConfig-once": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
-				(&tf6testserver.TestServer{}).ProviderServer,
+				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				PreparedConfig: &config,
 			},
 		},
 		"PreparedConfig-once-and-error": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
@@ -283,7 +283,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -297,17 +297,17 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 			},
 		},
 		"PreparedConfig-once-and-warning": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
@@ -318,7 +318,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 							},
 						},
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -332,42 +332,42 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 			},
 		},
 		"PreparedConfig-multiple-different": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config2,
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedError: fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
 		},
 		"PreparedConfig-multiple-equal": {
-			servers: []func() tfprotov6.ProviderServer{
-				(&tf6testserver.TestServer{
+			testServers: [3]*tf6testserver.TestServer{
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{
 					ProviderSchema: &configSchema,
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
+				},
+				{
 					ProviderSchema: &configSchema,
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-				}).ProviderServer,
+				},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				PreparedConfig: &config,
@@ -381,7 +381,13 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			muxServer, err := tf6muxserver.NewMuxServer(context.Background(), testCase.servers...)
+			servers := []func() tfprotov6.ProviderServer{
+				testCase.testServers[0].ProviderServer,
+				testCase.testServers[1].ProviderServer,
+				testCase.testServers[2].ProviderServer,
+			}
+
+			muxServer, err := tf6muxserver.NewMuxServer(context.Background(), servers...)
 
 			if err != nil {
 				t.Fatalf("error setting up muxer: %s", err)
@@ -409,8 +415,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 				t.Errorf("unexpected response: %s", cmp.Diff(got, testCase.expectedResponse))
 			}
 
-			for num, server := range testCase.servers {
-				if !server().(*tf6testserver.TestServer).ValidateProviderConfigCalled {
+			for num, testServer := range testCase.testServers {
+				if !testServer.ValidateProviderConfigCalled {
 					t.Errorf("ValidateProviderConfig not called on server%d", num+1)
 				}
 			}
