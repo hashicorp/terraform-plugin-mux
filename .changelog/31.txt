@@ -1,7 +1,0 @@
-```release-note:enhancement
-Added trace level logging for mux logic, controlled by the `TF_LOG_SDK_MUX` environment variable.
-```
-
-```release-note:enhancement
-Added the `tf_mux_provider` key to all downstream logging calls, decorating them with the muxed server that actually served the request.
-```
