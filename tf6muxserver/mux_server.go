@@ -73,6 +73,7 @@ func NewMuxServer(ctx context.Context, servers ...func() tfprotov6.ProviderServe
 		resources:            make(map[string]tfprotov6.ProviderServer),
 		resourceCapabilities: make(map[string]*tfprotov6.ServerCapabilities),
 		resourceSchemas:      make(map[string]*tfprotov6.Schema),
+		serverCapabilities:   &tfprotov6.ServerCapabilities{},
 	}
 
 	for _, serverFunc := range servers {
