@@ -21,6 +21,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		expectedProviderSchema     *tfprotov6.Schema
 		expectedProviderMetaSchema *tfprotov6.Schema
 		expectedResourceSchemas    map[string]*tfprotov6.Schema
+		expectedServerCapabilities *tfprotov6.ServerCapabilities
 	}{
 		"combined": {
 			servers: []func() tfprotov6.ProviderServer{
@@ -620,6 +621,31 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+		},
+		"server-capabilities": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					ResourceSchemas: map[string]*tfprotov6.Schema{
+						"test_with_server_capabilities": {},
+					},
+					ServerCapabilities: &tfprotov6.ServerCapabilities{
+						PlanDestroy: true,
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					ResourceSchemas: map[string]*tfprotov6.Schema{
+						"test_without_server_capabilities": {},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_with_server_capabilities":    {},
+				"test_without_server_capabilities": {},
+			},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				PlanDestroy: true,
+			},
 		},
 	}
 

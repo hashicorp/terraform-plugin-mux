@@ -1,0 +1,7 @@
+```release-note:enhancement
+tf5muxserver: Support Terraform 1.3+ PlanResourceChange on destroy for underlying servers which enable the capability, such as terraform-plugin-framework 
+```
+
+```release-note:enhancement
+tf6muxserver: Support Terraform 1.3+ PlanResourceChange on destroy for underlying servers which enable the capability, such as terraform-plugin-framework 
+```

@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
+	"github.com/hashicorp/terraform-plugin-mux/internal/tf6dynamicvalue"
 )
 
 // PlanResourceChange calls the PlanResourceChange method, passing `req`, on
@@ -22,6 +23,34 @@ func (s muxServer) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanRe
 	}
 
 	ctx = logging.Tfprotov6ProviderServerContext(ctx, server)
+
+	// Prevent ServerCapabilities.PlanDestroy from sending destroy plans to
+	// servers which do not enable the capability.
+	resourceCapabilities := s.resourceCapabilities[req.TypeName]
+
+	if resourceCapabilities == nil || !resourceCapabilities.PlanDestroy {
+		resourceSchema := s.resourceSchemas[req.TypeName]
+
+		isDestroyPlan, err := tf6dynamicvalue.IsNull(resourceSchema, req.ProposedNewState)
+
+		if err != nil {
+			return nil, fmt.Errorf("unable to determine if request is destroy plan: %w", err)
+		}
+
+		if isDestroyPlan {
+			logging.MuxTrace(ctx, "server does not enable destroy plans, returning without calling downstream server")
+
+			resp := &tfprotov6.PlanResourceChangeResponse{
+				// Presumably, we must preserve any prior private state so it
+				// is still available during ApplyResourceChange.
+				PlannedPrivate: req.PriorPrivate,
+				PlannedState:   req.ProposedNewState,
+			}
+
+			return resp, nil
+		}
+	}
+
 	logging.MuxTrace(ctx, "calling downstream server")
 
 	return server.PlanResourceChange(ctx, req)

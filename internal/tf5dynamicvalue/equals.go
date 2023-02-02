@@ -1,14 +1,14 @@
-package tf6muxserver
+package tf5dynamicvalue
 
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// dynamicValueEquals performs equality checking of DynamicValue.
-func dynamicValueEquals(schemaType tftypes.Type, i *tfprotov6.DynamicValue, j *tfprotov6.DynamicValue) (bool, error) {
+// Equals performs equality checking of two given *tfprotov5.DynamicValue.
+func Equals(schemaType tftypes.Type, i *tfprotov5.DynamicValue, j *tfprotov5.DynamicValue) (bool, error) {
 	if i == nil {
 		return j == nil, nil
 	}
