@@ -417,6 +417,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				PlanDestroy: true,
+			},
 		},
 		"duplicate-data-source-type": {
 			servers: []func() tfprotov5.ProviderServer{
@@ -444,6 +447,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				PlanDestroy: true,
+			},
 		},
 		"duplicate-resource-type": {
 			servers: []func() tfprotov5.ProviderServer{
@@ -470,6 +476,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{
 				"test_foo": {},
+			},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				PlanDestroy: true,
 			},
 		},
 		"provider-mismatch": {
@@ -546,6 +555,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				PlanDestroy: true,
+			},
 		},
 		"provider-meta-mismatch": {
 			servers: []func() tfprotov5.ProviderServer{
@@ -621,6 +633,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				PlanDestroy: true,
+			},
 		},
 		"server-capabilities": {
 			servers: []func() tfprotov5.ProviderServer{

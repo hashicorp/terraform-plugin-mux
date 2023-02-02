@@ -23,12 +23,6 @@ type muxServer struct {
 	// Underlying servers for requests that should be handled by all servers
 	servers []tfprotov6.ProviderServer
 
-	// Mux server capabilities use a logical OR of each of the capabilities
-	// across all servers and is cached during server creation. Individual
-	// RPC handlers check against resourceCapabilities, which aligns to the
-	// capabilities of the server for the particular resource type.
-	serverCapabilities *tfprotov6.ServerCapabilities
-
 	// Server errors are cached during server creation and deferred until
 	// the GetProviderSchema call. This is to prevent confusing Terraform CLI
 	// errors about the plugin not starting properly, which do not display the
@@ -73,7 +67,6 @@ func NewMuxServer(ctx context.Context, servers ...func() tfprotov6.ProviderServe
 		resources:            make(map[string]tfprotov6.ProviderServer),
 		resourceCapabilities: make(map[string]*tfprotov6.ServerCapabilities),
 		resourceSchemas:      make(map[string]*tfprotov6.Schema),
-		serverCapabilities:   &tfprotov6.ServerCapabilities{},
 	}
 
 	for _, serverFunc := range servers {
@@ -111,13 +104,6 @@ func NewMuxServer(ctx context.Context, servers ...func() tfprotov6.ProviderServe
 				result.serverProviderMetaSchemaDifferences = append(result.serverProviderMetaSchemaDifferences, schemaDiff(resp.ProviderMeta, result.providerMetaSchema))
 			} else {
 				result.providerMetaSchema = resp.ProviderMeta
-			}
-		}
-
-		// Use logical OR across server capabilities.
-		if resp.ServerCapabilities != nil {
-			if resp.ServerCapabilities.PlanDestroy {
-				result.serverCapabilities.PlanDestroy = true
 			}
 		}
 

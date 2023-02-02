@@ -18,11 +18,17 @@ func (s muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProv
 	logging.MuxTrace(ctx, "serving cached schema information")
 
 	resp := &tfprotov5.GetProviderSchemaResponse{
-		Provider:           s.providerSchema,
-		ResourceSchemas:    s.resourceSchemas,
-		DataSourceSchemas:  s.dataSourceSchemas,
-		ProviderMeta:       s.providerMetaSchema,
-		ServerCapabilities: s.serverCapabilities,
+		Provider:          s.providerSchema,
+		ResourceSchemas:   s.resourceSchemas,
+		DataSourceSchemas: s.dataSourceSchemas,
+		ProviderMeta:      s.providerMetaSchema,
+
+		// Always announce all ServerCapabilities. Individual capabilities are
+		// handled in their respective RPCs to protect downstream servers if
+		// they are not compatible with a capability.
+		ServerCapabilities: &tfprotov5.ServerCapabilities{
+			PlanDestroy: true,
+		},
 	}
 
 	for _, diff := range s.serverProviderSchemaDifferences {
