@@ -1,3 +1,0 @@
-```release-note:bug
-tf5muxserver+tf6muxserver: Deferred combined server implementation errors until `GetProviderSchema` RPC to prevent confusing Terraform CLI plugin startup errors
-```
