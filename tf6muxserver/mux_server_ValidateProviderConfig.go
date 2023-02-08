@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
+	"github.com/hashicorp/terraform-plugin-mux/internal/tf6dynamicvalue"
 )
 
 // ValidateProviderConfig calls the ValidateProviderConfig method on each server
@@ -48,7 +49,7 @@ func (s muxServer) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Va
 			continue
 		}
 
-		equal, err := dynamicValueEquals(s.providerSchema.ValueType(), res.PreparedConfig, resp.PreparedConfig)
+		equal, err := tf6dynamicvalue.Equals(s.providerSchema.ValueType(), res.PreparedConfig, resp.PreparedConfig)
 
 		if err != nil {
 			return nil, fmt.Errorf("unable to compare PrepareProviderConfig PreparedConfig responses: %w", err)

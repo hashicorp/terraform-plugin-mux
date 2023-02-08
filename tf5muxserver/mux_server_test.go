@@ -594,6 +594,24 @@ func TestNewMuxServer(t *testing.T) {
 				}).ProviderServer,
 			},
 		},
+		"server-capabilities": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					ResourceSchemas: map[string]*tfprotov5.Schema{
+						"test_with_server_capabilities": {},
+					},
+					ServerCapabilities: &tfprotov5.ServerCapabilities{
+						PlanDestroy: true,
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					ResourceSchemas: map[string]*tfprotov5.Schema{
+						"test_without_server_capabilities": {},
+					},
+				}).ProviderServer,
+			},
+			expectedError: nil,
+		},
 	}
 
 	for name, testCase := range testCases {

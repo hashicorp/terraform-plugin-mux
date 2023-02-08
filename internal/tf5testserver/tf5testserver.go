@@ -13,6 +13,7 @@ type TestServer struct {
 	ProviderMetaSchema *tfprotov5.Schema
 	ProviderSchema     *tfprotov5.Schema
 	ResourceSchemas    map[string]*tfprotov5.Schema
+	ServerCapabilities *tfprotov5.ServerCapabilities
 
 	ApplyResourceChangeCalled map[string]bool
 
@@ -71,10 +72,11 @@ func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov5.GetProvid
 	}
 
 	return &tfprotov5.GetProviderSchemaResponse{
-		Provider:          s.ProviderSchema,
-		ProviderMeta:      s.ProviderMetaSchema,
-		ResourceSchemas:   s.ResourceSchemas,
-		DataSourceSchemas: s.DataSourceSchemas,
+		Provider:           s.ProviderSchema,
+		ProviderMeta:       s.ProviderMetaSchema,
+		ResourceSchemas:    s.ResourceSchemas,
+		DataSourceSchemas:  s.DataSourceSchemas,
+		ServerCapabilities: s.ServerCapabilities,
 	}, nil
 }
 

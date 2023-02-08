@@ -35,11 +35,12 @@ type muxServer struct {
 	serverProviderMetaSchemaDifferences []string
 	serverResourceSchemaDuplicates      []string
 
-	// Schemas are cached during server creation
-	dataSourceSchemas  map[string]*tfprotov5.Schema
-	providerMetaSchema *tfprotov5.Schema
-	providerSchema     *tfprotov5.Schema
-	resourceSchemas    map[string]*tfprotov5.Schema
+	// Server capabilities and schemas are cached during server creation
+	dataSourceSchemas    map[string]*tfprotov5.Schema
+	providerMetaSchema   *tfprotov5.Schema
+	providerSchema       *tfprotov5.Schema
+	resourceCapabilities map[string]*tfprotov5.ServerCapabilities
+	resourceSchemas      map[string]*tfprotov5.Schema
 }
 
 // ProviderServer is a function compatible with tf6server.Serve.
@@ -61,10 +62,11 @@ func (s muxServer) ProviderServer() tfprotov5.ProviderServer {
 func NewMuxServer(ctx context.Context, servers ...func() tfprotov5.ProviderServer) (muxServer, error) {
 	ctx = logging.InitContext(ctx)
 	result := muxServer{
-		dataSources:       make(map[string]tfprotov5.ProviderServer),
-		dataSourceSchemas: make(map[string]*tfprotov5.Schema),
-		resources:         make(map[string]tfprotov5.ProviderServer),
-		resourceSchemas:   make(map[string]*tfprotov5.Schema),
+		dataSources:          make(map[string]tfprotov5.ProviderServer),
+		dataSourceSchemas:    make(map[string]*tfprotov5.Schema),
+		resources:            make(map[string]tfprotov5.ProviderServer),
+		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
+		resourceSchemas:      make(map[string]*tfprotov5.Schema),
 	}
 
 	for _, serverFunc := range servers {
@@ -112,6 +114,8 @@ func NewMuxServer(ctx context.Context, servers ...func() tfprotov5.ProviderServe
 				result.resources[resourceType] = server
 				result.resourceSchemas[resourceType] = schema
 			}
+
+			result.resourceCapabilities[resourceType] = resp.ServerCapabilities
 		}
 
 		for dataSourceType, schema := range resp.DataSourceSchemas {
