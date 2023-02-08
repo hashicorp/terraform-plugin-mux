@@ -1,3 +1,9 @@
+## 0.9.0 (February 08, 2023)
+
+ENHANCEMENTS:
+
+* tf5muxserver+tf6muxserver: Support Terraform 1.3+ PlanResourceChange on destroy for underlying servers which enable the capability, such as terraform-plugin-framework ([#133](https://github.com/hashicorp/terraform-plugin-mux/issues/133))
+
 # 0.8.0 (December 20, 2022)
 
 NOTES:
