@@ -49,6 +49,8 @@ import (
 
 	"github.com/example/terraform-provider-example/internal/provider1"
 	"github.com/example/terraform-provider-example/internal/provider2"
+	"github.com/example/terraform-provider-example/internal/framework_provider"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5/tf5server"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
@@ -68,6 +70,11 @@ func main() {
 		// Example terraform-plugin-sdk/v2 providers
 		provider1.New(version)().GRPCProvider,
 		provider2.New(version)().GRPCProvider,
+		
+		// Example terraform-plugin-framework provider
+		providerserver.NewProtocol5(
+			framework_provider.New(version)(),
+		),
 	}
 
 	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
@@ -110,6 +117,11 @@ resource.Test(t, resource.TestCase{
 				// Example terraform-plugin-sdk/v2 providers
 				provider1.New(version)().GRPCProvider,
 				provider2.New(version)().GRPCProvider,
+				
+				// Example terraform-plugin-framework provider
+				providerserver.NewProtocol5(
+					framework_provider.New(version)(),
+				),
 			}
 
 			muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
