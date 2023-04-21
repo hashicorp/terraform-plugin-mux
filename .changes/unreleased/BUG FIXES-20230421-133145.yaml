@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'tf5muxserver+tf6muxserver: Ensure provider acceptance testing can properly
+  detect mux server errors in `GetProviderSchema` response'
+time: 2023-04-21T13:31:45.31123-04:00
+custom:
+  Issue: "152"

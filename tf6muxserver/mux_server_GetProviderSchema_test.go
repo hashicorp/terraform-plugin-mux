@@ -439,7 +439,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedDiagnostics: []*tfprotov6.Diagnostic{
 				{
-					Summary: "Invalid Provider Server Combination",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
 					Detail: "The combined provider has multiple implementations of the same data source type across providers. " +
 						"Data source types must be implemented by only one provider. " +
 						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
@@ -467,7 +468,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedDiagnostics: []*tfprotov6.Diagnostic{
 				{
-					Summary: "Invalid Provider Server Combination",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
 					Detail: "The combined provider has multiple implementations of the same resource type across providers. " +
 						"Resource types must be implemented by only one provider. " +
 						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
@@ -513,7 +515,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedDiagnostics: []*tfprotov6.Diagnostic{
 				{
-					Summary: "Invalid Provider Server Combination",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
 					Detail: "The combined provider has differing provider schema implementations across providers. " +
 						"Provider schemas must be identical across providers. " +
 						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
@@ -591,7 +594,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedDiagnostics: []*tfprotov6.Diagnostic{
 				{
-					Summary: "Invalid Provider Server Combination",
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
 					Detail: "The combined provider has differing provider meta schema implementations across providers. " +
 						"Provider meta schemas must be identical across providers. " +
 						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
