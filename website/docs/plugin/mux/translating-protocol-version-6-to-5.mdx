@@ -37,7 +37,7 @@ The following example downgrades a `terraform-plugin-framework` provider.
 ```go
 downgradedFrameworkProvider, err := tf6to5server.DowngradeServer(
 	context.Background(),
-	providerserver.NewProtocol6(frameworkprovider.New(version)())
+	providerserver.NewProtocol6(frameworkprovider.New(version)()),
 )
 ```
 
