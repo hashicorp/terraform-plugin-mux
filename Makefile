@@ -1,5 +1,9 @@
 .DEFAULT_GOAL := website
 
+# Generate copywrite headers
+generate:
+	cd tools; go generate ./...
+
 # Default: run this if working on the website locally to run in watch mode.
 .PHONY: website
 website:
