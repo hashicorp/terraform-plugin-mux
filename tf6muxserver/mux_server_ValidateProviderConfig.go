@@ -55,11 +55,11 @@ func (s muxServer) ValidateProviderConfig(ctx context.Context, req *tfprotov6.Va
 		equal, err := tf6dynamicvalue.Equals(s.providerSchema.ValueType(), res.PreparedConfig, resp.PreparedConfig)
 
 		if err != nil {
-			return nil, fmt.Errorf("unable to compare PrepareProviderConfig PreparedConfig responses: %w", err)
+			return nil, fmt.Errorf("unable to compare ValidateProviderConfig PreparedConfig responses: %w", err)
 		}
 
 		if !equal {
-			return nil, fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use")
+			return nil, fmt.Errorf("got different ValidateProviderConfig PreparedConfig response from multiple servers, not sure which to use")
 		}
 
 		resp.PreparedConfig = res.PreparedConfig
