@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package tf6muxserver
 
 import "github.com/hashicorp/terraform-plugin-go/tfprotov6"
