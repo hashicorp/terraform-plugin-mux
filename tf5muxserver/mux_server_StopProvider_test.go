@@ -15,6 +15,7 @@ import (
 func TestMuxServerStopProvider(t *testing.T) {
 	t.Parallel()
 
+	ctx := context.Background()
 	testServers := [5]*tf5testserver.TestServer{{}, {StopProviderError: "error in server2"}, {}, {StopProviderError: "error in server4"}, {}}
 
 	servers := []func() tfprotov5.ProviderServer{
@@ -25,13 +26,20 @@ func TestMuxServerStopProvider(t *testing.T) {
 		testServers[4].ProviderServer,
 	}
 
-	muxServer, err := tf5muxserver.NewMuxServer(context.Background(), servers...)
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
 
 	if err != nil {
 		t.Fatalf("error setting up muxer: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().StopProvider(context.Background(), &tfprotov5.StopProviderRequest{})
+	// Required to populate routers
+	_, err = muxServer.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
+
+	if err != nil {
+		t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
+	}
+
+	_, err = muxServer.ProviderServer().StopProvider(ctx, &tfprotov5.StopProviderRequest{})
 
 	if err != nil {
 		t.Fatalf("error calling StopProvider: %s", err)

@@ -352,7 +352,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 					},
 				},
 			},
-			expectedError: fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
+			expectedError: fmt.Errorf("got different ValidateProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
 		},
 		"PreparedConfig-multiple-equal": {
 			testServers: [3]*tf6testserver.TestServer{
@@ -384,19 +384,27 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx := context.Background()
 			servers := []func() tfprotov6.ProviderServer{
 				testCase.testServers[0].ProviderServer,
 				testCase.testServers[1].ProviderServer,
 				testCase.testServers[2].ProviderServer,
 			}
 
-			muxServer, err := tf6muxserver.NewMuxServer(context.Background(), servers...)
+			muxServer, err := tf6muxserver.NewMuxServer(ctx, servers...)
 
 			if err != nil {
 				t.Fatalf("error setting up muxer: %s", err)
 			}
 
-			got, err := muxServer.ProviderServer().ValidateProviderConfig(context.Background(), &tfprotov6.ValidateProviderConfigRequest{
+			// Required to populate routers
+			_, err = muxServer.GetProviderSchema(ctx, &tfprotov6.GetProviderSchemaRequest{})
+
+			if err != nil {
+				t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
+			}
+
+			got, err := muxServer.ProviderServer().ValidateProviderConfig(ctx, &tfprotov6.ValidateProviderConfigRequest{
 				Config: &config,
 			})
 

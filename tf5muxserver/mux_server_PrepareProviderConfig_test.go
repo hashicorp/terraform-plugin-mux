@@ -376,19 +376,27 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
+			ctx := context.Background()
 			servers := []func() tfprotov5.ProviderServer{
 				testCase.testServers[0].ProviderServer,
 				testCase.testServers[1].ProviderServer,
 				testCase.testServers[2].ProviderServer,
 			}
 
-			muxServer, err := tf5muxserver.NewMuxServer(context.Background(), servers...)
+			muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
 
 			if err != nil {
 				t.Fatalf("error setting up muxer: %s", err)
 			}
 
-			got, err := muxServer.ProviderServer().PrepareProviderConfig(context.Background(), &tfprotov5.PrepareProviderConfigRequest{
+			// Required to populate routers
+			_, err = muxServer.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
+
+			if err != nil {
+				t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
+			}
+
+			got, err := muxServer.ProviderServer().PrepareProviderConfig(ctx, &tfprotov5.PrepareProviderConfigRequest{
 				Config: &config,
 			})
 

@@ -5,6 +5,7 @@ package tf5muxserver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
@@ -14,17 +15,14 @@ import (
 // tfprotov5.ProviderServers associated with muxServer into a single schema.
 // Resources and data sources must be returned from only one server. Provider
 // and ProviderMeta schemas must be identical between all servers.
-func (s muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
+func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	rpc := "GetProviderSchema"
 	ctx = logging.InitContext(ctx)
 	ctx = logging.RpcContext(ctx, rpc)
-	logging.MuxTrace(ctx, "serving cached schema information")
 
 	resp := &tfprotov5.GetProviderSchemaResponse{
-		Provider:          s.providerSchema,
-		ResourceSchemas:   s.resourceSchemas,
-		DataSourceSchemas: s.dataSourceSchemas,
-		ProviderMeta:      s.providerMetaSchema,
+		DataSourceSchemas: make(map[string]*tfprotov5.Schema),
+		ResourceSchemas:   make(map[string]*tfprotov5.Schema),
 
 		// Always announce all ServerCapabilities. Individual capabilities are
 		// handled in their respective RPCs to protect downstream servers if
@@ -34,48 +32,80 @@ func (s muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProv
 		},
 	}
 
-	for _, diff := range s.serverProviderSchemaDifferences {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "Invalid Provider Server Combination",
-			Detail: "The combined provider has differing provider schema implementations across providers. " +
-				"Provider schemas must be identical across providers. " +
-				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-				"Provider schema difference: " + diff,
-		})
-	}
+	for _, server := range s.servers {
+		ctx := logging.Tfprotov5ProviderServerContext(ctx, server)
+		logging.MuxTrace(ctx, "calling downstream server")
 
-	for _, diff := range s.serverProviderMetaSchemaDifferences {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "Invalid Provider Server Combination",
-			Detail: "The combined provider has differing provider meta schema implementations across providers. " +
-				"Provider meta schemas must be identical across providers. " +
-				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-				"Provider meta schema difference: " + diff,
-		})
-	}
+		serverResp, err := server.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
 
-	for _, dataSourceType := range s.serverDataSourceSchemaDuplicates {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "Invalid Provider Server Combination",
-			Detail: "The combined provider has multiple implementations of the same data source type across providers. " +
-				"Data source types must be implemented by only one provider. " +
-				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-				"Duplicate data source type: " + dataSourceType,
-		})
-	}
+		if err != nil {
+			return resp, fmt.Errorf("error calling GetProviderSchema for %T: %w", server, err)
+		}
 
-	for _, resourceType := range s.serverResourceSchemaDuplicates {
-		resp.Diagnostics = append(resp.Diagnostics, &tfprotov5.Diagnostic{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "Invalid Provider Server Combination",
-			Detail: "The combined provider has multiple implementations of the same resource type across providers. " +
-				"Resource types must be implemented by only one provider. " +
-				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-				"Duplicate resource type: " + resourceType,
-		})
+		if serverResp.Provider != nil {
+			if resp.Provider != nil && !schemaEquals(serverResp.Provider, resp.Provider) {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov5.Diagnostic{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has differing provider schema implementations across providers. " +
+						"Provider schemas must be identical across providers. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Provider schema difference: " + schemaDiff(serverResp.Provider, resp.Provider),
+				})
+			} else {
+				s.providerSchema = serverResp.Provider
+				resp.Provider = serverResp.Provider
+			}
+		}
+
+		if serverResp.ProviderMeta != nil {
+			if resp.ProviderMeta != nil && !schemaEquals(serverResp.ProviderMeta, resp.ProviderMeta) {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov5.Diagnostic{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has differing provider meta schema implementations across providers. " +
+						"Provider meta schemas must be identical across providers. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Provider meta schema difference: " + schemaDiff(serverResp.ProviderMeta, resp.ProviderMeta),
+				})
+			} else {
+				resp.ProviderMeta = serverResp.ProviderMeta
+			}
+		}
+
+		for resourceType, schema := range serverResp.ResourceSchemas {
+			if _, ok := resp.ResourceSchemas[resourceType]; ok {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov5.Diagnostic{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same resource type across providers. " +
+						"Resource types must be implemented by only one provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate resource type: " + resourceType,
+				})
+			} else {
+				s.resources[resourceType] = server
+				resp.ResourceSchemas[resourceType] = schema
+			}
+
+			s.resourceCapabilities[resourceType] = serverResp.ServerCapabilities
+		}
+
+		for dataSourceType, schema := range serverResp.DataSourceSchemas {
+			if _, ok := resp.DataSourceSchemas[dataSourceType]; ok {
+				resp.Diagnostics = append(resp.Diagnostics, &tfprotov5.Diagnostic{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same data source type across providers. " +
+						"Data source types must be implemented by only one provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate data source type: " + dataSourceType,
+				})
+			} else {
+				s.dataSources[dataSourceType] = server
+				resp.DataSourceSchemas[dataSourceType] = schema
+			}
+		}
 	}
 
 	return resp, nil
