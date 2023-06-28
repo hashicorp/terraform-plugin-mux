@@ -1,3 +1,10 @@
+## 0.11.0 (June 28, 2023)
+
+BUG FIXES:
+
+* tf5muxserver: Removed unnecessary resource schema caching, which reduces resident memory utilization ([#168](https://github.com/hashicorp/terraform-plugin-mux/issues/168))
+* tf6muxserver: Removed unnecessary resource schema caching, which reduces resident memory utilization ([#168](https://github.com/hashicorp/terraform-plugin-mux/issues/168))
+
 ## 0.10.0 (April 24, 2023)
 
 NOTES:

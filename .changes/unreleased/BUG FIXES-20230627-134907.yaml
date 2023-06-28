@@ -1,6 +1,0 @@
-kind: BUG FIXES
-body: 'tf6muxserver: Removed unnecessary resource schema caching, which reduces resident
-  memory utilization'
-time: 2023-06-27T13:49:07.303269-04:00
-custom:
-  Issue: "168"
