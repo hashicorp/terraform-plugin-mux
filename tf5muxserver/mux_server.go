@@ -45,7 +45,7 @@ func (s muxServer) ProviderServer() tfprotov5.ProviderServer {
 //   - All provider meta schemas exactly match
 //   - Only one provider implements each managed resource
 //   - Only one provider implements each data source
-func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer) (muxServer, error) {
+func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer) (*muxServer, error) {
 	result := muxServer{
 		dataSources:          make(map[string]tfprotov5.ProviderServer),
 		resources:            make(map[string]tfprotov5.ProviderServer),
@@ -56,5 +56,5 @@ func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer)
 		result.servers = append(result.servers, server())
 	}
 
-	return result, nil
+	return &result, nil
 }
