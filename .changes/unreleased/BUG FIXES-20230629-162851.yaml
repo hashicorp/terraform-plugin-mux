@@ -1,5 +1,5 @@
 kind: BUG FIXES
-body: 'tf6muxserver: Adjust function signature of `NewMuxServer()`█to return `*muxServer`'
+body: 'tf6muxserver: Adjust function signature of `NewMuxServer()` to return `*muxServer`, which is required to satisfy the `tfprotov6.ProviderServer` interface'
 time: 2023-06-29T16:28:51.594978+01:00
 custom:
   Issue: "172"
