@@ -1,0 +1,5 @@
+kind: BUG FIXES
+body: 'tf5muxserver: Adjust function signature of `NewMuxServer()` to return `*muxServer`'
+time: 2023-06-29T16:28:39.100246+01:00
+custom:
+  Issue: "172"
