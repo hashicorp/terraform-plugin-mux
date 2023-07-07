@@ -71,7 +71,7 @@ Refer to the [`tf5muxserver`](/terraform/plugin/mux/combining-protocol-version-5
 
 ## Testing Implementation
 
-You can test the original provider using the same [acceptance tests](/terraform/plugin/sdkv2/testing/acceptance-tests) as before. Set the [`ProtoV5ProviderFactories`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV5ProviderFactories) field of `TestCase` to use the acceptance testing framework available in [terraform-provider-sdk/v2/helper/resource](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource).
+You can test the original provider using the same [acceptance tests](/terraform/plugin/testing/acceptance-tests) as before. Set the `ProtoV5ProviderFactories` field of `TestCase` with an instance of the upgraded server, instead of declaring the provider with other `TestCase` fields such as `ProviderFactories`.
 
 The following example creates a test case for a downgraded provider.
 

@@ -71,7 +71,7 @@ Refer to the [`tf6muxserver`](/terraform/plugin/mux/combining-protocol-version-6
 
 ## Testing Implementation
 
-You can test the original provider using the same [acceptance tests](/terraform/plugin/sdkv2/testing/acceptance-tests) as before. Set the [`ProtoV6ProviderFactories`](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource#TestCase.ProtoV6ProviderFactories) field of `TestCase` to use the acceptance testing framework available in [terraform-provider-sdk/v2/helper/resource](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource).
+You can test the original provider using the same [acceptance tests](/terraform/plugin/testing/acceptance-tests) as before. Set the `ProtoV6ProviderFactories` field of `TestCase` with an instance of the upgraded server, instead of declaring the provider with other `TestCase` fields such as `ProviderFactories`.
 
 The following example creates a test for a combined provider.
 
@@ -89,4 +89,4 @@ resource.Test(t, resource.TestCase{
 })
 ```
 
-Refer to the [acceptance tests](/terraform/plugin/sdkv2/testing/acceptance-tests) documentation for more details.
+Refer to the [acceptance tests](/terraform/plugin/testing/acceptance-tests) documentation for more details.
