@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'tf5muxserver: Include diagnostics returned from `server.GetProviderSchema()`
+  in `muxServer.GetProviderSchemaResponse`'
+time: 2023-07-13T15:54:23.555736+01:00
+custom:
+  Issue: "176"
