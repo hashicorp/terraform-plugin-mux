@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
 )
 
@@ -41,6 +42,8 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 		if err != nil {
 			return resp, fmt.Errorf("error calling GetProviderSchema for %T: %w", server, err)
 		}
+
+		resp.Diagnostics = append(resp.Diagnostics, serverResp.Diagnostics...)
 
 		if serverResp.Provider != nil {
 			if resp.Provider != nil && !schemaEquals(serverResp.Provider, resp.Provider) {

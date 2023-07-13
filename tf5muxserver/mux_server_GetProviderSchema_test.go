@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
@@ -485,6 +486,29 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				PlanDestroy: true,
 			},
+		},
+		"get-provider-schema-diagnostics": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServerDiags{
+					TestServer: &tf5testserver.TestServer{},
+					Diagnostics: []*tfprotov5.Diagnostic{
+						{
+							Severity: tfprotov5.DiagnosticSeverityError,
+							Summary:  "Summary",
+							Detail:   "Detail",
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Summary",
+					Detail:   "Detail",
+				},
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedResourceSchemas:   map[string]*tfprotov5.Schema{},
 		},
 		"provider-mismatch": {
 			servers: []func() tfprotov5.ProviderServer{

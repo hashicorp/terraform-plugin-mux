@@ -162,3 +162,20 @@ func (s *TestServer) PrepareProviderConfig(_ context.Context, req *tfprotov5.Pre
 	s.PrepareProviderConfigCalled = true
 	return s.PrepareProviderConfigResponse, nil
 }
+
+type TestServerDiags struct {
+	*TestServer
+	Diagnostics []*tfprotov5.Diagnostic
+}
+
+func (s *TestServerDiags) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
+	resp, err := s.TestServer.GetProviderSchema(ctx, req)
+
+	resp.Diagnostics = append(resp.Diagnostics, s.Diagnostics...)
+
+	return resp, err
+}
+
+func (s *TestServerDiags) ProviderServer() tfprotov5.ProviderServer {
+	return s
+}

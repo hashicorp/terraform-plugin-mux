@@ -162,3 +162,20 @@ func (s *TestServer) ValidateProviderConfig(_ context.Context, req *tfprotov6.Va
 	s.ValidateProviderConfigCalled = true
 	return s.ValidateProviderConfigResponse, nil
 }
+
+type TestServerDiags struct {
+	*TestServer
+	Diagnostics []*tfprotov6.Diagnostic
+}
+
+func (s *TestServerDiags) GetProviderSchema(ctx context.Context, req *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
+	resp, err := s.TestServer.GetProviderSchema(ctx, req)
+
+	resp.Diagnostics = append(resp.Diagnostics, s.Diagnostics...)
+
+	return resp, err
+}
+
+func (s *TestServerDiags) ProviderServer() tfprotov6.ProviderServer {
+	return s
+}
