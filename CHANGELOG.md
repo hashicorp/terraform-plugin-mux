@@ -1,3 +1,10 @@
+## 0.11.2 (July 14, 2023)
+
+BUG FIXES:
+
+* tf5muxserver: Ensure `GetProviderSchema` RPC diagnostics are properly returned to Terraform ([#176](https://github.com/hashicorp/terraform-plugin-mux/issues/176))
+* tf6muxserver: Ensure `GetProviderSchema` RPC diagnostics are properly returned to Terraform ([#176](https://github.com/hashicorp/terraform-plugin-mux/issues/176))
+
 ## 0.11.1 (June 29, 2023)
 
 BUG FIXES:
