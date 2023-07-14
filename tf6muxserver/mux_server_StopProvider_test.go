@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf6testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 )
@@ -16,7 +17,24 @@ func TestMuxServerStopProvider(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	testServers := [5]*tf6testserver.TestServer{{}, {StopProviderError: "error in server2"}, {}, {StopProviderError: "error in server4"}, {}}
+	testServers := [5]*tf6testserver.TestServer{
+		{
+			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+		}, {
+			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+			StopProviderError:         "error in server2",
+		},
+		{
+			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+		},
+		{
+			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+			StopProviderError:         "error in server4",
+		},
+		{
+			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+		},
+	}
 
 	servers := []func() tfprotov6.ProviderServer{
 		testServers[0].ProviderServer,

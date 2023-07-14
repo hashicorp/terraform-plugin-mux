@@ -1,0 +1,6 @@
+kind: BUG FIXES
+body: 'tf6muxserver: Ensure `GetProviderSchema` RPC diagnostics are properly returned
+  to Terraform'
+time: 2023-07-14T09:45:47.81872+01:00
+custom:
+  Issue: "176"

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
@@ -17,13 +18,17 @@ func TestMuxServerValidateDataSourceConfig(t *testing.T) {
 
 	ctx := context.Background()
 	testServer1 := &tf5testserver.TestServer{
-		DataSourceSchemas: map[string]*tfprotov5.Schema{
-			"test_data_source_server1": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_data_source_server1": {},
+			},
 		},
 	}
 	testServer2 := &tf5testserver.TestServer{
-		DataSourceSchemas: map[string]*tfprotov5.Schema{
-			"test_data_source_server2": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_data_source_server2": {},
+			},
 		},
 	}
 

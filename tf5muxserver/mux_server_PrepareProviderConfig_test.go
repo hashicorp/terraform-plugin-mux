@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
@@ -70,6 +71,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"error-once": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -80,8 +82,12 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						},
 					},
 				},
-				{},
-				{},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -96,6 +102,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"error-multiple": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -106,8 +113,11 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						},
 					},
 				},
-				{},
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -137,6 +147,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"warning-once": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -147,8 +158,12 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						},
 					},
 				},
-				{},
-				{},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
@@ -163,6 +178,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"warning-multiple": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -173,8 +189,11 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						},
 					},
 				},
-				{},
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -204,6 +223,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"warning-then-error": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -214,8 +234,11 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						},
 					},
 				},
-				{},
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -244,21 +267,33 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		},
 		"no-response": {
 			testServers: [3]*tf5testserver.TestServer{
-				{},
-				{},
-				{},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
 			},
 		},
 		"PreparedConfig-once": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &configSchema,
+					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-					ProviderSchema: &configSchema,
 				},
-				{},
-				{},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
 				PreparedConfig: &config,
@@ -267,13 +302,20 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"PreparedConfig-once-and-error": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &configSchema,
+					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-					ProviderSchema: &configSchema,
 				},
-				{},
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &configSchema,
+					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -284,7 +326,6 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						},
 						PreparedConfig: &config,
 					},
-					ProviderSchema: &configSchema,
 				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
@@ -301,13 +342,18 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"PreparedConfig-once-and-warning": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &configSchema,
+					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-					ProviderSchema: &configSchema,
 				},
-				{},
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
@@ -333,17 +379,23 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"PreparedConfig-multiple-different": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &configSchema,
+					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-					ProviderSchema: &configSchema,
 				},
-				{},
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &configSchema,
+					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config2,
 					},
-					ProviderSchema: &configSchema,
 				},
 			},
 			expectedError: fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
@@ -351,17 +403,23 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 		"PreparedConfig-multiple-equal": {
 			testServers: [3]*tf5testserver.TestServer{
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &configSchema,
+					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-					ProviderSchema: &configSchema,
 				},
-				{},
 				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+				},
+				{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &configSchema,
+					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
 						PreparedConfig: &config,
 					},
-					ProviderSchema: &configSchema,
 				},
 			},
 			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{

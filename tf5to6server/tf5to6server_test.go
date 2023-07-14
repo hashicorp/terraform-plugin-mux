@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 )
@@ -24,75 +25,77 @@ func TestUpgradeServer(t *testing.T) {
 	}{
 		"compatible": {
 			v5Server: (&tf5testserver.TestServer{
-				DataSourceSchemas: map[string]*tfprotov5.Schema{
-					"test_data_source": {},
-				},
-				ProviderSchema: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{
-						Attributes: []*tfprotov5.SchemaAttribute{
-							{
-								Name:            "test_attribute",
-								Type:            tftypes.String,
-								Required:        true,
-								Description:     "test_attribute description",
-								DescriptionKind: tfprotov5.StringKindPlain,
-							},
-						},
-						BlockTypes: []*tfprotov5.SchemaNestedBlock{
-							{
-								TypeName: "test_block",
-								Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-								Block: &tfprotov5.SchemaBlock{
-									Description:     "test_block description",
+				GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+					DataSourceSchemas: map[string]*tfprotov5.Schema{
+						"test_data_source": {},
+					},
+					Provider: &tfprotov5.Schema{
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "test_attribute",
+									Type:            tftypes.String,
+									Required:        true,
+									Description:     "test_attribute description",
 									DescriptionKind: tfprotov5.StringKindPlain,
-									Attributes: []*tfprotov5.SchemaAttribute{
-										{
-											Name:            "test_block_attribute",
-											Type:            tftypes.Number,
-											Required:        true,
-											Description:     "test_block_attribute description",
-											DescriptionKind: tfprotov5.StringKindPlain,
+								},
+							},
+							BlockTypes: []*tfprotov5.SchemaNestedBlock{
+								{
+									TypeName: "test_block",
+									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+									Block: &tfprotov5.SchemaBlock{
+										Description:     "test_block description",
+										DescriptionKind: tfprotov5.StringKindPlain,
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:            "test_block_attribute",
+												Type:            tftypes.Number,
+												Required:        true,
+												Description:     "test_block_attribute description",
+												DescriptionKind: tfprotov5.StringKindPlain,
+											},
 										},
 									},
 								},
 							},
 						},
 					},
-				},
-				ProviderMetaSchema: &tfprotov5.Schema{
-					Block: &tfprotov5.SchemaBlock{
-						Attributes: []*tfprotov5.SchemaAttribute{
-							{
-								Name:            "test_attribute",
-								Type:            tftypes.String,
-								Required:        true,
-								Description:     "test_attribute description",
-								DescriptionKind: tfprotov5.StringKindPlain,
-							},
-						},
-						BlockTypes: []*tfprotov5.SchemaNestedBlock{
-							{
-								TypeName: "test_block",
-								Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-								Block: &tfprotov5.SchemaBlock{
-									Description:     "test_block description",
+					ProviderMeta: &tfprotov5.Schema{
+						Block: &tfprotov5.SchemaBlock{
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "test_attribute",
+									Type:            tftypes.String,
+									Required:        true,
+									Description:     "test_attribute description",
 									DescriptionKind: tfprotov5.StringKindPlain,
-									Attributes: []*tfprotov5.SchemaAttribute{
-										{
-											Name:            "test_block_attribute",
-											Type:            tftypes.Number,
-											Required:        true,
-											Description:     "test_block_attribute description",
-											DescriptionKind: tfprotov5.StringKindPlain,
+								},
+							},
+							BlockTypes: []*tfprotov5.SchemaNestedBlock{
+								{
+									TypeName: "test_block",
+									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+									Block: &tfprotov5.SchemaBlock{
+										Description:     "test_block description",
+										DescriptionKind: tfprotov5.StringKindPlain,
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:            "test_block_attribute",
+												Type:            tftypes.Number,
+												Required:        true,
+												Description:     "test_block_attribute description",
+												DescriptionKind: tfprotov5.StringKindPlain,
+											},
 										},
 									},
 								},
 							},
 						},
 					},
-				},
-				ResourceSchemas: map[string]*tfprotov5.Schema{
-					"test_resource": {},
+					ResourceSchemas: map[string]*tfprotov5.Schema{
+						"test_resource": {},
+					},
 				},
 			}).ProviderServer,
 		},
@@ -128,8 +131,10 @@ func TestV6ToV5ServerApplyResourceChange(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -157,8 +162,10 @@ func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -184,8 +191,10 @@ func TestV6ToV5ServerGetProviderSchema(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -211,8 +220,10 @@ func TestV6ToV5ServerImportResourceState(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -240,8 +251,10 @@ func TestV6ToV5ServerPlanResourceChange(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -269,8 +282,10 @@ func TestV6ToV5ServerReadDataSource(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		DataSourceSchemas: map[string]*tfprotov5.Schema{
-			"test_data_source": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_data_source": {},
+			},
 		},
 	}
 
@@ -298,8 +313,10 @@ func TestV6ToV5ServerReadResource(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -327,8 +344,10 @@ func TestV6ToV5ServerStopProvider(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -354,8 +373,10 @@ func TestV6ToV5ServerUpgradeResourceState(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -383,8 +404,10 @@ func TestV6ToV5ServerValidateDataResourceConfig(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		DataSourceSchemas: map[string]*tfprotov5.Schema{
-			"test_data_source": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_data_source": {},
+			},
 		},
 	}
 
@@ -412,8 +435,10 @@ func TestV6ToV5ServerValidateProviderConfig(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -439,8 +464,10 @@ func TestV6ToV5ServerValidateResourceConfig(t *testing.T) {
 
 	ctx := context.Background()
 	v5server := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 

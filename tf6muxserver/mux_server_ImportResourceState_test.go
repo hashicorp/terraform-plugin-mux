@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf6testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 )
@@ -17,13 +18,17 @@ func TestMuxServerImportResourceState(t *testing.T) {
 
 	ctx := context.Background()
 	testServer1 := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource_server1": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource_server1": {},
+			},
 		},
 	}
 	testServer2 := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource_server2": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource_server2": {},
+			},
 		},
 	}
 

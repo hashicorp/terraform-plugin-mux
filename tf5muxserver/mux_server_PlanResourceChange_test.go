@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5dynamicvalue"
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
@@ -20,13 +21,15 @@ func TestMuxServerPlanResourceChange_Routing(t *testing.T) {
 	ctx := context.Background()
 
 	testServer1 := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource_server1": {
-				Block: &tfprotov5.SchemaBlock{
-					Attributes: []*tfprotov5.SchemaAttribute{
-						{
-							Name: "test_string_attribute",
-							Type: tftypes.String,
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server1": {
+					Block: &tfprotov5.SchemaBlock{
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name: "test_string_attribute",
+								Type: tftypes.String,
+							},
 						},
 					},
 				},
@@ -34,13 +37,15 @@ func TestMuxServerPlanResourceChange_Routing(t *testing.T) {
 		},
 	}
 	testServer2 := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource_server2": {
-				Block: &tfprotov5.SchemaBlock{
-					Attributes: []*tfprotov5.SchemaAttribute{
-						{
-							Name: "test_string_attribute",
-							Type: tftypes.String,
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server2": {
+					Block: &tfprotov5.SchemaBlock{
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name: "test_string_attribute",
+								Type: tftypes.String,
+							},
 						},
 					},
 				},
@@ -122,36 +127,40 @@ func TestMuxServerPlanResourceChange_ServerCapabilities_PlanDestroy(t *testing.T
 	ctx := context.Background()
 
 	testServer1 := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource_server1": {
-				Block: &tfprotov5.SchemaBlock{
-					Attributes: []*tfprotov5.SchemaAttribute{
-						{
-							Name: "test_string_attribute",
-							Type: tftypes.String,
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server1": {
+					Block: &tfprotov5.SchemaBlock{
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name: "test_string_attribute",
+								Type: tftypes.String,
+							},
 						},
 					},
 				},
 			},
-		},
-		ServerCapabilities: &tfprotov5.ServerCapabilities{
-			PlanDestroy: true,
+			ServerCapabilities: &tfprotov5.ServerCapabilities{
+				PlanDestroy: true,
+			},
 		},
 	}
 	testServer2 := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource_server2": {
-				Block: &tfprotov5.SchemaBlock{
-					Attributes: []*tfprotov5.SchemaAttribute{
-						{
-							Name: "test_string_attribute",
-							Type: tftypes.String,
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server2": {
+					Block: &tfprotov5.SchemaBlock{
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name: "test_string_attribute",
+								Type: tftypes.String,
+							},
 						},
 					},
 				},
 			},
+			// Intentionally no ServerCapabilities on this server
 		},
-		// Intentionally no ServerCapabilities on this server
 	}
 
 	testProposedNewState := tf5dynamicvalue.Must(

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
@@ -24,13 +25,17 @@ func TestNewMuxServer(t *testing.T) {
 		"duplicate-data-source": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					DataSourceSchemas: map[string]*tfprotov5.Schema{
-						"test_foo": {},
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						DataSourceSchemas: map[string]*tfprotov5.Schema{
+							"test_foo": {},
+						},
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					DataSourceSchemas: map[string]*tfprotov5.Schema{
-						"test_foo": {},
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						DataSourceSchemas: map[string]*tfprotov5.Schema{
+							"test_foo": {},
+						},
 					},
 				}).ProviderServer,
 			},
@@ -39,13 +44,17 @@ func TestNewMuxServer(t *testing.T) {
 		"duplicate-resource": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					ResourceSchemas: map[string]*tfprotov5.Schema{
-						"test_foo": {},
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_foo": {},
+						},
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					ResourceSchemas: map[string]*tfprotov5.Schema{
-						"test_foo": {},
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_foo": {},
+						},
 					},
 				}).ProviderServer,
 			},
@@ -54,41 +63,43 @@ func TestNewMuxServer(t *testing.T) {
 		"provider-mismatch": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					ProviderSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &tfprotov5.Schema{
 							Version: 1,
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
 										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
@@ -98,41 +109,43 @@ func TestNewMuxServer(t *testing.T) {
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					ProviderSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &tfprotov5.Schema{
 							Version: 1,
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
 										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Optional:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Optional:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
@@ -147,73 +160,75 @@ func TestNewMuxServer(t *testing.T) {
 		"provider-ordering": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					ProviderSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &tfprotov5.Schema{
 							Version: 1,
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-								{
-									Name:            "secret",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the secret to authenticate with",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "other_feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
 										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									},
+									{
+										Name:            "secret",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the secret to authenticate with",
+										DescriptionKind: tfprotov5.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "other_feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
-								},
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
-										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
@@ -223,73 +238,75 @@ func TestNewMuxServer(t *testing.T) {
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					ProviderSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &tfprotov5.Schema{
 							Version: 1,
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:            "secret",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the secret to authenticate with",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:            "secret",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the secret to authenticate with",
 										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									},
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
+										DescriptionKind: tfprotov5.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
-								},
-								{
-									TypeName: "other_feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
-										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									{
+										TypeName: "other_feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
@@ -303,41 +320,43 @@ func TestNewMuxServer(t *testing.T) {
 		"provider-meta-mismatch": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					ProviderMetaSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ProviderMeta: &tfprotov5.Schema{
 							Version: 1,
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
 										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
@@ -347,41 +366,43 @@ func TestNewMuxServer(t *testing.T) {
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					ProviderMetaSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ProviderMeta: &tfprotov5.Schema{
 							Version: 1,
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
 										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Optional:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Optional:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
@@ -396,73 +417,75 @@ func TestNewMuxServer(t *testing.T) {
 		"provider-meta-ordering": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					ProviderMetaSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ProviderMeta: &tfprotov5.Schema{
 							Version: 1,
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-								{
-									Name:            "secret",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the secret to authenticate with",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
 										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									},
+									{
+										Name:            "secret",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the secret to authenticate with",
+										DescriptionKind: tfprotov5.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
-								},
-								{
-									TypeName: "other_feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
-										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									{
+										TypeName: "other_feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
@@ -472,73 +495,75 @@ func TestNewMuxServer(t *testing.T) {
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					ProviderMetaSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ProviderMeta: &tfprotov5.Schema{
 							Version: 1,
-							Attributes: []*tfprotov5.SchemaAttribute{
-								{
-									Name:            "secret",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the secret to authenticate with",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov5.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "other_feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov5.SchemaAttribute{
+									{
+										Name:            "secret",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the secret to authenticate with",
 										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									},
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
+										DescriptionKind: tfprotov5.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "other_feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
-								},
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
-										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes: []*tfprotov5.SchemaAttribute{
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Required:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov5.StringKindPlain,
-											},
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov5.StringKindPlain,
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes: []*tfprotov5.SchemaAttribute{
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Required:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov5.StringKindPlain,
+												},
 											},
 										},
 									},
@@ -552,44 +577,48 @@ func TestNewMuxServer(t *testing.T) {
 		"nested block MinItems and MaxItems diff are ignored": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					ProviderSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &tfprotov5.Schema{
 							Version: 1,
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
-										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes:      []*tfprotov5.SchemaAttribute{},
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes:      []*tfprotov5.SchemaAttribute{},
+										},
+										MinItems: 1,
+										MaxItems: 2,
 									},
-									MinItems: 1,
-									MaxItems: 2,
 								},
 							},
 						},
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					ProviderSchema: &tfprotov5.Schema{
-						Version: 1,
-						Block: &tfprotov5.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						Provider: &tfprotov5.Schema{
 							Version: 1,
-							BlockTypes: []*tfprotov5.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov5.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
-										DescriptionKind: tfprotov5.StringKindPlain,
-										Attributes:      []*tfprotov5.SchemaAttribute{},
+							Block: &tfprotov5.SchemaBlock{
+								Version: 1,
+								BlockTypes: []*tfprotov5.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov5.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov5.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov5.StringKindPlain,
+											Attributes:      []*tfprotov5.SchemaAttribute{},
+										},
+										MinItems: 0,
+										MaxItems: 0,
 									},
-									MinItems: 0,
-									MaxItems: 0,
 								},
 							},
 						},
@@ -600,16 +629,20 @@ func TestNewMuxServer(t *testing.T) {
 		"server-capabilities": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					ResourceSchemas: map[string]*tfprotov5.Schema{
-						"test_with_server_capabilities": {},
-					},
-					ServerCapabilities: &tfprotov5.ServerCapabilities{
-						PlanDestroy: true,
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_with_server_capabilities": {},
+						},
+						ServerCapabilities: &tfprotov5.ServerCapabilities{
+							PlanDestroy: true,
+						},
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					ResourceSchemas: map[string]*tfprotov5.Schema{
-						"test_without_server_capabilities": {},
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_without_server_capabilities": {},
+						},
 					},
 				}).ProviderServer,
 			},

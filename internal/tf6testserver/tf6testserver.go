@@ -12,17 +12,12 @@ import (
 var _ tfprotov6.ProviderServer = &TestServer{}
 
 type TestServer struct {
-	DataSourceSchemas  map[string]*tfprotov6.Schema
-	ProviderMetaSchema *tfprotov6.Schema
-	ProviderSchema     *tfprotov6.Schema
-	ResourceSchemas    map[string]*tfprotov6.Schema
-	ServerCapabilities *tfprotov6.ServerCapabilities
-
 	ApplyResourceChangeCalled map[string]bool
 
 	ConfigureProviderCalled bool
 
-	GetProviderSchemaCalled bool
+	GetProviderSchemaCalled   bool
+	GetProviderSchemaResponse *tfprotov6.GetProviderSchemaResponse
 
 	ImportResourceStateCalled map[string]bool
 
@@ -65,22 +60,7 @@ func (s *TestServer) ConfigureProvider(_ context.Context, _ *tfprotov6.Configure
 
 func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
 	s.GetProviderSchemaCalled = true
-
-	if s.DataSourceSchemas == nil {
-		s.DataSourceSchemas = make(map[string]*tfprotov6.Schema)
-	}
-
-	if s.ResourceSchemas == nil {
-		s.ResourceSchemas = make(map[string]*tfprotov6.Schema)
-	}
-
-	return &tfprotov6.GetProviderSchemaResponse{
-		Provider:           s.ProviderSchema,
-		ProviderMeta:       s.ProviderMetaSchema,
-		ResourceSchemas:    s.ResourceSchemas,
-		DataSourceSchemas:  s.DataSourceSchemas,
-		ServerCapabilities: s.ServerCapabilities,
-	}, nil
+	return s.GetProviderSchemaResponse, nil
 }
 
 func (s *TestServer) ImportResourceState(_ context.Context, req *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
@@ -161,21 +141,4 @@ func (s *TestServer) ValidateResourceConfig(_ context.Context, req *tfprotov6.Va
 func (s *TestServer) ValidateProviderConfig(_ context.Context, req *tfprotov6.ValidateProviderConfigRequest) (*tfprotov6.ValidateProviderConfigResponse, error) {
 	s.ValidateProviderConfigCalled = true
 	return s.ValidateProviderConfigResponse, nil
-}
-
-type TestServerDiags struct {
-	*TestServer
-	Diagnostics []*tfprotov6.Diagnostic
-}
-
-func (s *TestServerDiags) GetProviderSchema(ctx context.Context, req *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
-	resp, err := s.TestServer.GetProviderSchema(ctx, req)
-
-	resp.Diagnostics = append(resp.Diagnostics, s.Diagnostics...)
-
-	return resp, err
-}
-
-func (s *TestServerDiags) ProviderServer() tfprotov6.ProviderServer {
-	return s
 }
