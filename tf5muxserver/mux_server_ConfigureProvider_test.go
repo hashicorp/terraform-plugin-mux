@@ -7,6 +7,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
@@ -23,15 +24,42 @@ func TestMuxServerConfigureProvider(t *testing.T) {
 		},
 		{
 			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+			ConfigureProviderResponse: &tfprotov5.ConfigureProviderResponse{
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityWarning,
+						Summary:  "warning summary",
+						Detail:   "warning detail",
+					},
+				},
+			},
 		},
 		{
 			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 		},
 		{
 			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+			ConfigureProviderResponse: &tfprotov5.ConfigureProviderResponse{
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "error summary",
+						Detail:   "error detail",
+					},
+				},
+			},
 		},
 		{
 			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+			ConfigureProviderResponse: &tfprotov5.ConfigureProviderResponse{
+				Diagnostics: []*tfprotov5.Diagnostic{
+					{
+						Severity: tfprotov5.DiagnosticSeverityError,
+						Summary:  "unexpected error summary",
+						Detail:   "unexpected error detail",
+					},
+				},
+			},
 		},
 	}
 
@@ -56,14 +84,33 @@ func TestMuxServerConfigureProvider(t *testing.T) {
 		t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().ConfigureProvider(ctx, &tfprotov5.ConfigureProviderRequest{})
+	resp, err := muxServer.ProviderServer().ConfigureProvider(ctx, &tfprotov5.ConfigureProviderRequest{})
 
 	if err != nil {
 		t.Fatalf("error calling ConfigureProvider: %s", err)
 	}
 
+	expectedResp := &tfprotov5.ConfigureProviderResponse{
+		Diagnostics: []*tfprotov5.Diagnostic{
+			{
+				Severity: tfprotov5.DiagnosticSeverityWarning,
+				Summary:  "warning summary",
+				Detail:   "warning detail",
+			},
+			{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "error summary",
+				Detail:   "error detail",
+			},
+		},
+	}
+
+	if diff := cmp.Diff(resp, expectedResp); diff != "" {
+		t.Errorf("unexpected difference: %s", diff)
+	}
+
 	for num, testServer := range testServers {
-		if !testServer.ConfigureProviderCalled {
+		if num < 4 && !testServer.ConfigureProviderCalled {
 			t.Errorf("configure not called on server%d", num+1)
 		}
 	}
