@@ -5,7 +5,6 @@ package tf6muxserver_test
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -69,9 +68,11 @@ func TestMuxServerStopProvider(t *testing.T) {
 		t.Fatalf("error calling StopProvider: %s", err)
 	}
 
-	expectedRespError := strings.Join([]string{"error in server2", "error in server4"}, "\n")
+	expectedResp := &tfprotov6.StopProviderResponse{
+		Error: "error in server2\nerror in server4",
+	}
 
-	if diff := cmp.Diff(resp.Error, expectedRespError); diff != "" {
+	if diff := cmp.Diff(resp, expectedResp); diff != "" {
 		t.Errorf("unexpected response Error difference: %s", diff)
 	}
 
