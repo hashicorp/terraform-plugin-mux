@@ -71,7 +71,6 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		"error-once": {
 			testServers: [3]*tf6testserver.TestServer{
 				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -82,12 +81,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						},
 					},
 				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -102,7 +97,6 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		"error-multiple": {
 			testServers: [3]*tf6testserver.TestServer{
 				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -113,11 +107,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						},
 					},
 				},
+				{},
 				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -147,7 +138,6 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		"warning-once": {
 			testServers: [3]*tf6testserver.TestServer{
 				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -158,12 +148,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						},
 					},
 				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				Diagnostics: []*tfprotov6.Diagnostic{
@@ -178,7 +164,6 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		"warning-multiple": {
 			testServers: [3]*tf6testserver.TestServer{
 				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -189,11 +174,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						},
 					},
 				},
+				{},
 				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -223,7 +205,6 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		"warning-then-error": {
 			testServers: [3]*tf6testserver.TestServer{
 				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -234,11 +215,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						},
 					},
 				},
+				{},
 				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
 							{
@@ -267,15 +245,9 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 		},
 		"no-response": {
 			testServers: [3]*tf6testserver.TestServer{
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
+				{},
+				{},
+				{},
 			},
 		},
 		"PreparedConfig-once": {
@@ -288,12 +260,8 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						PreparedConfig: &config,
 					},
 				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
-				{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				},
+				{},
+				{},
 			},
 			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
 				PreparedConfig: &config,

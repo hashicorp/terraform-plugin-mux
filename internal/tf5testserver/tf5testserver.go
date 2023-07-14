@@ -66,7 +66,12 @@ func (s *TestServer) ConfigureProvider(_ context.Context, _ *tfprotov5.Configure
 
 func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	s.GetProviderSchemaCalled = true
-	return s.GetProviderSchemaResponse, nil
+
+	if s.GetProviderSchemaResponse != nil {
+		return s.GetProviderSchemaResponse, nil
+	}
+
+	return &tfprotov5.GetProviderSchemaResponse{}, nil
 }
 
 func (s *TestServer) ImportResourceState(_ context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {

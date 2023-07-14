@@ -707,12 +707,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				}).ProviderServer,
-				(&tf6testserver.TestServer{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				}).ProviderServer,
+				(&tf6testserver.TestServer{}).ProviderServer,
+				(&tf6testserver.TestServer{}).ProviderServer,
 			},
 			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedDiagnostics: []*tfprotov6.Diagnostic{
@@ -737,9 +733,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				}).ProviderServer,
-				(&tf6testserver.TestServer{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				}).ProviderServer,
+				(&tf6testserver.TestServer{}).ProviderServer,
 				(&tf6testserver.TestServer{
 					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
@@ -780,12 +774,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				}).ProviderServer,
-				(&tf6testserver.TestServer{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				}).ProviderServer,
-				(&tf6testserver.TestServer{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				}).ProviderServer,
+				(&tf6testserver.TestServer{}).ProviderServer,
+				(&tf6testserver.TestServer{}).ProviderServer,
 			},
 			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedDiagnostics: []*tfprotov6.Diagnostic{
@@ -810,9 +800,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				}).ProviderServer,
-				(&tf6testserver.TestServer{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				}).ProviderServer,
+				(&tf6testserver.TestServer{}).ProviderServer,
 				(&tf6testserver.TestServer{
 					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
@@ -853,9 +841,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						},
 					},
 				}).ProviderServer,
-				(&tf6testserver.TestServer{
-					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-				}).ProviderServer,
+				(&tf6testserver.TestServer{}).ProviderServer,
 				(&tf6testserver.TestServer{
 					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
 						Diagnostics: []*tfprotov6.Diagnostic{
