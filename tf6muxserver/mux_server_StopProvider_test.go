@@ -5,8 +5,10 @@ package tf6muxserver_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf6testserver"
@@ -22,14 +24,18 @@ func TestMuxServerStopProvider(t *testing.T) {
 			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 		}, {
 			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-			StopProviderError:         "error in server2",
+			StopProviderResponse: &tfprotov6.StopProviderResponse{
+				Error: "error in server2",
+			},
 		},
 		{
 			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
 		},
 		{
 			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
-			StopProviderError:         "error in server4",
+			StopProviderResponse: &tfprotov6.StopProviderResponse{
+				Error: "error in server4",
+			},
 		},
 		{
 			GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
@@ -57,10 +63,16 @@ func TestMuxServerStopProvider(t *testing.T) {
 		t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().StopProvider(ctx, &tfprotov6.StopProviderRequest{})
+	resp, err := muxServer.ProviderServer().StopProvider(ctx, &tfprotov6.StopProviderRequest{})
 
 	if err != nil {
 		t.Fatalf("error calling StopProvider: %s", err)
+	}
+
+	expectedRespError := strings.Join([]string{"error in server2", "error in server4"}, "\n")
+
+	if diff := cmp.Diff(resp.Error, expectedRespError); diff != "" {
+		t.Errorf("unexpected response Error difference: %s", diff)
 	}
 
 	for num, testServer := range testServers {

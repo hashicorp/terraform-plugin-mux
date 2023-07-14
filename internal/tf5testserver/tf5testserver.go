@@ -14,7 +14,8 @@ var _ tfprotov5.ProviderServer = &TestServer{}
 type TestServer struct {
 	ApplyResourceChangeCalled map[string]bool
 
-	ConfigureProviderCalled bool
+	ConfigureProviderCalled   bool
+	ConfigureProviderResponse *tfprotov5.ConfigureProviderResponse
 
 	GetProviderSchemaCalled   bool
 	GetProviderSchemaResponse *tfprotov5.GetProviderSchemaResponse
@@ -30,8 +31,8 @@ type TestServer struct {
 
 	ReadResourceCalled map[string]bool
 
-	StopProviderCalled bool
-	StopProviderError  string
+	StopProviderCalled   bool
+	StopProviderResponse *tfprotov5.StopProviderResponse
 
 	UpgradeResourceStateCalled map[string]bool
 
@@ -55,6 +56,11 @@ func (s *TestServer) ApplyResourceChange(_ context.Context, req *tfprotov5.Apply
 
 func (s *TestServer) ConfigureProvider(_ context.Context, _ *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
 	s.ConfigureProviderCalled = true
+
+	if s.ConfigureProviderResponse != nil {
+		return s.ConfigureProviderResponse, nil
+	}
+
 	return &tfprotov5.ConfigureProviderResponse{}, nil
 }
 
@@ -102,10 +108,8 @@ func (s *TestServer) ReadResource(_ context.Context, req *tfprotov5.ReadResource
 func (s *TestServer) StopProvider(_ context.Context, _ *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
 	s.StopProviderCalled = true
 
-	if s.StopProviderError != "" {
-		return &tfprotov5.StopProviderResponse{
-			Error: s.StopProviderError,
-		}, nil
+	if s.StopProviderResponse != nil {
+		return s.StopProviderResponse, nil
 	}
 
 	return &tfprotov5.StopProviderResponse{}, nil
