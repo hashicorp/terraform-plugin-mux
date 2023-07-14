@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
@@ -16,7 +17,23 @@ func TestMuxServerConfigureProvider(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	testServers := [5]*tf5testserver.TestServer{{}, {}, {}, {}, {}}
+	testServers := [5]*tf5testserver.TestServer{
+		{
+			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+		},
+		{
+			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+		},
+		{
+			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+		},
+		{
+			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+		},
+		{
+			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
+		},
+	}
 
 	servers := []func() tfprotov5.ProviderServer{
 		testServers[0].ProviderServer,

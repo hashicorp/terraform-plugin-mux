@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf6testserver"
 	"github.com/hashicorp/terraform-plugin-mux/internal/tfprotov6tov5"
 	"github.com/hashicorp/terraform-plugin-mux/tf6to5server"
@@ -26,93 +27,97 @@ func TestDowngradeServer(t *testing.T) {
 	}{
 		"compatible": {
 			v6Server: (&tf6testserver.TestServer{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{
-					"test_data_source": {},
-				},
-				ProviderSchema: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Name:            "test_attribute",
-								Type:            tftypes.String,
-								Required:        true,
-								Description:     "test_attribute description",
-								DescriptionKind: tfprotov6.StringKindPlain,
-							},
-						},
-						BlockTypes: []*tfprotov6.SchemaNestedBlock{
-							{
-								TypeName: "test_block",
-								Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
-								Block: &tfprotov6.SchemaBlock{
-									Description:     "test_block description",
+				GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+					DataSourceSchemas: map[string]*tfprotov6.Schema{
+						"test_data_source": {},
+					},
+					Provider: &tfprotov6.Schema{
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:            "test_attribute",
+									Type:            tftypes.String,
+									Required:        true,
+									Description:     "test_attribute description",
 									DescriptionKind: tfprotov6.StringKindPlain,
-									Attributes: []*tfprotov6.SchemaAttribute{
-										{
-											Name:            "test_block_attribute",
-											Type:            tftypes.Number,
-											Required:        true,
-											Description:     "test_block_attribute description",
-											DescriptionKind: tfprotov6.StringKindPlain,
+								},
+							},
+							BlockTypes: []*tfprotov6.SchemaNestedBlock{
+								{
+									TypeName: "test_block",
+									Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+									Block: &tfprotov6.SchemaBlock{
+										Description:     "test_block description",
+										DescriptionKind: tfprotov6.StringKindPlain,
+										Attributes: []*tfprotov6.SchemaAttribute{
+											{
+												Name:            "test_block_attribute",
+												Type:            tftypes.Number,
+												Required:        true,
+												Description:     "test_block_attribute description",
+												DescriptionKind: tfprotov6.StringKindPlain,
+											},
 										},
 									},
 								},
 							},
 						},
 					},
-				},
-				ProviderMetaSchema: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Name:            "test_attribute",
-								Type:            tftypes.String,
-								Required:        true,
-								Description:     "test_attribute description",
-								DescriptionKind: tfprotov6.StringKindPlain,
-							},
-						},
-						BlockTypes: []*tfprotov6.SchemaNestedBlock{
-							{
-								TypeName: "test_block",
-								Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
-								Block: &tfprotov6.SchemaBlock{
-									Description:     "test_block description",
+					ProviderMeta: &tfprotov6.Schema{
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name:            "test_attribute",
+									Type:            tftypes.String,
+									Required:        true,
+									Description:     "test_attribute description",
 									DescriptionKind: tfprotov6.StringKindPlain,
-									Attributes: []*tfprotov6.SchemaAttribute{
-										{
-											Name:            "test_block_attribute",
-											Type:            tftypes.Number,
-											Required:        true,
-											Description:     "test_block_attribute description",
-											DescriptionKind: tfprotov6.StringKindPlain,
+								},
+							},
+							BlockTypes: []*tfprotov6.SchemaNestedBlock{
+								{
+									TypeName: "test_block",
+									Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+									Block: &tfprotov6.SchemaBlock{
+										Description:     "test_block description",
+										DescriptionKind: tfprotov6.StringKindPlain,
+										Attributes: []*tfprotov6.SchemaAttribute{
+											{
+												Name:            "test_block_attribute",
+												Type:            tftypes.Number,
+												Required:        true,
+												Description:     "test_block_attribute description",
+												DescriptionKind: tfprotov6.StringKindPlain,
+											},
 										},
 									},
 								},
 							},
 						},
 					},
-				},
-				ResourceSchemas: map[string]*tfprotov6.Schema{
-					"test_resource": {},
+					ResourceSchemas: map[string]*tfprotov6.Schema{
+						"test_resource": {},
+					},
 				},
 			}).ProviderServer,
 		},
 		"SchemaAttribute-NestedType-data-source": {
 			v6Server: (&tf6testserver.TestServer{
-				DataSourceSchemas: map[string]*tfprotov6.Schema{
-					"test_data_source": {
-						Block: &tfprotov6.SchemaBlock{
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name: "test_attribute",
-									NestedType: &tfprotov6.SchemaObject{
-										Attributes: []*tfprotov6.SchemaAttribute{},
-										Nesting:    tfprotov6.SchemaObjectNestingModeSingle,
+				GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+					DataSourceSchemas: map[string]*tfprotov6.Schema{
+						"test_data_source": {
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name: "test_attribute",
+										NestedType: &tfprotov6.SchemaObject{
+											Attributes: []*tfprotov6.SchemaAttribute{},
+											Nesting:    tfprotov6.SchemaObjectNestingModeSingle,
+										},
+										Required:        true,
+										Description:     "test_attribute description",
+										DescriptionKind: tfprotov6.StringKindPlain,
 									},
-									Required:        true,
-									Description:     "test_attribute description",
-									DescriptionKind: tfprotov6.StringKindPlain,
 								},
 							},
 						},
@@ -123,50 +128,8 @@ func TestDowngradeServer(t *testing.T) {
 		},
 		"SchemaAttribute-NestedType-provider": {
 			v6Server: (&tf6testserver.TestServer{
-				ProviderSchema: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Name: "test_attribute",
-								NestedType: &tfprotov6.SchemaObject{
-									Attributes: []*tfprotov6.SchemaAttribute{},
-									Nesting:    tfprotov6.SchemaObjectNestingModeSingle,
-								},
-								Required:        true,
-								Description:     "test_attribute description",
-								DescriptionKind: tfprotov6.StringKindPlain,
-							},
-						},
-					},
-				},
-			}).ProviderServer,
-			expectedError: fmt.Errorf("unable to convert provider schema: unable to convert attribute \"test_attribute\" schema: %s", tfprotov6tov5.ErrSchemaAttributeNestedTypeNotImplemented),
-		},
-		"SchemaAttribute-NestedType-provider-meta": {
-			v6Server: (&tf6testserver.TestServer{
-				ProviderMetaSchema: &tfprotov6.Schema{
-					Block: &tfprotov6.SchemaBlock{
-						Attributes: []*tfprotov6.SchemaAttribute{
-							{
-								Name: "test_attribute",
-								NestedType: &tfprotov6.SchemaObject{
-									Attributes: []*tfprotov6.SchemaAttribute{},
-									Nesting:    tfprotov6.SchemaObjectNestingModeSingle,
-								},
-								Required:        true,
-								Description:     "test_attribute description",
-								DescriptionKind: tfprotov6.StringKindPlain,
-							},
-						},
-					},
-				},
-			}).ProviderServer,
-			expectedError: fmt.Errorf("unable to convert provider meta schema: unable to convert attribute \"test_attribute\" schema: %s", tfprotov6tov5.ErrSchemaAttributeNestedTypeNotImplemented),
-		},
-		"SchemaAttribute-NestedType-resource": {
-			v6Server: (&tf6testserver.TestServer{
-				ResourceSchemas: map[string]*tfprotov6.Schema{
-					"test_resource": {
+				GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+					Provider: &tfprotov6.Schema{
 						Block: &tfprotov6.SchemaBlock{
 							Attributes: []*tfprotov6.SchemaAttribute{
 								{
@@ -178,6 +141,54 @@ func TestDowngradeServer(t *testing.T) {
 									Required:        true,
 									Description:     "test_attribute description",
 									DescriptionKind: tfprotov6.StringKindPlain,
+								},
+							},
+						},
+					},
+				},
+			}).ProviderServer,
+			expectedError: fmt.Errorf("unable to convert provider schema: unable to convert attribute \"test_attribute\" schema: %s", tfprotov6tov5.ErrSchemaAttributeNestedTypeNotImplemented),
+		},
+		"SchemaAttribute-NestedType-provider-meta": {
+			v6Server: (&tf6testserver.TestServer{
+				GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+					ProviderMeta: &tfprotov6.Schema{
+						Block: &tfprotov6.SchemaBlock{
+							Attributes: []*tfprotov6.SchemaAttribute{
+								{
+									Name: "test_attribute",
+									NestedType: &tfprotov6.SchemaObject{
+										Attributes: []*tfprotov6.SchemaAttribute{},
+										Nesting:    tfprotov6.SchemaObjectNestingModeSingle,
+									},
+									Required:        true,
+									Description:     "test_attribute description",
+									DescriptionKind: tfprotov6.StringKindPlain,
+								},
+							},
+						},
+					},
+				},
+			}).ProviderServer,
+			expectedError: fmt.Errorf("unable to convert provider meta schema: unable to convert attribute \"test_attribute\" schema: %s", tfprotov6tov5.ErrSchemaAttributeNestedTypeNotImplemented),
+		},
+		"SchemaAttribute-NestedType-resource": {
+			v6Server: (&tf6testserver.TestServer{
+				GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+					ResourceSchemas: map[string]*tfprotov6.Schema{
+						"test_resource": {
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name: "test_attribute",
+										NestedType: &tfprotov6.SchemaObject{
+											Attributes: []*tfprotov6.SchemaAttribute{},
+											Nesting:    tfprotov6.SchemaObjectNestingModeSingle,
+										},
+										Required:        true,
+										Description:     "test_attribute description",
+										DescriptionKind: tfprotov6.StringKindPlain,
+									},
 								},
 							},
 						},
@@ -218,8 +229,10 @@ func TestV6ToV5ServerApplyResourceChange(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -247,8 +260,10 @@ func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -274,8 +289,10 @@ func TestV6ToV5ServerGetProviderSchema(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -301,8 +318,10 @@ func TestV6ToV5ServerImportResourceState(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -330,8 +349,10 @@ func TestV6ToV5ServerPlanResourceChange(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -359,8 +380,10 @@ func TestV6ToV5ServerPrepareProviderConfig(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -386,8 +409,10 @@ func TestV6ToV5ServerReadDataSource(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		DataSourceSchemas: map[string]*tfprotov6.Schema{
-			"test_data_source": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov6.Schema{
+				"test_data_source": {},
+			},
 		},
 	}
 
@@ -415,8 +440,10 @@ func TestV6ToV5ServerReadResource(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -444,8 +471,10 @@ func TestV6ToV5ServerStopProvider(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -471,8 +500,10 @@ func TestV6ToV5ServerUpgradeResourceState(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 
@@ -500,8 +531,10 @@ func TestV6ToV5ServerValidateDataSourceConfig(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		DataSourceSchemas: map[string]*tfprotov6.Schema{
-			"test_data_source": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov6.Schema{
+				"test_data_source": {},
+			},
 		},
 	}
 
@@ -529,8 +562,10 @@ func TestV6ToV5ServerValidateResourceTypeConfig(t *testing.T) {
 
 	ctx := context.Background()
 	v6server := &tf6testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov6.Schema{
-			"test_resource": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
 		},
 	}
 

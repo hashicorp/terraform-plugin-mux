@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
@@ -17,13 +18,17 @@ func TestMuxServerApplyResourceChange(t *testing.T) {
 
 	ctx := context.Background()
 	testServer1 := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource_server1": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server1": {},
+			},
 		},
 	}
 	testServer2 := &tf5testserver.TestServer{
-		ResourceSchemas: map[string]*tfprotov5.Schema{
-			"test_resource_server2": {},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server2": {},
+			},
 		},
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf6testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 )
@@ -29,114 +30,116 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		"combined": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
-					ProviderSchema: &tfprotov6.Schema{
-						Version: 1,
-						Block: &tfprotov6.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Provider: &tfprotov6.Schema{
 							Version: 1,
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov6.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov6.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov6.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov6.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
 										DescriptionKind: tfprotov6.StringKindPlain,
-										Attributes: []*tfprotov6.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov6.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Optional:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov6.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov6.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov6.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov6.StringKindPlain,
+											Attributes: []*tfprotov6.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov6.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Optional:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov6.StringKindPlain,
+												},
 											},
 										},
 									},
 								},
 							},
 						},
-					},
-					ProviderMetaSchema: &tfprotov6.Schema{
-						Version: 4,
-						Block: &tfprotov6.SchemaBlock{
+						ProviderMeta: &tfprotov6.Schema{
 							Version: 4,
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name:            "module_id",
-									Type:            tftypes.String,
-									Optional:        true,
-									Description:     "a unique identifier for the module",
-									DescriptionKind: tfprotov6.StringKindPlain,
-								},
-							},
-						},
-					},
-					ResourceSchemas: map[string]*tfprotov6.Schema{
-						"test_foo": {
-							Version: 1,
 							Block: &tfprotov6.SchemaBlock{
-								Version: 1,
+								Version: 4,
 								Attributes: []*tfprotov6.SchemaAttribute{
 									{
-										Name:            "airspeed_velocity",
-										Type:            tftypes.Number,
-										Required:        true,
-										Description:     "the airspeed velocity of a swallow",
-										DescriptionKind: tfprotov6.StringKindPlain,
-									},
-								},
-							},
-						},
-						"test_bar": {
-							Version: 1,
-							Block: &tfprotov6.SchemaBlock{
-								Version: 1,
-								Attributes: []*tfprotov6.SchemaAttribute{
-									{
-										Name:            "name",
+										Name:            "module_id",
 										Type:            tftypes.String,
 										Optional:        true,
-										Description:     "your name",
-										DescriptionKind: tfprotov6.StringKindPlain,
-									},
-									{
-										Name:            "color",
-										Type:            tftypes.String,
-										Optional:        true,
-										Description:     "your favorite color",
+										Description:     "a unique identifier for the module",
 										DescriptionKind: tfprotov6.StringKindPlain,
 									},
 								},
 							},
 						},
-					},
-					DataSourceSchemas: map[string]*tfprotov6.Schema{
-						"test_foo": {
-							Version: 1,
-							Block: &tfprotov6.SchemaBlock{
+						ResourceSchemas: map[string]*tfprotov6.Schema{
+							"test_foo": {
 								Version: 1,
-								Attributes: []*tfprotov6.SchemaAttribute{
-									{
-										Name:            "current_time",
-										Type:            tftypes.String,
-										Computed:        true,
-										Description:     "the current time in RFC 3339 format",
-										DescriptionKind: tfprotov6.StringKindPlain,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:            "airspeed_velocity",
+											Type:            tftypes.Number,
+											Required:        true,
+											Description:     "the airspeed velocity of a swallow",
+											DescriptionKind: tfprotov6.StringKindPlain,
+										},
+									},
+								},
+							},
+							"test_bar": {
+								Version: 1,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:            "name",
+											Type:            tftypes.String,
+											Optional:        true,
+											Description:     "your name",
+											DescriptionKind: tfprotov6.StringKindPlain,
+										},
+										{
+											Name:            "color",
+											Type:            tftypes.String,
+											Optional:        true,
+											Description:     "your favorite color",
+											DescriptionKind: tfprotov6.StringKindPlain,
+										},
+									},
+								},
+							},
+						},
+						DataSourceSchemas: map[string]*tfprotov6.Schema{
+							"test_foo": {
+								Version: 1,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:            "current_time",
+											Type:            tftypes.String,
+											Computed:        true,
+											Description:     "the current time in RFC 3339 format",
+											DescriptionKind: tfprotov6.StringKindPlain,
+										},
 									},
 								},
 							},
@@ -144,112 +147,114 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
-					ProviderSchema: &tfprotov6.Schema{
-						Version: 1,
-						Block: &tfprotov6.SchemaBlock{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Provider: &tfprotov6.Schema{
 							Version: 1,
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name:            "account_id",
-									Type:            tftypes.String,
-									Required:        true,
-									Description:     "the account ID to make requests for",
-									DescriptionKind: tfprotov6.StringKindPlain,
-								},
-							},
-							BlockTypes: []*tfprotov6.SchemaNestedBlock{
-								{
-									TypeName: "feature",
-									Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
-									Block: &tfprotov6.SchemaBlock{
-										Version:         1,
-										Description:     "features to enable on the provider",
+							Block: &tfprotov6.SchemaBlock{
+								Version: 1,
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:            "account_id",
+										Type:            tftypes.String,
+										Required:        true,
+										Description:     "the account ID to make requests for",
 										DescriptionKind: tfprotov6.StringKindPlain,
-										Attributes: []*tfprotov6.SchemaAttribute{
-											{
-												Name:            "feature_id",
-												Type:            tftypes.Number,
-												Required:        true,
-												Description:     "The ID of the feature",
-												DescriptionKind: tfprotov6.StringKindPlain,
-											},
-											{
-												Name:            "enabled",
-												Type:            tftypes.Bool,
-												Optional:        true,
-												Description:     "whether the feature is enabled",
-												DescriptionKind: tfprotov6.StringKindPlain,
+									},
+								},
+								BlockTypes: []*tfprotov6.SchemaNestedBlock{
+									{
+										TypeName: "feature",
+										Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+										Block: &tfprotov6.SchemaBlock{
+											Version:         1,
+											Description:     "features to enable on the provider",
+											DescriptionKind: tfprotov6.StringKindPlain,
+											Attributes: []*tfprotov6.SchemaAttribute{
+												{
+													Name:            "feature_id",
+													Type:            tftypes.Number,
+													Required:        true,
+													Description:     "The ID of the feature",
+													DescriptionKind: tfprotov6.StringKindPlain,
+												},
+												{
+													Name:            "enabled",
+													Type:            tftypes.Bool,
+													Optional:        true,
+													Description:     "whether the feature is enabled",
+													DescriptionKind: tfprotov6.StringKindPlain,
+												},
 											},
 										},
 									},
 								},
 							},
 						},
-					},
-					ProviderMetaSchema: &tfprotov6.Schema{
-						Version: 4,
-						Block: &tfprotov6.SchemaBlock{
+						ProviderMeta: &tfprotov6.Schema{
 							Version: 4,
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name:            "module_id",
-									Type:            tftypes.String,
-									Optional:        true,
-									Description:     "a unique identifier for the module",
-									DescriptionKind: tfprotov6.StringKindPlain,
-								},
-							},
-						},
-					},
-					ResourceSchemas: map[string]*tfprotov6.Schema{
-						"test_quux": {
-							Version: 1,
 							Block: &tfprotov6.SchemaBlock{
-								Version: 1,
+								Version: 4,
 								Attributes: []*tfprotov6.SchemaAttribute{
 									{
-										Name:            "a",
+										Name:            "module_id",
 										Type:            tftypes.String,
-										Required:        true,
-										Description:     "the account ID to make requests for",
+										Optional:        true,
+										Description:     "a unique identifier for the module",
 										DescriptionKind: tfprotov6.StringKindPlain,
 									},
-									{
-										Name:     "b",
-										Type:     tftypes.String,
-										Required: true,
+								},
+							},
+						},
+						ResourceSchemas: map[string]*tfprotov6.Schema{
+							"test_quux": {
+								Version: 1,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:            "a",
+											Type:            tftypes.String,
+											Required:        true,
+											Description:     "the account ID to make requests for",
+											DescriptionKind: tfprotov6.StringKindPlain,
+										},
+										{
+											Name:     "b",
+											Type:     tftypes.String,
+											Required: true,
+										},
 									},
 								},
 							},
 						},
-					},
-					DataSourceSchemas: map[string]*tfprotov6.Schema{
-						"test_bar": {
-							Version: 1,
-							Block: &tfprotov6.SchemaBlock{
+						DataSourceSchemas: map[string]*tfprotov6.Schema{
+							"test_bar": {
 								Version: 1,
-								Attributes: []*tfprotov6.SchemaAttribute{
-									{
-										Name:            "a",
-										Type:            tftypes.Number,
-										Computed:        true,
-										Description:     "some field that's set by the provider",
-										DescriptionKind: tfprotov6.StringKindMarkdown,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:            "a",
+											Type:            tftypes.Number,
+											Computed:        true,
+											Description:     "some field that's set by the provider",
+											DescriptionKind: tfprotov6.StringKindMarkdown,
+										},
 									},
 								},
 							},
-						},
-						"test_quux": {
-							Version: 1,
-							Block: &tfprotov6.SchemaBlock{
+							"test_quux": {
 								Version: 1,
-								Attributes: []*tfprotov6.SchemaAttribute{
-									{
-										Name:            "abc",
-										Type:            tftypes.Number,
-										Computed:        true,
-										Description:     "some other field that's set by the provider",
-										DescriptionKind: tfprotov6.StringKindMarkdown,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:            "abc",
+											Type:            tftypes.Number,
+											Computed:        true,
+											Description:     "some other field that's set by the provider",
+											DescriptionKind: tfprotov6.StringKindMarkdown,
+										},
 									},
 								},
 							},
@@ -427,13 +432,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		"duplicate-data-source-type": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
-					DataSourceSchemas: map[string]*tfprotov6.Schema{
-						"test_foo": {},
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						DataSourceSchemas: map[string]*tfprotov6.Schema{
+							"test_foo": {},
+						},
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
-					DataSourceSchemas: map[string]*tfprotov6.Schema{
-						"test_foo": {},
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						DataSourceSchemas: map[string]*tfprotov6.Schema{
+							"test_foo": {},
+						},
 					},
 				}).ProviderServer,
 			},
@@ -458,13 +467,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		"duplicate-resource-type": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
-					ResourceSchemas: map[string]*tfprotov6.Schema{
-						"test_foo": {},
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov6.Schema{
+							"test_foo": {},
+						},
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
-					ResourceSchemas: map[string]*tfprotov6.Schema{
-						"test_foo": {},
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov6.Schema{
+							"test_foo": {},
+						},
 					},
 				}).ProviderServer,
 			},
@@ -489,26 +502,30 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		"provider-mismatch": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
-					ProviderSchema: &tfprotov6.Schema{
-						Block: &tfprotov6.SchemaBlock{
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name:     "testattribute1",
-									Type:     tftypes.String,
-									Required: true,
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Provider: &tfprotov6.Schema{
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:     "testattribute1",
+										Type:     tftypes.String,
+										Required: true,
+									},
 								},
 							},
 						},
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
-					ProviderSchema: &tfprotov6.Schema{
-						Block: &tfprotov6.SchemaBlock{
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name:     "testattribute2",
-									Type:     tftypes.String,
-									Required: true,
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Provider: &tfprotov6.Schema{
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:     "testattribute2",
+										Type:     tftypes.String,
+										Required: true,
+									},
 								},
 							},
 						},
@@ -568,26 +585,30 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		"provider-meta-mismatch": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
-					ProviderMetaSchema: &tfprotov6.Schema{
-						Block: &tfprotov6.SchemaBlock{
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name:     "testattribute1",
-									Type:     tftypes.String,
-									Required: true,
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						ProviderMeta: &tfprotov6.Schema{
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:     "testattribute1",
+										Type:     tftypes.String,
+										Required: true,
+									},
 								},
 							},
 						},
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
-					ProviderMetaSchema: &tfprotov6.Schema{
-						Block: &tfprotov6.SchemaBlock{
-							Attributes: []*tfprotov6.SchemaAttribute{
-								{
-									Name:     "testattribute2",
-									Type:     tftypes.String,
-									Required: true,
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						ProviderMeta: &tfprotov6.Schema{
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name:     "testattribute2",
+										Type:     tftypes.String,
+										Required: true,
+									},
 								},
 							},
 						},
@@ -647,16 +668,20 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		"server-capabilities": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
-					ResourceSchemas: map[string]*tfprotov6.Schema{
-						"test_with_server_capabilities": {},
-					},
-					ServerCapabilities: &tfprotov6.ServerCapabilities{
-						PlanDestroy: true,
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov6.Schema{
+							"test_with_server_capabilities": {},
+						},
+						ServerCapabilities: &tfprotov6.ServerCapabilities{
+							PlanDestroy: true,
+						},
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
-					ResourceSchemas: map[string]*tfprotov6.Schema{
-						"test_without_server_capabilities": {},
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov6.Schema{
+							"test_without_server_capabilities": {},
+						},
 					},
 				}).ProviderServer,
 			},
@@ -668,6 +693,195 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				PlanDestroy: true,
 			},
+		},
+		"error-once": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityError,
+								Summary:  "test error summary",
+								Detail:   "test error details",
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedDiagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "test error summary",
+					Detail:   "test error details",
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+		},
+		"error-multiple": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityError,
+								Summary:  "test error summary",
+								Detail:   "test error details",
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityError,
+								Summary:  "test error summary",
+								Detail:   "test error details",
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedDiagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "test error summary",
+					Detail:   "test error details",
+				},
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "test error summary",
+					Detail:   "test error details",
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+		},
+		"warning-once": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityWarning,
+								Summary:  "test warning summary",
+								Detail:   "test warning details",
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedDiagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "test warning summary",
+					Detail:   "test warning details",
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+		},
+		"warning-multiple": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityWarning,
+								Summary:  "test warning summary",
+								Detail:   "test warning details",
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityWarning,
+								Summary:  "test warning summary",
+								Detail:   "test warning details",
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedDiagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "test warning summary",
+					Detail:   "test warning details",
+				},
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "test warning summary",
+					Detail:   "test warning details",
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+		},
+		"warning-then-error": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityWarning,
+								Summary:  "test warning summary",
+								Detail:   "test warning details",
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityError,
+								Summary:  "test error summary",
+								Detail:   "test error details",
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedDiagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityWarning,
+					Summary:  "test warning summary",
+					Detail:   "test warning details",
+				},
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "test error summary",
+					Detail:   "test error details",
+				},
+			},
+			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 		},
 	}
 

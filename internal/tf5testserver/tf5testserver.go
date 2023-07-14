@@ -12,17 +12,12 @@ import (
 var _ tfprotov5.ProviderServer = &TestServer{}
 
 type TestServer struct {
-	DataSourceSchemas  map[string]*tfprotov5.Schema
-	ProviderMetaSchema *tfprotov5.Schema
-	ProviderSchema     *tfprotov5.Schema
-	ResourceSchemas    map[string]*tfprotov5.Schema
-	ServerCapabilities *tfprotov5.ServerCapabilities
-
 	ApplyResourceChangeCalled map[string]bool
 
 	ConfigureProviderCalled bool
 
-	GetProviderSchemaCalled bool
+	GetProviderSchemaCalled   bool
+	GetProviderSchemaResponse *tfprotov5.GetProviderSchemaResponse
 
 	ImportResourceStateCalled map[string]bool
 
@@ -65,22 +60,7 @@ func (s *TestServer) ConfigureProvider(_ context.Context, _ *tfprotov5.Configure
 
 func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	s.GetProviderSchemaCalled = true
-
-	if s.DataSourceSchemas == nil {
-		s.DataSourceSchemas = make(map[string]*tfprotov5.Schema)
-	}
-
-	if s.ResourceSchemas == nil {
-		s.ResourceSchemas = make(map[string]*tfprotov5.Schema)
-	}
-
-	return &tfprotov5.GetProviderSchemaResponse{
-		Provider:           s.ProviderSchema,
-		ProviderMeta:       s.ProviderMetaSchema,
-		ResourceSchemas:    s.ResourceSchemas,
-		DataSourceSchemas:  s.DataSourceSchemas,
-		ServerCapabilities: s.ServerCapabilities,
-	}, nil
+	return s.GetProviderSchemaResponse, nil
 }
 
 func (s *TestServer) ImportResourceState(_ context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {

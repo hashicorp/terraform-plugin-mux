@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf6testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 )
@@ -17,13 +18,17 @@ func TestMuxServerReadDataSource(t *testing.T) {
 
 	ctx := context.Background()
 	testServer1 := &tf6testserver.TestServer{
-		DataSourceSchemas: map[string]*tfprotov6.Schema{
-			"test_data_source_server1": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov6.Schema{
+				"test_data_source_server1": {},
+			},
 		},
 	}
 	testServer2 := &tf6testserver.TestServer{
-		DataSourceSchemas: map[string]*tfprotov6.Schema{
-			"test_data_source_server2": {},
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov6.Schema{
+				"test_data_source_server2": {},
+			},
 		},
 	}
 
