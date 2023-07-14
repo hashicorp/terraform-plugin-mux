@@ -19,27 +19,19 @@ func TestMuxServerStopProvider(t *testing.T) {
 
 	ctx := context.Background()
 	testServers := [5]*tf5testserver.TestServer{
+		{},
 		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
-		},
-		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 			StopProviderResponse: &tfprotov5.StopProviderResponse{
 				Error: "error in server2",
 			},
 		},
+		{},
 		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
-		},
-		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 			StopProviderResponse: &tfprotov5.StopProviderResponse{
 				Error: "error in server4",
 			},
 		},
-		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
-		},
+		{},
 	}
 
 	servers := []func() tfprotov5.ProviderServer{

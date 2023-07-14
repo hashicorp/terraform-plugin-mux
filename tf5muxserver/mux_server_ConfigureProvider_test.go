@@ -19,11 +19,8 @@ func TestMuxServerConfigureProvider(t *testing.T) {
 
 	ctx := context.Background()
 	testServers := [5]*tf5testserver.TestServer{
+		{},
 		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
-		},
-		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 			ConfigureProviderResponse: &tfprotov5.ConfigureProviderResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
@@ -34,11 +31,8 @@ func TestMuxServerConfigureProvider(t *testing.T) {
 				},
 			},
 		},
+		{},
 		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
-		},
-		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 			ConfigureProviderResponse: &tfprotov5.ConfigureProviderResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
@@ -50,7 +44,6 @@ func TestMuxServerConfigureProvider(t *testing.T) {
 			},
 		},
 		{
-			GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{},
 			ConfigureProviderResponse: &tfprotov5.ConfigureProviderResponse{
 				Diagnostics: []*tfprotov5.Diagnostic{
 					{
