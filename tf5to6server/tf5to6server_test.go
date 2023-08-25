@@ -186,6 +186,37 @@ func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerGetMetadata(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Resources: []tfprotov5.ResourceMetadata{
+				{
+					TypeName: "test_resource",
+				},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v6server.GetMetadata(ctx, &tfprotov6.GetMetadataRequest{})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.GetMetadataCalled {
+		t.Errorf("expected GetMetadata to be called")
+	}
+}
+
 func TestV6ToV5ServerGetProviderSchema(t *testing.T) {
 	t.Parallel()
 

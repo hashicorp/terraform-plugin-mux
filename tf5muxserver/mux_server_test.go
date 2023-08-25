@@ -6,14 +6,780 @@ package tf5muxserver_test
 import (
 	"context"
 	"strings"
+	"sync"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-mux/internal/tf5testserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 )
+
+func TestMuxServerGetDataSourceServer_GetMetadata(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			DataSources: []tfprotov5.DataSourceMetadata{
+				{
+					TypeName: "test_datasource_server1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			DataSources: []tfprotov5.DataSourceMetadata{
+				{
+					TypeName: "test_datasource_server2",
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateDataSourceConfig which will cause getDataSourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().ValidateDataSourceConfig(ctx, &tfprotov5.ValidateDataSourceConfigRequest{
+			TypeName: "test_datasource_server1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.ValidateDataSourceConfigCalled["test_datasource_server1"] {
+		t.Errorf("expected test_datasource_server1 ValidateDataSourceConfig to be called on server1")
+	}
+}
+
+func TestMuxServerGetDataSourceServer_GetMetadata_Duplicate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			DataSources: []tfprotov5.DataSourceMetadata{
+				{
+					TypeName: "test_datasource_server", // intentionally duplicated
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			DataSources: []tfprotov5.DataSourceMetadata{
+				{
+					TypeName: "test_datasource_server", // intentionally duplicated
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateDataSourceConfig which will cause getDataSourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Invalid Provider Server Combination",
+			Detail: "The combined provider has multiple implementations of the same data source type across underlying providers. " +
+				"Data source types must be implemented by only one underlying provider. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Duplicate data source type: test_datasource_server",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().ValidateDataSourceConfig(ctx, &tfprotov5.ValidateDataSourceConfigRequest{
+			TypeName: "test_datasource_server",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.ValidateDataSourceConfigCalled["test_datasource_server"] {
+		t.Errorf("unexpected test_datasource_server ValidateDataSourceConfig called on server1")
+	}
+
+	if testServer2.ValidateDataSourceConfigCalled["test_datasource_server"] {
+		t.Errorf("unexpected test_datasource_server ValidateDataSourceConfig called on server2")
+	}
+}
+
+func TestMuxServerGetDataSourceServer_GetMetadata_Partial(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			DataSources: []tfprotov5.DataSourceMetadata{
+				{
+					TypeName: "test_datasource_server1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_datasource_server2": {},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateDataSourceConfig which will cause getDataSourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().ValidateDataSourceConfig(ctx, &tfprotov5.ValidateDataSourceConfigRequest{
+			TypeName: "test_datasource_server1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.ValidateDataSourceConfigCalled["test_datasource_server1"] {
+		t.Errorf("expected test_datasource_server1 ValidateDataSourceConfig to be called on server1")
+	}
+}
+
+func TestMuxServerGetDataSourceServer_GetProviderSchema(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_datasource_server1": {},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_datasource_server2": {},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateDataSourceConfig which will cause getDataSourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().ValidateDataSourceConfig(ctx, &tfprotov5.ValidateDataSourceConfigRequest{
+			TypeName: "test_datasource_server1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.ValidateDataSourceConfigCalled["test_datasource_server1"] {
+		t.Errorf("expected test_datasource_server1 ValidateDataSourceConfig to be called on server1")
+	}
+}
+
+func TestMuxServerGetDataSourceServer_GetProviderSchema_Duplicate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_datasource_server": {}, // intentionally duplicated
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			DataSourceSchemas: map[string]*tfprotov5.Schema{
+				"test_datasource_server": {}, // intentionally duplicated
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateDataSourceConfig which will cause getDataSourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Invalid Provider Server Combination",
+			Detail: "The combined provider has multiple implementations of the same data source type across underlying providers. " +
+				"Data source types must be implemented by only one underlying provider. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Duplicate data source type: test_datasource_server",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().ValidateDataSourceConfig(ctx, &tfprotov5.ValidateDataSourceConfigRequest{
+			TypeName: "test_datasource_server",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.ValidateDataSourceConfigCalled["test_datasource_server"] {
+		t.Errorf("unexpected test_datasource_server ValidateDataSourceConfig called on server1")
+	}
+
+	if testServer2.ValidateDataSourceConfigCalled["test_datasource_server"] {
+		t.Errorf("unexpected test_datasource_server ValidateDataSourceConfig called on server2")
+	}
+}
+
+func TestMuxServerGetDataSourceServer_Missing(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			DataSources: []tfprotov5.DataSourceMetadata{
+				{
+					TypeName: "test_datasource_server1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			DataSources: []tfprotov5.DataSourceMetadata{
+				{
+					TypeName: "test_datasource_server2",
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateDataSourceConfig which will cause getDataSourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Data Source Not Implemented",
+			Detail: "The combined provider does not implement the requested data source type. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Missing data source type: test_datasource_nonexistent",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().ValidateDataSourceConfig(ctx, &tfprotov5.ValidateDataSourceConfigRequest{
+			TypeName: "test_datasource_nonexistent",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.ValidateDataSourceConfigCalled["test_datasource_nonexistent"] {
+		t.Errorf("unexpected test_datasource_nonexistent ValidateDataSourceConfig called on server1")
+	}
+
+	if testServer2.ValidateDataSourceConfigCalled["test_datasource_nonexistent"] {
+		t.Errorf("unexpected test_datasource_nonexistent ValidateDataSourceConfig called on server2")
+	}
+}
+
+func TestMuxServerGetResourceServer_GetProviderSchema(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server1": {},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server2": {},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateResourceTypeConfig which will cause getResourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().ValidateResourceTypeConfig(ctx, &tfprotov5.ValidateResourceTypeConfigRequest{
+			TypeName: "test_resource_server1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.ValidateResourceTypeConfigCalled["test_resource_server1"] {
+		t.Errorf("expected test_resource_server1 ValidateResourceTypeConfig to be called on server1")
+	}
+}
+
+func TestMuxServerGetResourceServer_GetProviderSchema_Duplicate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server": {}, // intentionally duplicated
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server": {}, // intentionally duplicated
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateDataSourceConfig which will cause getResourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Invalid Provider Server Combination",
+			Detail: "The combined provider has multiple implementations of the same resource type across underlying providers. " +
+				"Resource types must be implemented by only one underlying provider. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Duplicate resource type: test_resource_server",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().ValidateResourceTypeConfig(ctx, &tfprotov5.ValidateResourceTypeConfigRequest{
+			TypeName: "test_resource_server",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.ValidateResourceTypeConfigCalled["test_resource_server"] {
+		t.Errorf("unexpected test_resource_server ValidateResourceTypeConfig called on server1")
+	}
+
+	if testServer2.ValidateResourceTypeConfigCalled["test_resource_server"] {
+		t.Errorf("unexpected test_resource_server ValidateResourceTypeConfig called on server2")
+	}
+}
+
+func TestMuxServerGetResourceServer_GetMetadata(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Resources: []tfprotov5.ResourceMetadata{
+				{
+					TypeName: "test_resource_server1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Resources: []tfprotov5.ResourceMetadata{
+				{
+					TypeName: "test_resource_server2",
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateResourceTypeConfig which will cause getResourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().ValidateResourceTypeConfig(ctx, &tfprotov5.ValidateResourceTypeConfigRequest{
+			TypeName: "test_resource_server1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.ValidateResourceTypeConfigCalled["test_resource_server1"] {
+		t.Errorf("expected test_resource_server1 ValidateResourceTypeConfig to be called on server1")
+	}
+}
+
+func TestMuxServerGetResourceServer_GetMetadata_Duplicate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Resources: []tfprotov5.ResourceMetadata{
+				{
+					TypeName: "test_resource_server", // intentionally duplicated
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Resources: []tfprotov5.ResourceMetadata{
+				{
+					TypeName: "test_resource_server", // intentionally duplicated
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateResourceTypeConfig which will cause getResourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Invalid Provider Server Combination",
+			Detail: "The combined provider has multiple implementations of the same resource type across underlying providers. " +
+				"Resource types must be implemented by only one underlying provider. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Duplicate resource type: test_resource_server",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().ValidateResourceTypeConfig(ctx, &tfprotov5.ValidateResourceTypeConfigRequest{
+			TypeName: "test_resource_server",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.ValidateResourceTypeConfigCalled["test_resource_server"] {
+		t.Errorf("unexpected test_resource_server ValidateResourceTypeConfig called on server1")
+	}
+
+	if testServer2.ValidateResourceTypeConfigCalled["test_resource_server"] {
+		t.Errorf("unexpected test_resource_server ValidateResourceTypeConfig called on server2")
+	}
+}
+
+func TestMuxServerGetResourceServer_GetMetadata_Partial(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Resources: []tfprotov5.ResourceMetadata{
+				{
+					TypeName: "test_resource_server1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server2": {},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateResourceTypeConfig which will cause getResourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().ValidateResourceTypeConfig(ctx, &tfprotov5.ValidateResourceTypeConfigRequest{
+			TypeName: "test_resource_server1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.ValidateResourceTypeConfigCalled["test_resource_server1"] {
+		t.Errorf("expected test_resource_server1 ValidateResourceTypeConfig to be called on server1")
+	}
+}
+
+func TestMuxServerGetResourceServer_Missing(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Resources: []tfprotov5.ResourceMetadata{
+				{
+					TypeName: "test_resource_server1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Resources: []tfprotov5.ResourceMetadata{
+				{
+					TypeName: "test_resource_server2",
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// ValidateResourceTypeConfig which will cause getResourceServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Resource Not Implemented",
+			Detail: "The combined provider does not implement the requested resource type. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Missing resource type: test_resource_nonexistent",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().ValidateResourceTypeConfig(ctx, &tfprotov5.ValidateResourceTypeConfigRequest{
+			TypeName: "test_resource_nonexistent",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.ValidateResourceTypeConfigCalled["test_resource_nonexistent"] {
+		t.Errorf("unexpected test_resource_nonexistent ValidateResourceTypeConfig called on server1")
+	}
+
+	if testServer2.ValidateResourceTypeConfigCalled["test_resource_nonexistent"] {
+		t.Errorf("unexpected test_resource_nonexistent ValidateResourceTypeConfig called on server2")
+	}
+}
 
 func TestNewMuxServer(t *testing.T) {
 	t.Parallel()

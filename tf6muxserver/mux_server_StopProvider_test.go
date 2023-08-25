@@ -48,13 +48,6 @@ func TestMuxServerStopProvider(t *testing.T) {
 		t.Fatalf("error setting up muxer: %s", err)
 	}
 
-	// Required to populate routers
-	_, err = muxServer.GetProviderSchema(ctx, &tfprotov6.GetProviderSchemaRequest{})
-
-	if err != nil {
-		t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
-	}
-
 	resp, err := muxServer.ProviderServer().StopProvider(ctx, &tfprotov6.StopProviderRequest{})
 
 	if err != nil {

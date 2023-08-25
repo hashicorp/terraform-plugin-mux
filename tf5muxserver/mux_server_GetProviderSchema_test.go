@@ -426,7 +426,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
-				PlanDestroy: true,
+				GetProviderSchemaOptional: true,
+				PlanDestroy:               true,
 			},
 		},
 		"duplicate-data-source-type": {
@@ -453,15 +454,16 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				{
 					Severity: tfprotov5.DiagnosticSeverityError,
 					Summary:  "Invalid Provider Server Combination",
-					Detail: "The combined provider has multiple implementations of the same data source type across providers. " +
-						"Data source types must be implemented by only one provider. " +
+					Detail: "The combined provider has multiple implementations of the same data source type across underlying providers. " +
+						"Data source types must be implemented by only one underlying provider. " +
 						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
 						"Duplicate data source type: test_foo",
 				},
 			},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
-				PlanDestroy: true,
+				GetProviderSchemaOptional: true,
+				PlanDestroy:               true,
 			},
 		},
 		"duplicate-resource-type": {
@@ -486,8 +488,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				{
 					Severity: tfprotov5.DiagnosticSeverityError,
 					Summary:  "Invalid Provider Server Combination",
-					Detail: "The combined provider has multiple implementations of the same resource type across providers. " +
-						"Resource types must be implemented by only one provider. " +
+					Detail: "The combined provider has multiple implementations of the same resource type across underlying providers. " +
+						"Resource types must be implemented by only one underlying provider. " +
 						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
 						"Duplicate resource type: test_foo",
 				},
@@ -496,7 +498,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				"test_foo": {},
 			},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
-				PlanDestroy: true,
+				GetProviderSchemaOptional: true,
+				PlanDestroy:               true,
 			},
 		},
 		"provider-mismatch": {
@@ -579,7 +582,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
-				PlanDestroy: true,
+				GetProviderSchemaOptional: true,
+				PlanDestroy:               true,
 			},
 		},
 		"provider-meta-mismatch": {
@@ -662,7 +666,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
-				PlanDestroy: true,
+				GetProviderSchemaOptional: true,
+				PlanDestroy:               true,
 			},
 		},
 		"server-capabilities": {
@@ -673,7 +678,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 							"test_with_server_capabilities": {},
 						},
 						ServerCapabilities: &tfprotov5.ServerCapabilities{
-							PlanDestroy: true,
+							GetProviderSchemaOptional: true,
+							PlanDestroy:               true,
 						},
 					},
 				}).ProviderServer,
@@ -691,7 +697,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				"test_without_server_capabilities": {},
 			},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
-				PlanDestroy: true,
+				GetProviderSchemaOptional: true,
+				PlanDestroy:               true,
 			},
 		},
 		"error-once": {

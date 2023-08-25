@@ -5,7 +5,6 @@ package tf5muxserver_test
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -92,6 +91,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						Detail:   "test error details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"error-multiple": {
@@ -133,6 +133,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						Detail:   "test error details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"warning-once": {
@@ -159,6 +160,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						Detail:   "test warning details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"warning-multiple": {
@@ -200,6 +202,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						Detail:   "test warning details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"warning-then-error": {
@@ -242,6 +245,7 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						Detail:   "test error details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"no-response": {
@@ -249,6 +253,9 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 				{},
 				{},
 				{},
+			},
+			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
+				PreparedConfig: &config,
 			},
 		},
 		"PreparedConfig-once": {
@@ -356,11 +363,13 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 						Provider: &configSchema,
 					},
 					PrepareProviderConfigResponse: &tfprotov5.PrepareProviderConfigResponse{
-						PreparedConfig: &config2,
+						PreparedConfig: &config2, // intentionally ignored
 					},
 				},
 			},
-			expectedError: fmt.Errorf("got different PrepareProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
+			expectedResponse: &tfprotov5.PrepareProviderConfigResponse{
+				PreparedConfig: &config,
+			},
 		},
 		"PreparedConfig-multiple-equal": {
 			testServers: [3]*tf5testserver.TestServer{
@@ -405,13 +414,6 @@ func TestMuxServerPrepareProviderConfig(t *testing.T) {
 
 			if err != nil {
 				t.Fatalf("error setting up muxer: %s", err)
-			}
-
-			// Required to populate routers
-			_, err = muxServer.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
-
-			if err != nil {
-				t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
 			}
 
 			got, err := muxServer.ProviderServer().PrepareProviderConfig(ctx, &tfprotov5.PrepareProviderConfigRequest{
