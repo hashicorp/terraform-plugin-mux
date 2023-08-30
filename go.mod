@@ -4,8 +4,9 @@ go 1.19
 
 require (
 	github.com/google/go-cmp v0.5.9
-	github.com/hashicorp/terraform-plugin-go v0.18.1-0.20230824194237-31d190886564
+	github.com/hashicorp/terraform-plugin-go v0.18.1-0.20230830121453-fd948ecd32c7
 	github.com/hashicorp/terraform-plugin-log v0.9.0
+	google.golang.org/grpc v1.57.0
 )
 
 require (
@@ -27,6 +28,5 @@ require (
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230525234030-28d5490b6b19 // indirect
-	google.golang.org/grpc v1.57.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
