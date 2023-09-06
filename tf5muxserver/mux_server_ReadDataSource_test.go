@@ -39,13 +39,6 @@ func TestMuxServerReadDataSource(t *testing.T) {
 		t.Fatalf("unexpected error setting up factory: %s", err)
 	}
 
-	// Required to populate routers
-	_, err = muxServer.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
-
-	if err != nil {
-		t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
-	}
-
 	_, err = muxServer.ProviderServer().ReadDataSource(ctx, &tfprotov5.ReadDataSourceRequest{
 		TypeName: "test_data_source_server1",
 	})

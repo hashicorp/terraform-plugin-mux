@@ -5,7 +5,6 @@ package tf6muxserver_test
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -92,6 +91,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						Detail:   "test error details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"error-multiple": {
@@ -133,6 +133,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						Detail:   "test error details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"warning-once": {
@@ -159,6 +160,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						Detail:   "test warning details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"warning-multiple": {
@@ -200,6 +202,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						Detail:   "test warning details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"warning-then-error": {
@@ -241,6 +244,7 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						Detail:   "test error details",
 					},
 				},
+				PreparedConfig: &config,
 			},
 		},
 		"no-response": {
@@ -248,6 +252,9 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 				{},
 				{},
 				{},
+			},
+			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
+				PreparedConfig: &config,
 			},
 		},
 		"PreparedConfig-once": {
@@ -369,11 +376,13 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 						Provider: &configSchema,
 					},
 					ValidateProviderConfigResponse: &tfprotov6.ValidateProviderConfigResponse{
-						PreparedConfig: &config2,
+						PreparedConfig: &config2, // intentionally ignored
 					},
 				},
 			},
-			expectedError: fmt.Errorf("got different ValidateProviderConfig PreparedConfig response from multiple servers, not sure which to use"),
+			expectedResponse: &tfprotov6.ValidateProviderConfigResponse{
+				PreparedConfig: &config,
+			},
 		},
 		"PreparedConfig-multiple-equal": {
 			testServers: [3]*tf6testserver.TestServer{
@@ -422,13 +431,6 @@ func TestMuxServerValidateProviderConfig(t *testing.T) {
 
 			if err != nil {
 				t.Fatalf("error setting up muxer: %s", err)
-			}
-
-			// Required to populate routers
-			_, err = muxServer.GetProviderSchema(ctx, &tfprotov6.GetProviderSchemaRequest{})
-
-			if err != nil {
-				t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
 			}
 
 			got, err := muxServer.ProviderServer().ValidateProviderConfig(ctx, &tfprotov6.ValidateProviderConfigRequest{

@@ -186,13 +186,6 @@ func TestMuxServerPlanResourceChange_ServerCapabilities_PlanDestroy(t *testing.T
 		t.Fatalf("unexpected error setting up factory: %s", err)
 	}
 
-	// Required to populate routers
-	_, err = muxServer.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
-
-	if err != nil {
-		t.Fatalf("unexpected error calling GetProviderSchema: %s", err)
-	}
-
 	_, err = muxServer.ProviderServer().PlanResourceChange(ctx, &tfprotov5.PlanResourceChangeRequest{
 		ProposedNewState: testProposedNewState,
 		TypeName:         "test_resource_server1",

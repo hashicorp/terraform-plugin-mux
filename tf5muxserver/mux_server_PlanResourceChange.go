@@ -14,14 +14,21 @@ import (
 // PlanResourceChange calls the PlanResourceChange method, passing `req`, on
 // the provider that returned the resource specified by req.TypeName in its
 // schema.
-func (s muxServer) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
+func (s *muxServer) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
 	rpc := "PlanResourceChange"
 	ctx = logging.InitContext(ctx)
 	ctx = logging.RpcContext(ctx, rpc)
-	server, ok := s.resources[req.TypeName]
 
-	if !ok {
-		return nil, fmt.Errorf("%q isn't supported by any servers", req.TypeName)
+	server, diags, err := s.getResourceServer(ctx, req.TypeName)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if diagnosticsHasError(diags) {
+		return &tfprotov5.PlanResourceChangeResponse{
+			Diagnostics: diags,
+		}, nil
 	}
 
 	ctx = logging.Tfprotov5ProviderServerContext(ctx, server)

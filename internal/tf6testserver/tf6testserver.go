@@ -7,6 +7,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ tfprotov6.ProviderServer = &TestServer{}
@@ -16,6 +18,9 @@ type TestServer struct {
 
 	ConfigureProviderCalled   bool
 	ConfigureProviderResponse *tfprotov6.ConfigureProviderResponse
+
+	GetMetadataCalled   bool
+	GetMetadataResponse *tfprotov6.GetMetadataResponse
 
 	GetProviderSchemaCalled   bool
 	GetProviderSchemaResponse *tfprotov6.GetProviderSchemaResponse
@@ -62,6 +67,20 @@ func (s *TestServer) ConfigureProvider(_ context.Context, _ *tfprotov6.Configure
 	}
 
 	return &tfprotov6.ConfigureProviderResponse{}, nil
+}
+
+func (s *TestServer) GetMetadata(_ context.Context, _ *tfprotov6.GetMetadataRequest) (*tfprotov6.GetMetadataResponse, error) {
+	s.GetMetadataCalled = true
+
+	if s.GetMetadataResponse != nil {
+		return s.GetMetadataResponse, nil
+	}
+
+	if s.GetProviderSchemaResponse != nil {
+		return nil, status.Error(codes.Unimplemented, "only GetProviderSchemaResponse set, simulating GetMetadata as unimplemented")
+	}
+
+	return &tfprotov6.GetMetadataResponse{}, nil
 }
 
 func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {

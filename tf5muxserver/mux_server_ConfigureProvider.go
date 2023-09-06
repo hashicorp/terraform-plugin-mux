@@ -15,7 +15,7 @@ import (
 // time, passing `req`. Any Diagnostic with severity error will abort the
 // process and return immediately; non-Error severity Diagnostics will be
 // combined and returned.
-func (s muxServer) ConfigureProvider(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
+func (s *muxServer) ConfigureProvider(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
 	rpc := "ConfigureProvider"
 	ctx = logging.InitContext(ctx)
 	ctx = logging.RpcContext(ctx, rpc)
