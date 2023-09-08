@@ -2,6 +2,9 @@ version: 2
 updates:
   - package-ecosystem: "gomod"
     directory: "/"
+    ignore:
+      # grpc should only be updated via terraform-plugin-go
+      - dependency-name: "google.golang.org/grpc"
     schedule:
       interval: "daily"
   - package-ecosystem: "gomod"
