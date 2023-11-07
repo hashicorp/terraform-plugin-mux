@@ -29,6 +29,9 @@ func TestUpgradeServer(t *testing.T) {
 					DataSourceSchemas: map[string]*tfprotov5.Schema{
 						"test_data_source": {},
 					},
+					Functions: map[string]*tfprotov5.Function{
+						"test_function": {},
+					},
 					Provider: &tfprotov5.Schema{
 						Block: &tfprotov5.SchemaBlock{
 							Attributes: []*tfprotov5.SchemaAttribute{
@@ -157,6 +160,37 @@ func TestV6ToV5ServerApplyResourceChange(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerCallFunction(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			Functions: map[string]*tfprotov5.Function{
+				"test_function": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error upgrading server: %s", err)
+	}
+
+	_, err = v6server.CallFunction(ctx, &tfprotov6.CallFunctionRequest{
+		Name: "test_function",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.CallFunctionCalled["test_function"] {
+		t.Errorf("expected test_function CallFunction to be called")
+	}
+}
+
 func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 	t.Parallel()
 
@@ -183,6 +217,35 @@ func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 
 	if !v5server.ConfigureProviderCalled {
 		t.Errorf("expected ConfigureProvider to be called")
+	}
+}
+
+func TestV6ToV5ServerGetFunctions(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetFunctionsResponse: &tfprotov5.GetFunctionsResponse{
+			Functions: map[string]*tfprotov5.Function{
+				"test_function": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error upgrading server: %s", err)
+	}
+
+	_, err = v6server.GetFunctions(ctx, &tfprotov6.GetFunctionsRequest{})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.GetFunctionsCalled {
+		t.Errorf("expected GetFunctions to be called")
 	}
 }
 

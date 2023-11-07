@@ -18,6 +18,14 @@ import (
 var (
 	testBytes []byte = []byte("test")
 
+	testTfprotov5DataSourceMetadata tfprotov5.DataSourceMetadata = tfprotov5.DataSourceMetadata{
+		TypeName: "test_data_source",
+	}
+
+	testTfprotov6DataSourceMetadata tfprotov6.DataSourceMetadata = tfprotov6.DataSourceMetadata{
+		TypeName: "test_data_source",
+	}
+
 	testTfprotov5Diagnostics []*tfprotov5.Diagnostic = []*tfprotov5.Diagnostic{
 		{
 			Detail:   "test detail",
@@ -35,6 +43,36 @@ var (
 
 	testTfprotov5DynamicValue tfprotov5.DynamicValue
 	testTfprotov6DynamicValue tfprotov6.DynamicValue
+
+	testTfprotov5Function *tfprotov5.Function = &tfprotov5.Function{
+		Parameters: []*tfprotov5.FunctionParameter{},
+		Return: &tfprotov5.FunctionReturn{
+			Type: tftypes.String,
+		},
+	}
+
+	testTfprotov5FunctionMetadata tfprotov5.FunctionMetadata = tfprotov5.FunctionMetadata{
+		Name: "test_function",
+	}
+
+	testTfprotov6Function *tfprotov6.Function = &tfprotov6.Function{
+		Parameters: []*tfprotov6.FunctionParameter{},
+		Return: &tfprotov6.FunctionReturn{
+			Type: tftypes.String,
+		},
+	}
+
+	testTfprotov6FunctionMetadata tfprotov6.FunctionMetadata = tfprotov6.FunctionMetadata{
+		Name: "test_function",
+	}
+
+	testTfprotov5ResourceMetadata tfprotov5.ResourceMetadata = tfprotov5.ResourceMetadata{
+		TypeName: "test_resource",
+	}
+
+	testTfprotov6ResourceMetadata tfprotov6.ResourceMetadata = tfprotov6.ResourceMetadata{
+		TypeName: "test_resource",
+	}
 
 	testTfprotov5Schema *tfprotov5.Schema = &tfprotov5.Schema{
 		Block: &tfprotov5.SchemaBlock{
@@ -147,6 +185,86 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov6tov5.ApplyResourceChangeResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestCallFunctionRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.CallFunctionRequest
+		expected *tfprotov5.CallFunctionRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.CallFunctionRequest{
+				Arguments: []*tfprotov6.DynamicValue{
+					&testTfprotov6DynamicValue,
+				},
+				Name: "test_function",
+			},
+			expected: &tfprotov5.CallFunctionRequest{
+				Arguments: []*tfprotov5.DynamicValue{
+					&testTfprotov5DynamicValue,
+				},
+				Name: "test_function",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.CallFunctionRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestCallFunctionResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.CallFunctionResponse
+		expected *tfprotov5.CallFunctionResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.CallFunctionResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				Result:      &testTfprotov6DynamicValue,
+			},
+			expected: &tfprotov5.CallFunctionResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				Result:      &testTfprotov5DynamicValue,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.CallFunctionResponse(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -329,6 +447,338 @@ func TestDynamicValue(t *testing.T) {
 	}
 }
 
+func TestFunction(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.Function
+		expected *tfprotov5.Function
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.Function{
+				DeprecationMessage: "test deprecation message",
+				Description:        "test description",
+				DescriptionKind:    tfprotov6.StringKindPlain,
+				Parameters: []*tfprotov6.FunctionParameter{
+					{
+						Type: tftypes.String,
+					},
+				},
+				Return: &tfprotov6.FunctionReturn{
+					Type: tftypes.String,
+				},
+				Summary: "test summary",
+				VariadicParameter: &tfprotov6.FunctionParameter{
+					Type: tftypes.String,
+				},
+			},
+			expected: &tfprotov5.Function{
+				DeprecationMessage: "test deprecation message",
+				Description:        "test description",
+				DescriptionKind:    tfprotov5.StringKindPlain,
+				Parameters: []*tfprotov5.FunctionParameter{
+					{
+						Type: tftypes.String,
+					},
+				},
+				Return: &tfprotov5.FunctionReturn{
+					Type: tftypes.String,
+				},
+				Summary: "test summary",
+				VariadicParameter: &tfprotov5.FunctionParameter{
+					Type: tftypes.String,
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.Function(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFunctionMetadata(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       tfprotov6.FunctionMetadata
+		expected tfprotov5.FunctionMetadata
+	}{
+		"all-valid-fields": {
+			in: tfprotov6.FunctionMetadata{
+				Name: "test_function",
+			},
+			expected: tfprotov5.FunctionMetadata{
+				Name: "test_function",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.FunctionMetadata(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFunctionParameter(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.FunctionParameter
+		expected *tfprotov5.FunctionParameter
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.FunctionParameter{
+				Description:     "test description",
+				DescriptionKind: tfprotov6.StringKindPlain,
+				Type:            tftypes.String,
+			},
+			expected: &tfprotov5.FunctionParameter{
+				Description:     "test description",
+				DescriptionKind: tfprotov5.StringKindPlain,
+				Type:            tftypes.String,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.FunctionParameter(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestFunctionReturn(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.FunctionReturn
+		expected *tfprotov5.FunctionReturn
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.FunctionReturn{
+				Type: tftypes.String,
+			},
+			expected: &tfprotov5.FunctionReturn{
+				Type: tftypes.String,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.FunctionReturn(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestGetFunctionsRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.GetFunctionsRequest
+		expected *tfprotov5.GetFunctionsRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in:       &tfprotov6.GetFunctionsRequest{},
+			expected: &tfprotov5.GetFunctionsRequest{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.GetFunctionsRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestGetFunctionsResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.GetFunctionsResponse
+		expected *tfprotov5.GetFunctionsResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.GetFunctionsResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				Functions: map[string]*tfprotov6.Function{
+					"test_function": testTfprotov6Function,
+				},
+			},
+			expected: &tfprotov5.GetFunctionsResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				Functions: map[string]*tfprotov5.Function{
+					"test_function": testTfprotov5Function,
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.GetFunctionsResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestGetMetadataRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.GetMetadataRequest
+		expected *tfprotov5.GetMetadataRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in:       &tfprotov6.GetMetadataRequest{},
+			expected: &tfprotov5.GetMetadataRequest{},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.GetMetadataRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestGetMetadataResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.GetMetadataResponse
+		expected *tfprotov5.GetMetadataResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.GetMetadataResponse{
+				DataSources: []tfprotov6.DataSourceMetadata{
+					testTfprotov6DataSourceMetadata,
+				},
+				Diagnostics: testTfprotov6Diagnostics,
+				Functions: []tfprotov6.FunctionMetadata{
+					testTfprotov6FunctionMetadata,
+				},
+				Resources: []tfprotov6.ResourceMetadata{
+					testTfprotov6ResourceMetadata,
+				},
+			},
+			expected: &tfprotov5.GetMetadataResponse{
+				DataSources: []tfprotov5.DataSourceMetadata{
+					testTfprotov5DataSourceMetadata,
+				},
+				Diagnostics: testTfprotov5Diagnostics,
+				Functions: []tfprotov5.FunctionMetadata{
+					testTfprotov5FunctionMetadata,
+				},
+				Resources: []tfprotov5.ResourceMetadata{
+					testTfprotov5ResourceMetadata,
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.GetMetadataResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestGetProviderSchemaRequest(t *testing.T) {
 	t.Parallel()
 
@@ -378,7 +828,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": testTfprotov6Schema,
 				},
-				Diagnostics:  testTfprotov6Diagnostics,
+				Diagnostics: testTfprotov6Diagnostics,
+				Functions: map[string]*tfprotov6.Function{
+					"test_function": testTfprotov6Function,
+				},
 				Provider:     testTfprotov6Schema,
 				ProviderMeta: testTfprotov6Schema,
 				ResourceSchemas: map[string]*tfprotov6.Schema{
@@ -389,7 +842,10 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				DataSourceSchemas: map[string]*tfprotov5.Schema{
 					"test_data_source": testTfprotov5Schema,
 				},
-				Diagnostics:  testTfprotov5Diagnostics,
+				Diagnostics: testTfprotov5Diagnostics,
+				Functions: map[string]*tfprotov5.Function{
+					"test_function": testTfprotov5Function,
+				},
 				Provider:     testTfprotov5Schema,
 				ProviderMeta: testTfprotov5Schema,
 				ResourceSchemas: map[string]*tfprotov5.Schema{

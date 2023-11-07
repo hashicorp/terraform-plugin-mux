@@ -21,6 +21,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 		servers                    []func() tfprotov5.ProviderServer
 		expectedDataSources        []tfprotov5.DataSourceMetadata
 		expectedDiagnostics        []*tfprotov5.Diagnostic
+		expectedFunctions          []tfprotov5.FunctionMetadata
 		expectedResources          []tfprotov5.ResourceMetadata
 		expectedServerCapabilities *tfprotov5.ServerCapabilities
 	}{
@@ -41,6 +42,11 @@ func TestMuxServerGetMetadata(t *testing.T) {
 								TypeName: "test_foo",
 							},
 						},
+						Functions: []tfprotov5.FunctionMetadata{
+							{
+								Name: "test_function1",
+							},
+						},
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
@@ -56,6 +62,14 @@ func TestMuxServerGetMetadata(t *testing.T) {
 							},
 							{
 								TypeName: "test_quux",
+							},
+						},
+						Functions: []tfprotov5.FunctionMetadata{
+							{
+								Name: "test_function2",
+							},
+							{
+								Name: "test_function3",
 							},
 						},
 					},
@@ -81,6 +95,17 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 				{
 					TypeName: "test_quux",
+				},
+			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function1",
+				},
+				{
+					Name: "test_function2",
+				},
+				{
+					Name: "test_function3",
 				},
 			},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -124,6 +149,50 @@ func TestMuxServerGetMetadata(t *testing.T) {
 						"Duplicate data source type: test_foo",
 				},
 			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{},
+			expectedResources: []tfprotov5.ResourceMetadata{},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				PlanDestroy:               true,
+			},
+		},
+		"duplicate-function": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+						Functions: []tfprotov5.FunctionMetadata{
+							{
+								Name: "test_function",
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+						Functions: []tfprotov5.FunctionMetadata{
+							{
+								Name: "test_function",
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSources: []tfprotov5.DataSourceMetadata{},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same function name across underlying providers. " +
+						"Functions must be implemented by only one underlying provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate function: test_function",
+				},
+			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function",
+				},
+			},
 			expectedResources: []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
@@ -162,6 +231,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 						"Duplicate resource type: test_foo",
 				},
 			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{
 				{
 					TypeName: "test_foo",
@@ -198,6 +268,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				}).ProviderServer,
 			},
 			expectedDataSources: []tfprotov5.DataSourceMetadata{},
+			expectedFunctions:   []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{
 				{
 					TypeName: "test_with_server_capabilities",
@@ -235,6 +306,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
@@ -280,6 +352,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
@@ -310,6 +383,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					Detail:   "test warning details",
 				},
 			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
@@ -355,6 +429,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					Detail:   "test warning details",
 				},
 			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
@@ -400,6 +475,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
+			expectedFunctions: []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
@@ -432,6 +508,10 @@ func TestMuxServerGetMetadata(t *testing.T) {
 
 			if diff := cmp.Diff(resp.Diagnostics, testCase.expectedDiagnostics); diff != "" {
 				t.Errorf("diagnostics didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.Functions, testCase.expectedFunctions); diff != "" {
+				t.Errorf("functions didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.Resources, testCase.expectedResources); diff != "" {

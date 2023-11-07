@@ -43,6 +43,17 @@ func (s v5tov6Server) ApplyResourceChange(ctx context.Context, req *tfprotov6.Ap
 	return tfprotov5tov6.ApplyResourceChangeResponse(v5Resp), nil
 }
 
+func (s v5tov6Server) CallFunction(ctx context.Context, req *tfprotov6.CallFunctionRequest) (*tfprotov6.CallFunctionResponse, error) {
+	v5Req := tfprotov6tov5.CallFunctionRequest(req)
+	v5Resp, err := s.v5Server.CallFunction(ctx, v5Req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov5tov6.CallFunctionResponse(v5Resp), nil
+}
+
 func (s v5tov6Server) ConfigureProvider(ctx context.Context, req *tfprotov6.ConfigureProviderRequest) (*tfprotov6.ConfigureProviderResponse, error) {
 	v5Req := tfprotov6tov5.ConfigureProviderRequest(req)
 	v5Resp, err := s.v5Server.ConfigureProvider(ctx, v5Req)
@@ -52,6 +63,17 @@ func (s v5tov6Server) ConfigureProvider(ctx context.Context, req *tfprotov6.Conf
 	}
 
 	return tfprotov5tov6.ConfigureProviderResponse(v5Resp), nil
+}
+
+func (s v5tov6Server) GetFunctions(ctx context.Context, req *tfprotov6.GetFunctionsRequest) (*tfprotov6.GetFunctionsResponse, error) {
+	v5Req := tfprotov6tov5.GetFunctionsRequest(req)
+	v5Resp, err := s.v5Server.GetFunctions(ctx, v5Req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov5tov6.GetFunctionsResponse(v5Resp), nil
 }
 
 func (s v5tov6Server) GetMetadata(ctx context.Context, req *tfprotov6.GetMetadataRequest) (*tfprotov6.GetMetadataResponse, error) {

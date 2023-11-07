@@ -16,8 +16,13 @@ var _ tfprotov6.ProviderServer = &TestServer{}
 type TestServer struct {
 	ApplyResourceChangeCalled map[string]bool
 
+	CallFunctionCalled map[string]bool
+
 	ConfigureProviderCalled   bool
 	ConfigureProviderResponse *tfprotov6.ConfigureProviderResponse
+
+	GetFunctionsCalled   bool
+	GetFunctionsResponse *tfprotov6.GetFunctionsResponse
 
 	GetMetadataCalled   bool
 	GetMetadataResponse *tfprotov6.GetMetadataResponse
@@ -59,6 +64,15 @@ func (s *TestServer) ApplyResourceChange(_ context.Context, req *tfprotov6.Apply
 	return nil, nil
 }
 
+func (s *TestServer) CallFunction(_ context.Context, req *tfprotov6.CallFunctionRequest) (*tfprotov6.CallFunctionResponse, error) {
+	if s.CallFunctionCalled == nil {
+		s.CallFunctionCalled = make(map[string]bool)
+	}
+
+	s.CallFunctionCalled[req.Name] = true
+	return nil, nil
+}
+
 func (s *TestServer) ConfigureProvider(_ context.Context, _ *tfprotov6.ConfigureProviderRequest) (*tfprotov6.ConfigureProviderResponse, error) {
 	s.ConfigureProviderCalled = true
 
@@ -67,6 +81,16 @@ func (s *TestServer) ConfigureProvider(_ context.Context, _ *tfprotov6.Configure
 	}
 
 	return &tfprotov6.ConfigureProviderResponse{}, nil
+}
+
+func (s *TestServer) GetFunctions(_ context.Context, _ *tfprotov6.GetFunctionsRequest) (*tfprotov6.GetFunctionsResponse, error) {
+	s.GetFunctionsCalled = true
+
+	if s.GetFunctionsResponse != nil {
+		return s.GetFunctionsResponse, nil
+	}
+
+	return &tfprotov6.GetFunctionsResponse{}, nil
 }
 
 func (s *TestServer) GetMetadata(_ context.Context, _ *tfprotov6.GetMetadataRequest) (*tfprotov6.GetMetadataResponse, error) {

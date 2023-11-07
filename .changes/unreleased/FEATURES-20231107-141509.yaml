@@ -1,0 +1,6 @@
+kind: FEATURES
+body: 'all: Upgrade to protocol versions 5.5 and 6.5, which implement support for
+  provider defined functions'
+time: 2023-11-07T14:15:09.783296-05:00
+custom:
+  Issue: "9999"

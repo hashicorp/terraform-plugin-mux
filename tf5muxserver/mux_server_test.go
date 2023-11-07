@@ -399,6 +399,388 @@ func TestMuxServerGetDataSourceServer_Missing(t *testing.T) {
 	}
 }
 
+func TestMuxServerGetFunctionServer_GetProviderSchema(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			Functions: map[string]*tfprotov5.Function{
+				"test_function1": {},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			Functions: map[string]*tfprotov5.Function{
+				"test_function2": {},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// CallFunction which will cause getFunctionServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+			Name: "test_function1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.CallFunctionCalled["test_function1"] {
+		t.Errorf("expected test_function1 CallFunction to be called on server1")
+	}
+}
+
+func TestMuxServerGetFunctionServer_GetProviderSchema_Duplicate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			Functions: map[string]*tfprotov5.Function{
+				"test_function": {}, // intentionally duplicated
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			Functions: map[string]*tfprotov5.Function{
+				"test_function": {}, // intentionally duplicated
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// CallFunction which will cause getFunctionServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Invalid Provider Server Combination",
+			Detail: "The combined provider has multiple implementations of the same function name across underlying providers. " +
+				"Functions must be implemented by only one underlying provider. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Duplicate function: test_function",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+			Name: "test_function",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.CallFunctionCalled["test_function"] {
+		t.Errorf("unexpected test_function CallFunction called on server1")
+	}
+
+	if testServer2.CallFunctionCalled["test_function"] {
+		t.Errorf("unexpected test_function CallFunction called on server2")
+	}
+}
+
+func TestMuxServerGetFunctionServer_GetMetadata(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Functions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Functions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function2",
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// CallFunction which will cause getFunctionServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+			Name: "test_function1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.CallFunctionCalled["test_function1"] {
+		t.Errorf("expected test_function1 CallFunction to be called on server1")
+	}
+}
+
+func TestMuxServerGetFunctionServer_GetMetadata_Duplicate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Functions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function", // intentionally duplicated
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Functions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function", // intentionally duplicated
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// CallFunction which will cause getFunctionServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Invalid Provider Server Combination",
+			Detail: "The combined provider has multiple implementations of the same function name across underlying providers. " +
+				"Functions must be implemented by only one underlying provider. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Duplicate function: test_function",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+			Name: "test_function",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.CallFunctionCalled["test_function"] {
+		t.Errorf("unexpected test_function CallFunction called on server1")
+	}
+
+	if testServer2.CallFunctionCalled["test_function"] {
+		t.Errorf("unexpected test_function CallFunction called on server2")
+	}
+}
+
+func TestMuxServerGetFunctionServer_GetMetadata_Partial(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Functions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			Functions: map[string]*tfprotov5.Function{
+				"test_function2": {},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// CallFunction which will cause getFunctionServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		_, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+			Name: "test_function1",
+		})
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if !testServer1.CallFunctionCalled["test_function1"] {
+		t.Errorf("expected test_function1 CallFunction to be called on server1")
+	}
+}
+
+func TestMuxServerGetFunctionServer_Missing(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	testServer1 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Functions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function1",
+				},
+			},
+		},
+	}
+	testServer2 := &tf5testserver.TestServer{
+		GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+			Functions: []tfprotov5.FunctionMetadata{
+				{
+					Name: "test_function2",
+				},
+			},
+		},
+	}
+
+	servers := []func() tfprotov5.ProviderServer{testServer1.ProviderServer, testServer2.ProviderServer}
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, servers...)
+
+	if err != nil {
+		t.Fatalf("unexpected error setting up factory: %s", err)
+	}
+
+	// When GetProviderSchemaOptional is enabled, the secondary provider
+	// instances will receive non-GetProviderSchema RPCs such as
+	// CallFunction which will cause getFunctionServer to perform
+	// server discovery. This testing also simulates concurrent operations from
+	// Terraform to verify the mutex does not deadlock.
+	var wg sync.WaitGroup
+
+	expectedDiags := []*tfprotov5.Diagnostic{
+		{
+			Severity: tfprotov5.DiagnosticSeverityError,
+			Summary:  "Function Not Implemented",
+			Detail: "The combined provider does not implement the requested function. " +
+				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+				"Missing function: test_function_nonexistent",
+		},
+	}
+
+	terraformOp := func() {
+		defer wg.Done()
+
+		resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+			Name: "test_function_nonexistent",
+		})
+
+		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+			t.Errorf("unexpected diagnostics difference: %s", diff)
+		}
+	}
+
+	wg.Add(2)
+	go terraformOp()
+	go terraformOp()
+
+	wg.Wait()
+
+	if testServer1.CallFunctionCalled["test_function_nonexistent"] {
+		t.Errorf("unexpected test_function_nonexistent CallFunction called on server1")
+	}
+
+	if testServer2.CallFunctionCalled["test_function_nonexistent"] {
+		t.Errorf("unexpected test_function_nonexistent CallFunction called on server2")
+	}
+}
+
 func TestMuxServerGetResourceServer_GetProviderSchema(t *testing.T) {
 	t.Parallel()
 
