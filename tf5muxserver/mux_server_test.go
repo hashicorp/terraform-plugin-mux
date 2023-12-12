@@ -439,7 +439,7 @@ func TestMuxServerGetFunctionServer_GetProviderSchema(t *testing.T) {
 		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
 
 		if !ok {
-			t.Fatal("muxServer should implement tfprotov5.FunctionServer")
+			t.Error("muxServer should implement tfprotov5.FunctionServer")
 		}
 
 		// _, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
@@ -510,7 +510,7 @@ func TestMuxServerGetFunctionServer_GetProviderSchema_Duplicate(t *testing.T) {
 		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
 
 		if !ok {
-			t.Fatal("muxServer should implement tfprotov5.FunctionServer")
+			t.Error("muxServer should implement tfprotov5.FunctionServer")
 		}
 
 		// resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
@@ -582,7 +582,7 @@ func TestMuxServerGetFunctionServer_GetMetadata(t *testing.T) {
 		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
 
 		if !ok {
-			t.Fatal("muxServer should implement tfprotov5.FunctionServer")
+			t.Error("muxServer should implement tfprotov5.FunctionServer")
 		}
 
 		// _, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
@@ -657,7 +657,7 @@ func TestMuxServerGetFunctionServer_GetMetadata_Duplicate(t *testing.T) {
 		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
 
 		if !ok {
-			t.Fatal("muxServer should implement tfprotov5.FunctionServer")
+			t.Error("muxServer should implement tfprotov5.FunctionServer")
 		}
 
 		// resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
@@ -727,7 +727,7 @@ func TestMuxServerGetFunctionServer_GetMetadata_Partial(t *testing.T) {
 		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
 
 		if !ok {
-			t.Fatal("muxServer should implement tfprotov5.FunctionServer")
+			t.Error("muxServer should implement tfprotov5.FunctionServer")
 		}
 
 		// _, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
@@ -801,7 +801,7 @@ func TestMuxServerGetFunctionServer_Missing(t *testing.T) {
 		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
 
 		if !ok {
-			t.Fatal("muxServer should implement tfprotov5.FunctionServer")
+			t.Error("muxServer should implement tfprotov5.FunctionServer")
 		}
 
 		// resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
