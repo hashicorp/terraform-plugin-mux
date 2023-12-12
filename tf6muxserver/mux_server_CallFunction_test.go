@@ -39,7 +39,15 @@ func TestMuxServerCallFunction(t *testing.T) {
 		t.Fatalf("unexpected error setting up factory: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().CallFunction(ctx, &tfprotov6.CallFunctionRequest{
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	functionServer, ok := muxServer.ProviderServer().(tfprotov6.FunctionServer)
+
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.FunctionServer")
+	}
+
+	// _, err = muxServer.ProviderServer().CallFunction(ctx, &tfprotov6.CallFunctionRequest{
+	_, err = functionServer.CallFunction(ctx, &tfprotov6.CallFunctionRequest{
 		Name: "test_function1",
 	})
 
@@ -55,7 +63,8 @@ func TestMuxServerCallFunction(t *testing.T) {
 		t.Errorf("unexpected test_function1 CallFunction called on server2")
 	}
 
-	_, err = muxServer.ProviderServer().CallFunction(ctx, &tfprotov6.CallFunctionRequest{
+	// _, err = muxServer.ProviderServer().CallFunction(ctx, &tfprotov6.CallFunctionRequest{
+	_, err = functionServer.CallFunction(ctx, &tfprotov6.CallFunctionRequest{
 		Name: "test_function2",
 	})
 

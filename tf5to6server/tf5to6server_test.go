@@ -178,7 +178,15 @@ func TestV6ToV5ServerCallFunction(t *testing.T) {
 		t.Fatalf("unexpected error upgrading server: %s", err)
 	}
 
-	_, err = v6server.CallFunction(ctx, &tfprotov6.CallFunctionRequest{
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	functionServer, ok := v6server.(tfprotov6.FunctionServer)
+
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.FunctionServer")
+	}
+
+	//_, err = v6server.CallFunction(ctx, &tfprotov6.CallFunctionRequest{
+	_, err = functionServer.CallFunction(ctx, &tfprotov6.CallFunctionRequest{
 		Name: "test_function",
 	})
 
@@ -238,7 +246,15 @@ func TestV6ToV5ServerGetFunctions(t *testing.T) {
 		t.Fatalf("unexpected error upgrading server: %s", err)
 	}
 
-	_, err = v6server.GetFunctions(ctx, &tfprotov6.GetFunctionsRequest{})
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	functionServer, ok := v6server.(tfprotov6.FunctionServer)
+
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.FunctionServer")
+	}
+
+	//_, err = v6server.GetFunction(ctx, &tfprotov6.GetFunctionRequest{})
+	_, err = functionServer.GetFunctions(ctx, &tfprotov6.GetFunctionsRequest{})
 
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)

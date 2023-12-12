@@ -44,8 +44,29 @@ func (s v5tov6Server) ApplyResourceChange(ctx context.Context, req *tfprotov6.Ap
 }
 
 func (s v5tov6Server) CallFunction(ctx context.Context, req *tfprotov6.CallFunctionRequest) (*tfprotov6.CallFunctionResponse, error) {
+	// Remove and call s.v5Server.CallFunction below directly.
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	functionServer, ok := s.v5Server.(tfprotov5.FunctionServer)
+
+	if !ok {
+		v6Resp := &tfprotov6.CallFunctionResponse{
+			Diagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Provider Functions Not Implemented",
+					Detail: "A provider-defined function call was received by the provider, however the provider does not implement functions. " +
+						"Either upgrade the provider to a version that implements provider-defined functions or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return v6Resp, nil
+	}
+
 	v5Req := tfprotov6tov5.CallFunctionRequest(req)
-	v5Resp, err := s.v5Server.CallFunction(ctx, v5Req)
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	// v5Resp, err := s.v5Server.CallFunction(ctx, v5Req)
+	v5Resp, err := functionServer.CallFunction(ctx, v5Req)
 
 	if err != nil {
 		return nil, err
@@ -66,8 +87,22 @@ func (s v5tov6Server) ConfigureProvider(ctx context.Context, req *tfprotov6.Conf
 }
 
 func (s v5tov6Server) GetFunctions(ctx context.Context, req *tfprotov6.GetFunctionsRequest) (*tfprotov6.GetFunctionsResponse, error) {
+	// Remove and call s.v5Server.GetFunctions below directly.
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	functionServer, ok := s.v5Server.(tfprotov5.FunctionServer)
+
+	if !ok {
+		v6Resp := &tfprotov6.GetFunctionsResponse{
+			Functions: map[string]*tfprotov6.Function{},
+		}
+
+		return v6Resp, nil
+	}
+
 	v5Req := tfprotov6tov5.GetFunctionsRequest(req)
-	v5Resp, err := s.v5Server.GetFunctions(ctx, v5Req)
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	// v5Resp, err := s.v5Server.GetFunctions(ctx, v5Req)
+	v5Resp, err := functionServer.GetFunctions(ctx, v5Req)
 
 	if err != nil {
 		return nil, err

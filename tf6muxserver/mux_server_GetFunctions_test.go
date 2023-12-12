@@ -311,7 +311,15 @@ func TestMuxServerGetFunctions(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
-			resp, err := muxServer.ProviderServer().GetFunctions(context.Background(), &tfprotov6.GetFunctionsRequest{})
+			// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+			functionServer, ok := muxServer.ProviderServer().(tfprotov6.FunctionServer)
+
+			if !ok {
+				t.Fatal("muxServer should implement tfprotov6.FunctionServer")
+			}
+
+			// resp, err := muxServer.ProviderServer().GetFunctions(context.Background(), &tfprotov6.GetFunctionsRequest{})
+			resp, err := functionServer.GetFunctions(context.Background(), &tfprotov6.GetFunctionsRequest{})
 
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
