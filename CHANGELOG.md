@@ -1,3 +1,13 @@
+## 0.13.0 (December 14, 2023)
+
+NOTES:
+
+* all: Update `google.golang.org/grpc` dependency to address CVE-2023-44487 ([#203](https://github.com/hashicorp/terraform-plugin-mux/issues/203))
+
+FEATURES:
+
+* all: Upgrade protocol versions to support provider-defined functions ([#209](https://github.com/hashicorp/terraform-plugin-mux/issues/209))
+
 ## 0.12.0 (September 06, 2023)
 
 NOTES:
