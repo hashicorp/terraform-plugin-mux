@@ -22,6 +22,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		servers                    []func() tfprotov6.ProviderServer
 		expectedDataSourceSchemas  map[string]*tfprotov6.Schema
 		expectedDiagnostics        []*tfprotov6.Diagnostic
+		expectedFunctions          map[string]*tfprotov6.Function
 		expectedProviderSchema     *tfprotov6.Schema
 		expectedProviderMetaSchema *tfprotov6.Schema
 		expectedResourceSchemas    map[string]*tfprotov6.Schema
@@ -144,6 +145,13 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 								},
 							},
 						},
+						Functions: map[string]*tfprotov6.Function{
+							"test_function1": {
+								Return: &tfprotov6.FunctionReturn{
+									Type: tftypes.String,
+								},
+							},
+						},
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
@@ -256,6 +264,18 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 											DescriptionKind: tfprotov6.StringKindMarkdown,
 										},
 									},
+								},
+							},
+						},
+						Functions: map[string]*tfprotov6.Function{
+							"test_function2": {
+								Return: &tfprotov6.FunctionReturn{
+									Type: tftypes.String,
+								},
+							},
+							"test_function3": {
+								Return: &tfprotov6.FunctionReturn{
+									Type: tftypes.String,
 								},
 							},
 						},
@@ -425,6 +445,23 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
+			expectedFunctions: map[string]*tfprotov6.Function{
+				"test_function1": {
+					Return: &tfprotov6.FunctionReturn{
+						Type: tftypes.String,
+					},
+				},
+				"test_function2": {
+					Return: &tfprotov6.FunctionReturn{
+						Type: tftypes.String,
+					},
+				},
+				"test_function3": {
+					Return: &tfprotov6.FunctionReturn{
+						Type: tftypes.String,
+					},
+				},
+			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				PlanDestroy:               true,
@@ -460,6 +497,44 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						"Duplicate data source type: test_foo",
 				},
 			},
+			expectedFunctions:       map[string]*tfprotov6.Function{},
+			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				PlanDestroy:               true,
+			},
+		},
+		"duplicate-function": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Functions: map[string]*tfprotov6.Function{
+							"test_function": {},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						Functions: map[string]*tfprotov6.Function{
+							"test_function": {},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedDiagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same function name across underlying providers. " +
+						"Functions must be implemented by only one underlying provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate function: test_function",
+				},
+			},
+			expectedFunctions: map[string]*tfprotov6.Function{
+				"test_function": {},
+			},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
@@ -494,6 +569,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						"Duplicate resource type: test_foo",
 				},
 			},
+			expectedFunctions: map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{
 				"test_foo": {},
 			},
@@ -569,6 +645,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					),
 				},
 			},
+			expectedFunctions: map[string]*tfprotov6.Function{},
 			expectedProviderSchema: &tfprotov6.Schema{
 				Block: &tfprotov6.SchemaBlock{
 					Attributes: []*tfprotov6.SchemaAttribute{
@@ -653,6 +730,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					),
 				},
 			},
+			expectedFunctions: map[string]*tfprotov6.Function{},
 			expectedProviderMetaSchema: &tfprotov6.Schema{
 				Block: &tfprotov6.SchemaBlock{
 					Attributes: []*tfprotov6.SchemaAttribute{
@@ -691,6 +769,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				}).ProviderServer,
 			},
 			expectedDataSourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedFunctions:         map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{
 				"test_with_server_capabilities":    {},
 				"test_without_server_capabilities": {},
@@ -724,6 +803,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
+			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 		},
 		"error-multiple": {
@@ -765,6 +845,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
+			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 		},
 		"warning-once": {
@@ -791,6 +872,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test warning details",
 				},
 			},
+			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 		},
 		"warning-multiple": {
@@ -832,6 +914,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test warning details",
 				},
 			},
+			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 		},
 		"warning-then-error": {
@@ -873,6 +956,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
+			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 		},
 	}
@@ -901,6 +985,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 
 			if diff := cmp.Diff(resp.Diagnostics, testCase.expectedDiagnostics); diff != "" {
 				t.Errorf("diagnostics didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.Functions, testCase.expectedFunctions); diff != "" {
+				t.Errorf("functions didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.Provider, testCase.expectedProviderSchema); diff != "" {

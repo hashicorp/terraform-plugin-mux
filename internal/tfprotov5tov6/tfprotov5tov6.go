@@ -36,6 +36,34 @@ func ApplyResourceChangeResponse(in *tfprotov5.ApplyResourceChangeResponse) *tfp
 	}
 }
 
+func CallFunctionRequest(in *tfprotov5.CallFunctionRequest) *tfprotov6.CallFunctionRequest {
+	if in == nil {
+		return nil
+	}
+
+	out := &tfprotov6.CallFunctionRequest{
+		Arguments: make([]*tfprotov6.DynamicValue, 0, len(in.Arguments)),
+		Name:      in.Name,
+	}
+
+	for _, argument := range in.Arguments {
+		out.Arguments = append(out.Arguments, DynamicValue(argument))
+	}
+
+	return out
+}
+
+func CallFunctionResponse(in *tfprotov5.CallFunctionResponse) *tfprotov6.CallFunctionResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.CallFunctionResponse{
+		Diagnostics: Diagnostics(in.Diagnostics),
+		Result:      DynamicValue(in.Result),
+	}
+}
+
 func ConfigureProviderRequest(in *tfprotov5.ConfigureProviderRequest) *tfprotov6.ConfigureProviderRequest {
 	if in == nil {
 		return nil
@@ -98,6 +126,84 @@ func DynamicValue(in *tfprotov5.DynamicValue) *tfprotov6.DynamicValue {
 	}
 }
 
+func Function(in *tfprotov5.Function) *tfprotov6.Function {
+	if in == nil {
+		return nil
+	}
+
+	out := &tfprotov6.Function{
+		DeprecationMessage: in.DeprecationMessage,
+		Description:        in.Description,
+		DescriptionKind:    StringKind(in.DescriptionKind),
+		Parameters:         make([]*tfprotov6.FunctionParameter, 0, len(in.Parameters)),
+		Return:             FunctionReturn(in.Return),
+		Summary:            in.Summary,
+		VariadicParameter:  FunctionParameter(in.VariadicParameter),
+	}
+
+	for _, parameter := range in.Parameters {
+		out.Parameters = append(out.Parameters, FunctionParameter(parameter))
+	}
+
+	return out
+}
+
+func FunctionMetadata(in tfprotov5.FunctionMetadata) tfprotov6.FunctionMetadata {
+	return tfprotov6.FunctionMetadata{
+		Name: in.Name,
+	}
+}
+
+func FunctionParameter(in *tfprotov5.FunctionParameter) *tfprotov6.FunctionParameter {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.FunctionParameter{
+		AllowNullValue:     in.AllowNullValue,
+		AllowUnknownValues: in.AllowUnknownValues,
+		Description:        in.Description,
+		DescriptionKind:    StringKind(in.DescriptionKind),
+		Name:               in.Name,
+		Type:               in.Type,
+	}
+}
+
+func FunctionReturn(in *tfprotov5.FunctionReturn) *tfprotov6.FunctionReturn {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.FunctionReturn{
+		Type: in.Type,
+	}
+}
+
+func GetFunctionsRequest(in *tfprotov5.GetFunctionsRequest) *tfprotov6.GetFunctionsRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.GetFunctionsRequest{}
+}
+
+func GetFunctionsResponse(in *tfprotov5.GetFunctionsResponse) *tfprotov6.GetFunctionsResponse {
+	if in == nil {
+		return nil
+	}
+
+	functions := make(map[string]*tfprotov6.Function, len(in.Functions))
+
+	for name, function := range in.Functions {
+		functions[name] = Function(function)
+	}
+
+	return &tfprotov6.GetFunctionsResponse{
+		Diagnostics: Diagnostics(in.Diagnostics),
+		Functions:   functions,
+	}
+}
+
 func GetMetadataRequest(in *tfprotov5.GetMetadataRequest) *tfprotov6.GetMetadataRequest {
 	if in == nil {
 		return nil
@@ -114,12 +220,17 @@ func GetMetadataResponse(in *tfprotov5.GetMetadataResponse) *tfprotov6.GetMetada
 	resp := &tfprotov6.GetMetadataResponse{
 		DataSources:        make([]tfprotov6.DataSourceMetadata, 0, len(in.DataSources)),
 		Diagnostics:        Diagnostics(in.Diagnostics),
+		Functions:          make([]tfprotov6.FunctionMetadata, 0, len(in.Functions)),
 		Resources:          make([]tfprotov6.ResourceMetadata, 0, len(in.Resources)),
 		ServerCapabilities: ServerCapabilities(in.ServerCapabilities),
 	}
 
 	for _, datasource := range in.DataSources {
 		resp.DataSources = append(resp.DataSources, DataSourceMetadata(datasource))
+	}
+
+	for _, function := range in.Functions {
+		resp.Functions = append(resp.Functions, FunctionMetadata(function))
 	}
 
 	for _, resource := range in.Resources {
@@ -148,6 +259,12 @@ func GetProviderSchemaResponse(in *tfprotov5.GetProviderSchemaResponse) *tfproto
 		dataSourceSchemas[k] = Schema(v)
 	}
 
+	functions := make(map[string]*tfprotov6.Function, len(in.Functions))
+
+	for name, function := range in.Functions {
+		functions[name] = Function(function)
+	}
+
 	resourceSchemas := make(map[string]*tfprotov6.Schema, len(in.ResourceSchemas))
 
 	for k, v := range in.ResourceSchemas {
@@ -157,6 +274,7 @@ func GetProviderSchemaResponse(in *tfprotov5.GetProviderSchemaResponse) *tfproto
 	return &tfprotov6.GetProviderSchemaResponse{
 		DataSourceSchemas:  dataSourceSchemas,
 		Diagnostics:        Diagnostics(in.Diagnostics),
+		Functions:          functions,
 		Provider:           Schema(in.Provider),
 		ProviderMeta:       Schema(in.ProviderMeta),
 		ResourceSchemas:    resourceSchemas,

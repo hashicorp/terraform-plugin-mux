@@ -40,6 +40,27 @@ func diagnosticsHasError(diagnostics []*tfprotov5.Diagnostic) bool {
 	return false
 }
 
+func functionDuplicateError(name string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "Invalid Provider Server Combination",
+		Detail: "The combined provider has multiple implementations of the same function name across underlying providers. " +
+			"Functions must be implemented by only one underlying provider. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Duplicate function: " + name,
+	}
+}
+
+func functionMissingError(name string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "Function Not Implemented",
+		Detail: "The combined provider does not implement the requested function. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Missing function: " + name,
+	}
+}
+
 func resourceDuplicateError(typeName string) *tfprotov5.Diagnostic {
 	return &tfprotov5.Diagnostic{
 		Severity: tfprotov5.DiagnosticSeverityError,

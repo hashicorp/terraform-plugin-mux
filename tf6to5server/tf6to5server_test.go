@@ -31,6 +31,9 @@ func TestDowngradeServer(t *testing.T) {
 					DataSourceSchemas: map[string]*tfprotov6.Schema{
 						"test_data_source": {},
 					},
+					Functions: map[string]*tfprotov6.Function{
+						"test_function": {},
+					},
 					Provider: &tfprotov6.Schema{
 						Block: &tfprotov6.SchemaBlock{
 							Attributes: []*tfprotov6.SchemaAttribute{
@@ -255,6 +258,45 @@ func TestV6ToV5ServerApplyResourceChange(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerCallFunction(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			Functions: map[string]*tfprotov6.Function{
+				"test_function": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	functionServer, ok := v5server.(tfprotov5.FunctionServer)
+
+	if !ok {
+		t.Fatal("v5server should implement tfprotov5.FunctionServer")
+	}
+
+	// _, err = v5server.CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+	_, err = functionServer.CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+		Name: "test_function",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.CallFunctionCalled["test_function"] {
+		t.Errorf("expected test_function CallFunction to be called")
+	}
+}
+
 func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 	t.Parallel()
 
@@ -281,6 +323,43 @@ func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 
 	if !v6server.ConfigureProviderCalled {
 		t.Errorf("expected ConfigureProvider to be called")
+	}
+}
+
+func TestV5ToV6ServerGetFunctions(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetFunctionsResponse: &tfprotov6.GetFunctionsResponse{
+			Functions: map[string]*tfprotov6.Function{
+				"test_function": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+	functionServer, ok := v5server.(tfprotov5.FunctionServer)
+
+	if !ok {
+		t.Fatal("v5server should implement tfprotov5.FunctionServer")
+	}
+
+	//_, err = v5server.GetFunctions(ctx, &tfprotov5.GetFunctionsRequest{})
+	_, err = functionServer.GetFunctions(ctx, &tfprotov5.GetFunctionsRequest{})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.GetFunctionsCalled {
+		t.Errorf("expected GetFunctions to be called")
 	}
 }
 
