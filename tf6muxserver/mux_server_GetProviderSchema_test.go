@@ -464,6 +464,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -501,6 +502,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -538,6 +540,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -575,6 +578,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -660,6 +664,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -745,6 +750,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -776,6 +782,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -805,6 +812,11 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
 		},
 		"error-multiple": {
 			servers: []func() tfprotov6.ProviderServer{
@@ -847,6 +859,11 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
 		},
 		"warning-once": {
 			servers: []func() tfprotov6.ProviderServer{
@@ -874,6 +891,11 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
 		},
 		"warning-multiple": {
 			servers: []func() tfprotov6.ProviderServer{
@@ -916,6 +938,11 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
 		},
 		"warning-then-error": {
 			servers: []func() tfprotov6.ProviderServer{
@@ -958,6 +985,11 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedFunctions:       map[string]*tfprotov6.Function{},
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
 		},
 	}
 
@@ -1001,6 +1033,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 
 			if diff := cmp.Diff(resp.ResourceSchemas, testCase.expectedResourceSchemas); diff != "" {
 				t.Errorf("resource schemas didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.ServerCapabilities, testCase.expectedServerCapabilities); diff != "" {
+				t.Errorf("server capabilities didn't match expectations: %s", diff)
 			}
 		})
 	}

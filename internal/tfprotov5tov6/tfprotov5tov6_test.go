@@ -1030,6 +1030,96 @@ func TestImportedResources(t *testing.T) {
 	}
 }
 
+func TestMoveResourceStateRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.MoveResourceStateRequest
+		expected *tfprotov6.MoveResourceStateRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.MoveResourceStateRequest{
+				SourcePrivate:         testBytes,
+				SourceProviderAddress: "example.com/namespace/test",
+				SourceSchemaVersion:   1,
+				SourceState: &tfprotov5.RawState{
+					JSON: testBytes,
+				},
+				SourceTypeName: "test_source",
+				TargetTypeName: "test_target",
+			},
+			expected: &tfprotov6.MoveResourceStateRequest{
+				SourcePrivate:         testBytes,
+				SourceProviderAddress: "example.com/namespace/test",
+				SourceSchemaVersion:   1,
+				SourceState: &tfprotov6.RawState{
+					JSON: testBytes,
+				},
+				SourceTypeName: "test_source",
+				TargetTypeName: "test_target",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.MoveResourceStateRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestMoveResourceStateResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.MoveResourceStateResponse
+		expected *tfprotov6.MoveResourceStateResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.MoveResourceStateResponse{
+				Diagnostics:   testTfprotov5Diagnostics,
+				TargetPrivate: testBytes,
+				TargetState:   &testTfprotov5DynamicValue,
+			},
+			expected: &tfprotov6.MoveResourceStateResponse{
+				Diagnostics:   testTfprotov6Diagnostics,
+				TargetState:   &testTfprotov6DynamicValue,
+				TargetPrivate: testBytes,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.MoveResourceStateResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestPlanResourceChangeRequest(t *testing.T) {
 	t.Parallel()
 

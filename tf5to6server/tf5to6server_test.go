@@ -356,6 +356,46 @@ func TestV6ToV5ServerImportResourceState(t *testing.T) {
 	}
 }
 
+func TestV5ToV6ServerMoveResourceState(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
+	//nolint:staticcheck // Intentional verification of interface implementation.
+	resourceServer, ok := v6server.(tfprotov6.ResourceServerWithMoveResourceState)
+
+	if !ok {
+		t.Fatal("v5server should implement tfprotov6.ResourceServerWithMoveResourceState")
+	}
+
+	// _, err = v6server.MoveResourceState(ctx, &tfprotov6.MoveResourceStateRequest{
+	_, err = resourceServer.MoveResourceState(ctx, &tfprotov6.MoveResourceStateRequest{
+		TargetTypeName: "test_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.MoveResourceStateCalled["test_resource"] {
+		t.Errorf("expected test_resource MoveResourceState to be called")
+	}
+}
+
 func TestV6ToV5ServerPlanResourceChange(t *testing.T) {
 	t.Parallel()
 

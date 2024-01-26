@@ -110,6 +110,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -153,6 +154,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedResources: []tfprotov6.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -196,6 +198,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedResources: []tfprotov6.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -239,6 +242,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -279,6 +283,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -310,6 +315,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedResources: []tfprotov6.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -356,6 +362,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedResources: []tfprotov6.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -387,6 +394,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedResources: []tfprotov6.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -433,6 +441,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedResources: []tfprotov6.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},
@@ -479,6 +488,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedResources: []tfprotov6.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
 				PlanDestroy:               true,
 			},
 		},

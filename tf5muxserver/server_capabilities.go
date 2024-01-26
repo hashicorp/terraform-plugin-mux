@@ -10,6 +10,7 @@ import "github.com/hashicorp/terraform-plugin-go/tfprotov5"
 // servers if they are not compatible with a capability.
 var serverCapabilities = &tfprotov5.ServerCapabilities{
 	GetProviderSchemaOptional: true,
+	MoveResourceState:         true,
 	PlanDestroy:               true,
 }
 

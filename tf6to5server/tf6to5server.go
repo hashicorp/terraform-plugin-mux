@@ -40,6 +40,15 @@ func DowngradeServer(ctx context.Context, v6server func() tfprotov6.ProviderServ
 
 var _ tfprotov5.ProviderServer = v6tov5Server{}
 
+// Temporarily verify that v6tov5Server implements new RPCs correctly.
+// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
+// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
+var (
+	_ tfprotov5.FunctionServer = v6tov5Server{}
+	//nolint:staticcheck // Intentional verification of interface implementation.
+	_ tfprotov5.ResourceServerWithMoveResourceState = v6tov5Server{}
+)
+
 type v6tov5Server struct {
 	v6Server tfprotov6.ProviderServer
 }
@@ -154,6 +163,39 @@ func (s v6tov5Server) ImportResourceState(ctx context.Context, req *tfprotov5.Im
 	}
 
 	return tfprotov6tov5.ImportResourceStateResponse(v6Resp), nil
+}
+
+func (s v6tov5Server) MoveResourceState(ctx context.Context, req *tfprotov5.MoveResourceStateRequest) (*tfprotov5.MoveResourceStateResponse, error) {
+	// Remove and call s.v6Server.MoveResourceState below directly.
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
+	//nolint:staticcheck // Intentional verification of interface implementation.
+	resourceServer, ok := s.v6Server.(tfprotov6.ResourceServerWithMoveResourceState)
+
+	if !ok {
+		v5Resp := &tfprotov5.MoveResourceStateResponse{
+			Diagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "MoveResourceState Not Implemented",
+					Detail: "A MoveResourceState call was received by the provider, however the provider does not implement the RPC. " +
+						"Either upgrade the provider to a version that implements MoveResourceState or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return v5Resp, nil
+	}
+
+	v6Req := tfprotov5tov6.MoveResourceStateRequest(req)
+	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
+	// v6Resp, err := s.v6Server.MoveResourceState(ctx, v6Req)
+	v6Resp, err := resourceServer.MoveResourceState(ctx, v6Req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov6tov5.MoveResourceStateResponse(v6Resp), nil
 }
 
 func (s v6tov5Server) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {

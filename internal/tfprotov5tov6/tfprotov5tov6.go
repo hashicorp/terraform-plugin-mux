@@ -327,6 +327,33 @@ func ImportedResources(in []*tfprotov5.ImportedResource) []*tfprotov6.ImportedRe
 	return res
 }
 
+func MoveResourceStateRequest(in *tfprotov5.MoveResourceStateRequest) *tfprotov6.MoveResourceStateRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.MoveResourceStateRequest{
+		SourcePrivate:         in.SourcePrivate,
+		SourceProviderAddress: in.SourceProviderAddress,
+		SourceSchemaVersion:   in.SourceSchemaVersion,
+		SourceState:           RawState(in.SourceState),
+		SourceTypeName:        in.SourceTypeName,
+		TargetTypeName:        in.TargetTypeName,
+	}
+}
+
+func MoveResourceStateResponse(in *tfprotov5.MoveResourceStateResponse) *tfprotov6.MoveResourceStateResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.MoveResourceStateResponse{
+		Diagnostics:   Diagnostics(in.Diagnostics),
+		TargetPrivate: in.TargetPrivate,
+		TargetState:   DynamicValue(in.TargetState),
+	}
+}
+
 func PlanResourceChangeRequest(in *tfprotov5.PlanResourceChangeRequest) *tfprotov6.PlanResourceChangeRequest {
 	if in == nil {
 		return nil
