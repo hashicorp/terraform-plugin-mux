@@ -32,6 +32,8 @@ type TestServer struct {
 
 	ImportResourceStateCalled map[string]bool
 
+	MoveResourceStateCalled map[string]bool
+
 	PlanResourceChangeCalled map[string]bool
 
 	ReadDataSourceCalled map[string]bool
@@ -123,6 +125,15 @@ func (s *TestServer) ImportResourceState(_ context.Context, req *tfprotov6.Impor
 	}
 
 	s.ImportResourceStateCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) MoveResourceState(_ context.Context, req *tfprotov6.MoveResourceStateRequest) (*tfprotov6.MoveResourceStateResponse, error) {
+	if s.MoveResourceStateCalled == nil {
+		s.MoveResourceStateCalled = make(map[string]bool)
+	}
+
+	s.MoveResourceStateCalled[req.TargetTypeName] = true
 	return nil, nil
 }
 

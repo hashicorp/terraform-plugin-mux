@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'all: Upgrade protocol versions to support the `MoveResourceState` RPC'
+time: 2024-01-26T14:38:40.092759-05:00
+custom:
+  Issue: "220"
