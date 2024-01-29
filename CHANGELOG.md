@@ -1,3 +1,9 @@
+## 0.14.0 (January 29, 2024)
+
+FEATURES:
+
+* all: Upgrade protocol versions to support the `MoveResourceState` RPC ([#220](https://github.com/hashicorp/terraform-plugin-mux/issues/220))
+
 ## 0.13.0 (December 14, 2023)
 
 NOTES:
