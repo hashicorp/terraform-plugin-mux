@@ -64,8 +64,8 @@ func CallFunctionResponse(in *tfprotov6.CallFunctionResponse) *tfprotov5.CallFun
 	}
 
 	return &tfprotov5.CallFunctionResponse{
-		Diagnostics: Diagnostics(in.Diagnostics),
-		Result:      DynamicValue(in.Result),
+		Error:  FunctionError(in.Error),
+		Result: DynamicValue(in.Result),
 	}
 }
 
@@ -148,6 +148,19 @@ func Function(in *tfprotov6.Function) *tfprotov5.Function {
 
 	for _, parameter := range in.Parameters {
 		out.Parameters = append(out.Parameters, FunctionParameter(parameter))
+	}
+
+	return out
+}
+
+func FunctionError(in *tfprotov6.FunctionError) *tfprotov5.FunctionError {
+	if in == nil {
+		return nil
+	}
+
+	out := &tfprotov5.FunctionError{
+		Text:             in.Text,
+		FunctionArgument: in.FunctionArgument,
 	}
 
 	return out
