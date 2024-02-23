@@ -1,0 +1,6 @@
+kind: ENHANCEMENTS
+body: 'all: Upgrade protocol versions to support modified `CallFunction` RPC which
+  returns a FunctionError rather than Diagnostics'
+time: 2024-02-23T09:47:29.580412Z
+custom:
+  Issue: "226"

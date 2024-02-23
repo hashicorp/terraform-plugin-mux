@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tfprotov6tov5"
 )
 
@@ -60,6 +61,16 @@ var (
 		Return: &tfprotov6.FunctionReturn{
 			Type: tftypes.String,
 		},
+	}
+
+	testTfprotov5FunctionError *tfprotov5.FunctionError = &tfprotov5.FunctionError{
+		Text:             "test error",
+		FunctionArgument: pointer(int64(0)),
+	}
+
+	testTfprotov6FunctionError *tfprotov6.FunctionError = &tfprotov6.FunctionError{
+		Text:             "test error",
+		FunctionArgument: pointer(int64(0)),
 	}
 
 	testTfprotov6FunctionMetadata tfprotov6.FunctionMetadata = tfprotov6.FunctionMetadata{
@@ -248,12 +259,12 @@ func TestCallFunctionResponse(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov6.CallFunctionResponse{
-				Diagnostics: testTfprotov6Diagnostics,
-				Result:      &testTfprotov6DynamicValue,
+				Error:  testTfprotov6FunctionError,
+				Result: &testTfprotov6DynamicValue,
 			},
 			expected: &tfprotov5.CallFunctionResponse{
-				Diagnostics: testTfprotov5Diagnostics,
-				Result:      &testTfprotov5DynamicValue,
+				Error:  testTfprotov5FunctionError,
+				Result: &testTfprotov5DynamicValue,
 			},
 		},
 	}
@@ -2285,4 +2296,8 @@ func TestValidateResourceTypeConfigResponse(t *testing.T) {
 			}
 		})
 	}
+}
+
+func pointer[T any](value T) *T {
+	return &value
 }

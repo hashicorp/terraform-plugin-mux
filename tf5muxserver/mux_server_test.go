@@ -492,15 +492,11 @@ func TestMuxServerGetFunctionServer_GetProviderSchema_Duplicate(t *testing.T) {
 	// Terraform to verify the mutex does not deadlock.
 	var wg sync.WaitGroup
 
-	expectedDiags := []*tfprotov5.Diagnostic{
-		{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "Invalid Provider Server Combination",
-			Detail: "The combined provider has multiple implementations of the same function name across underlying providers. " +
-				"Functions must be implemented by only one underlying provider. " +
-				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-				"Duplicate function: test_function",
-		},
+	expectedError := &tfprotov5.FunctionError{
+		Text: "Invalid Provider Server Combination: The combined provider has multiple implementations of the same function name across underlying providers. " +
+			"Functions must be implemented by only one underlying provider. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Duplicate function: test_function",
 	}
 
 	terraformOp := func() {
@@ -518,8 +514,8 @@ func TestMuxServerGetFunctionServer_GetProviderSchema_Duplicate(t *testing.T) {
 			Name: "test_function",
 		})
 
-		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
-			t.Errorf("unexpected diagnostics difference: %s", diff)
+		if diff := cmp.Diff(resp.Error, expectedError); diff != "" {
+			t.Errorf("unexpected error difference: %s", diff)
 		}
 	}
 
@@ -639,15 +635,11 @@ func TestMuxServerGetFunctionServer_GetMetadata_Duplicate(t *testing.T) {
 	// Terraform to verify the mutex does not deadlock.
 	var wg sync.WaitGroup
 
-	expectedDiags := []*tfprotov5.Diagnostic{
-		{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "Invalid Provider Server Combination",
-			Detail: "The combined provider has multiple implementations of the same function name across underlying providers. " +
-				"Functions must be implemented by only one underlying provider. " +
-				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-				"Duplicate function: test_function",
-		},
+	expectedError := &tfprotov5.FunctionError{
+		Text: "Invalid Provider Server Combination: The combined provider has multiple implementations of the same function name across underlying providers. " +
+			"Functions must be implemented by only one underlying provider. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Duplicate function: test_function",
 	}
 
 	terraformOp := func() {
@@ -665,7 +657,7 @@ func TestMuxServerGetFunctionServer_GetMetadata_Duplicate(t *testing.T) {
 			Name: "test_function",
 		})
 
-		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+		if diff := cmp.Diff(resp.Error, expectedError); diff != "" {
 			t.Errorf("unexpected diagnostics difference: %s", diff)
 		}
 	}
@@ -784,14 +776,10 @@ func TestMuxServerGetFunctionServer_Missing(t *testing.T) {
 	// Terraform to verify the mutex does not deadlock.
 	var wg sync.WaitGroup
 
-	expectedDiags := []*tfprotov5.Diagnostic{
-		{
-			Severity: tfprotov5.DiagnosticSeverityError,
-			Summary:  "Function Not Implemented",
-			Detail: "The combined provider does not implement the requested function. " +
-				"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-				"Missing function: test_function_nonexistent",
-		},
+	expectedError := &tfprotov5.FunctionError{
+		Text: "Function Not Implemented: The combined provider does not implement the requested function. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Missing function: test_function_nonexistent",
 	}
 
 	terraformOp := func() {
@@ -809,7 +797,7 @@ func TestMuxServerGetFunctionServer_Missing(t *testing.T) {
 			Name: "test_function_nonexistent",
 		})
 
-		if diff := cmp.Diff(resp.Diagnostics, expectedDiags); diff != "" {
+		if diff := cmp.Diff(resp.Error, expectedError); diff != "" {
 			t.Errorf("unexpected diagnostics difference: %s", diff)
 		}
 	}

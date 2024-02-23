@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/tfprotov5tov6"
 	"github.com/hashicorp/terraform-plugin-mux/internal/tfprotov6tov5"
 )
@@ -59,13 +60,9 @@ func (s v5tov6Server) CallFunction(ctx context.Context, req *tfprotov6.CallFunct
 
 	if !ok {
 		v6Resp := &tfprotov6.CallFunctionResponse{
-			Diagnostics: []*tfprotov6.Diagnostic{
-				{
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Summary:  "Provider Functions Not Implemented",
-					Detail: "A provider-defined function call was received by the provider, however the provider does not implement functions. " +
-						"Either upgrade the provider to a version that implements provider-defined functions or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
+			Error: &tfprotov6.FunctionError{
+				Text: "Provider Functions Not Implemented: A provider-defined function call was received by the provider, however the provider does not implement functions. " +
+					"Either upgrade the provider to a version that implements provider-defined functions or this is a bug in Terraform that should be reported to the Terraform maintainers.",
 			},
 		}
 
