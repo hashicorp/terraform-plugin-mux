@@ -1,3 +1,9 @@
+## 0.15.0 (February 23, 2024)
+
+ENHANCEMENTS:
+
+* all: Upgrade protocol versions to support modified `CallFunction` RPC which returns a FunctionError rather than Diagnostics ([#226](https://github.com/hashicorp/terraform-plugin-mux/issues/226))
+
 ## 0.14.0 (January 29, 2024)
 
 FEATURES:
