@@ -39,16 +39,7 @@ func TestMuxServerMoveResourceState(t *testing.T) {
 		t.Fatalf("unexpected error setting up factory: %s", err)
 	}
 
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	resourceServer, ok := muxServer.ProviderServer().(tfprotov5.ResourceServerWithMoveResourceState)
-
-	if !ok {
-		t.Fatal("muxServer should implement tfprotov5.ResourceServerWithMoveResourceState")
-	}
-
-	// _, err = muxServer.ProviderServer().MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
-	_, err = resourceServer.MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
+	_, err = muxServer.ProviderServer().MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
 		TargetTypeName: "test_resource1",
 	})
 
@@ -64,8 +55,7 @@ func TestMuxServerMoveResourceState(t *testing.T) {
 		t.Errorf("unexpected test_resource1 MoveResourceState called on server2")
 	}
 
-	// _, err = muxServer.ProviderServer().MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
-	_, err = resourceServer.MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
+	_, err = muxServer.ProviderServer().MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
 		TargetTypeName: "test_resource2",
 	})
 

@@ -456,16 +456,7 @@ func TestV6ToV5ServerMoveResourceState(t *testing.T) {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
-	//nolint:staticcheck // Intentional verification of interface implementation.
-	resourceServer, ok := v5server.(tfprotov5.ResourceServerWithMoveResourceState)
-
-	if !ok {
-		t.Fatal("v5server should implement tfprotov5.ResourceServerWithMoveResourceState")
-	}
-
-	// _, err = v5server.MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
-	_, err = resourceServer.MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
+	_, err = v5server.MoveResourceState(ctx, &tfprotov5.MoveResourceStateRequest{
 		TargetTypeName: "test_resource",
 	})
 

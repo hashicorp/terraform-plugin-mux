@@ -29,13 +29,6 @@ func UpgradeServer(_ context.Context, v5server func() tfprotov5.ProviderServer) 
 
 var _ tfprotov6.ProviderServer = v5tov6Server{}
 
-// Temporarily verify that v5tov6Server implements new RPCs correctly.
-// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
-var (
-	//nolint:staticcheck // Intentional verification of interface implementation.
-	_ tfprotov6.ResourceServerWithMoveResourceState = v5tov6Server{}
-)
-
 type v5tov6Server struct {
 	v5Server tfprotov5.ProviderServer
 }
@@ -118,31 +111,9 @@ func (s v5tov6Server) ImportResourceState(ctx context.Context, req *tfprotov6.Im
 }
 
 func (s v5tov6Server) MoveResourceState(ctx context.Context, req *tfprotov6.MoveResourceStateRequest) (*tfprotov6.MoveResourceStateResponse, error) {
-	// Remove and call s.v5Server.MoveResourceState below directly.
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
-	//nolint:staticcheck // Intentional verification of interface implementation.
-	resourceServer, ok := s.v5Server.(tfprotov5.ResourceServerWithMoveResourceState)
-
-	if !ok {
-		v6Resp := &tfprotov6.MoveResourceStateResponse{
-			Diagnostics: []*tfprotov6.Diagnostic{
-				{
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Summary:  "MoveResourceState Not Implemented",
-					Detail: "A MoveResourceState call was received by the provider, however the provider does not implement the RPC. " +
-						"Either upgrade the provider to a version that implements MoveResourceState or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return v6Resp, nil
-	}
-
 	v5Req := tfprotov6tov5.MoveResourceStateRequest(req)
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
-	// v5Resp, err := s.v5Server.MoveResourceState(ctx, v5Req)
-	v5Resp, err := resourceServer.MoveResourceState(ctx, v5Req)
 
+	v5Resp, err := s.v5Server.MoveResourceState(ctx, v5Req)
 	if err != nil {
 		return nil, err
 	}
