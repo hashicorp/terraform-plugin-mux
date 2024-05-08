@@ -435,15 +435,7 @@ func TestMuxServerGetFunctionServer_GetProviderSchema(t *testing.T) {
 	terraformOp := func() {
 		defer wg.Done()
 
-		// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
-
-		if !ok {
-			t.Error("muxServer should implement tfprotov5.FunctionServer")
-		}
-
-		// _, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
-		_, _ = functionServer.CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+		_, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
 			Name: "test_function1",
 		})
 	}
@@ -502,15 +494,7 @@ func TestMuxServerGetFunctionServer_GetProviderSchema_Duplicate(t *testing.T) {
 	terraformOp := func() {
 		defer wg.Done()
 
-		// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
-
-		if !ok {
-			t.Error("muxServer should implement tfprotov5.FunctionServer")
-		}
-
-		// resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
-		resp, _ := functionServer.CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+		resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
 			Name: "test_function",
 		})
 
@@ -574,15 +558,7 @@ func TestMuxServerGetFunctionServer_GetMetadata(t *testing.T) {
 	terraformOp := func() {
 		defer wg.Done()
 
-		// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
-
-		if !ok {
-			t.Error("muxServer should implement tfprotov5.FunctionServer")
-		}
-
-		// _, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
-		_, _ = functionServer.CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+		_, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
 			Name: "test_function1",
 		})
 	}
@@ -645,15 +621,7 @@ func TestMuxServerGetFunctionServer_GetMetadata_Duplicate(t *testing.T) {
 	terraformOp := func() {
 		defer wg.Done()
 
-		// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
-
-		if !ok {
-			t.Error("muxServer should implement tfprotov5.FunctionServer")
-		}
-
-		// resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
-		resp, _ := functionServer.CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+		resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
 			Name: "test_function",
 		})
 
@@ -715,15 +683,7 @@ func TestMuxServerGetFunctionServer_GetMetadata_Partial(t *testing.T) {
 	terraformOp := func() {
 		defer wg.Done()
 
-		// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
-
-		if !ok {
-			t.Error("muxServer should implement tfprotov5.FunctionServer")
-		}
-
-		// _, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
-		_, _ = functionServer.CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+		_, _ = muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
 			Name: "test_function1",
 		})
 	}
@@ -785,15 +745,7 @@ func TestMuxServerGetFunctionServer_Missing(t *testing.T) {
 	terraformOp := func() {
 		defer wg.Done()
 
-		// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-		functionServer, ok := muxServer.ProviderServer().(tfprotov5.FunctionServer)
-
-		if !ok {
-			t.Error("muxServer should implement tfprotov5.FunctionServer")
-		}
-
-		// resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
-		resp, _ := functionServer.CallFunction(ctx, &tfprotov5.CallFunctionRequest{
+		resp, _ := muxServer.ProviderServer().CallFunction(ctx, &tfprotov5.CallFunctionRequest{
 			Name: "test_function_nonexistent",
 		})
 

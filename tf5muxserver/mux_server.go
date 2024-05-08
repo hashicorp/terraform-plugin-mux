@@ -16,10 +16,8 @@ import (
 var _ tfprotov5.ProviderServer = &muxServer{}
 
 // Temporarily verify that v5tov6Server implements new RPCs correctly.
-// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
 // Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
 var (
-	_ tfprotov5.FunctionServer = &muxServer{}
 	//nolint:staticcheck // Intentional verification of interface implementation.
 	_ tfprotov5.ResourceServerWithMoveResourceState = &muxServer{}
 )
