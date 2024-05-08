@@ -41,15 +41,6 @@ func DowngradeServer(ctx context.Context, v6server func() tfprotov6.ProviderServ
 
 var _ tfprotov5.ProviderServer = v6tov5Server{}
 
-// Temporarily verify that v6tov5Server implements new RPCs correctly.
-// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
-var (
-	_ tfprotov5.FunctionServer = v6tov5Server{}
-	//nolint:staticcheck // Intentional verification of interface implementation.
-	_ tfprotov5.ResourceServerWithMoveResourceState = v6tov5Server{}
-)
-
 type v6tov5Server struct {
 	v6Server tfprotov6.ProviderServer
 }
@@ -66,26 +57,9 @@ func (s v6tov5Server) ApplyResourceChange(ctx context.Context, req *tfprotov5.Ap
 }
 
 func (s v6tov5Server) CallFunction(ctx context.Context, req *tfprotov5.CallFunctionRequest) (*tfprotov5.CallFunctionResponse, error) {
-	// Remove and call s.v6Server.CallFunction below directly.
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-	functionServer, ok := s.v6Server.(tfprotov6.FunctionServer)
-
-	if !ok {
-		v5Resp := &tfprotov5.CallFunctionResponse{
-			Error: &tfprotov5.FunctionError{
-				Text: "Provider Functions Not Implemented: A provider-defined function call was received by the provider, however the provider does not implement functions. " +
-					"Either upgrade the provider to a version that implements provider-defined functions or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-			},
-		}
-
-		return v5Resp, nil
-	}
-
 	v6Req := tfprotov5tov6.CallFunctionRequest(req)
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-	// v6Resp, err := s.v6Server.CallFunction(ctx, v6Req)
-	v6Resp, err := functionServer.CallFunction(ctx, v6Req)
 
+	v6Resp, err := s.v6Server.CallFunction(ctx, v6Req)
 	if err != nil {
 		return nil, err
 	}
@@ -105,23 +79,9 @@ func (s v6tov5Server) ConfigureProvider(ctx context.Context, req *tfprotov5.Conf
 }
 
 func (s v6tov5Server) GetFunctions(ctx context.Context, req *tfprotov5.GetFunctionsRequest) (*tfprotov5.GetFunctionsResponse, error) {
-	// Remove and call s.v6Server.GetFunctions below directly.
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-	functionServer, ok := s.v6Server.(tfprotov6.FunctionServer)
-
-	if !ok {
-		v5Resp := &tfprotov5.GetFunctionsResponse{
-			Functions: map[string]*tfprotov5.Function{},
-		}
-
-		return v5Resp, nil
-	}
-
 	v6Req := tfprotov5tov6.GetFunctionsRequest(req)
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/210
-	// v6Resp, err := s.v6Server.GetFunctions(ctx, v6Req)
-	v6Resp, err := functionServer.GetFunctions(ctx, v6Req)
 
+	v6Resp, err := s.v6Server.GetFunctions(ctx, v6Req)
 	if err != nil {
 		return nil, err
 	}
@@ -163,31 +123,9 @@ func (s v6tov5Server) ImportResourceState(ctx context.Context, req *tfprotov5.Im
 }
 
 func (s v6tov5Server) MoveResourceState(ctx context.Context, req *tfprotov5.MoveResourceStateRequest) (*tfprotov5.MoveResourceStateResponse, error) {
-	// Remove and call s.v6Server.MoveResourceState below directly.
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
-	//nolint:staticcheck // Intentional verification of interface implementation.
-	resourceServer, ok := s.v6Server.(tfprotov6.ResourceServerWithMoveResourceState)
-
-	if !ok {
-		v5Resp := &tfprotov5.MoveResourceStateResponse{
-			Diagnostics: []*tfprotov5.Diagnostic{
-				{
-					Severity: tfprotov5.DiagnosticSeverityError,
-					Summary:  "MoveResourceState Not Implemented",
-					Detail: "A MoveResourceState call was received by the provider, however the provider does not implement the RPC. " +
-						"Either upgrade the provider to a version that implements MoveResourceState or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return v5Resp, nil
-	}
-
 	v6Req := tfprotov5tov6.MoveResourceStateRequest(req)
-	// Reference: https://github.com/hashicorp/terraform-plugin-mux/issues/219
-	// v6Resp, err := s.v6Server.MoveResourceState(ctx, v6Req)
-	v6Resp, err := resourceServer.MoveResourceState(ctx, v6Req)
 
+	v6Resp, err := s.v6Server.MoveResourceState(ctx, v6Req)
 	if err != nil {
 		return nil, err
 	}
