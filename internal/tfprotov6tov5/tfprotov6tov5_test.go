@@ -305,6 +305,22 @@ func TestConfigureProviderRequest(t *testing.T) {
 				TerraformVersion: "1.2.3",
 			},
 		},
+		"client-capabilities-deferral-allowed": {
+			in: &tfprotov6.ConfigureProviderRequest{
+				Config:           &testTfprotov6DynamicValue,
+				TerraformVersion: "1.2.3",
+				ClientCapabilities: &tfprotov6.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			expected: &tfprotov5.ConfigureProviderRequest{
+				Config:           &testTfprotov5DynamicValue,
+				TerraformVersion: "1.2.3",
+				ClientCapabilities: &tfprotov5.ConfigureProviderClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -1014,6 +1030,22 @@ func TestImportResourceStateRequest(t *testing.T) {
 				TypeName: "test_resource",
 			},
 		},
+		"client-capabilities-deferral-allowed": {
+			in: &tfprotov6.ImportResourceStateRequest{
+				ID:       "test-id",
+				TypeName: "test_resource",
+				ClientCapabilities: &tfprotov6.ImportResourceStateClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			expected: &tfprotov5.ImportResourceStateRequest{
+				ID:       "test-id",
+				TypeName: "test_resource",
+				ClientCapabilities: &tfprotov5.ImportResourceStateClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -1061,6 +1093,34 @@ func TestImportResourceStateResponse(t *testing.T) {
 						State:    &testTfprotov5DynamicValue,
 						TypeName: "test_resource1",
 					},
+				},
+			},
+		},
+		"deferred-reason": {
+			in: &tfprotov6.ImportResourceStateResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				ImportedResources: []*tfprotov6.ImportedResource{
+					{
+						Private:  testBytes,
+						State:    &testTfprotov6DynamicValue,
+						TypeName: "test_resource1",
+					},
+				},
+				Deferred: &tfprotov6.Deferred{
+					Reason: tfprotov6.DeferredReasonResourceConfigUnknown,
+				},
+			},
+			expected: &tfprotov5.ImportResourceStateResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				ImportedResources: []*tfprotov5.ImportedResource{
+					{
+						Private:  testBytes,
+						State:    &testTfprotov5DynamicValue,
+						TypeName: "test_resource1",
+					},
+				},
+				Deferred: &tfprotov5.Deferred{
+					Reason: tfprotov5.DeferredReasonResourceConfigUnknown,
 				},
 			},
 		},
@@ -1275,6 +1335,30 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 				TypeName:         "test_resource",
 			},
 		},
+		"client-capabilities-deferral-allowed": {
+			in: &tfprotov6.PlanResourceChangeRequest{
+				Config:           &testTfprotov6DynamicValue,
+				PriorPrivate:     testBytes,
+				PriorState:       &testTfprotov6DynamicValue,
+				ProposedNewState: &testTfprotov6DynamicValue,
+				ProviderMeta:     &testTfprotov6DynamicValue,
+				TypeName:         "test_resource",
+				ClientCapabilities: &tfprotov6.PlanResourceChangeClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			expected: &tfprotov5.PlanResourceChangeRequest{
+				Config:           &testTfprotov5DynamicValue,
+				PriorPrivate:     testBytes,
+				PriorState:       &testTfprotov5DynamicValue,
+				ProposedNewState: &testTfprotov5DynamicValue,
+				ProviderMeta:     &testTfprotov5DynamicValue,
+				TypeName:         "test_resource",
+				ClientCapabilities: &tfprotov5.PlanResourceChangeClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -1321,6 +1405,32 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 					tftypes.NewAttributePath().WithAttributeName("test"),
 				},
 				UnsafeToUseLegacyTypeSystem: true,
+			},
+		},
+		"deferred-reason": {
+			in: &tfprotov6.PlanResourceChangeResponse{
+				Diagnostics:    testTfprotov6Diagnostics,
+				PlannedPrivate: testBytes,
+				PlannedState:   &testTfprotov6DynamicValue,
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("test"),
+				},
+				UnsafeToUseLegacyTypeSystem: true,
+				Deferred: &tfprotov6.Deferred{
+					Reason: tfprotov6.DeferredReasonResourceConfigUnknown,
+				},
+			},
+			expected: &tfprotov5.PlanResourceChangeResponse{
+				Diagnostics:    testTfprotov5Diagnostics,
+				PlannedPrivate: testBytes,
+				PlannedState:   &testTfprotov5DynamicValue,
+				RequiresReplace: []*tftypes.AttributePath{
+					tftypes.NewAttributePath().WithAttributeName("test"),
+				},
+				UnsafeToUseLegacyTypeSystem: true,
+				Deferred: &tfprotov5.Deferred{
+					Reason: tfprotov5.DeferredReasonResourceConfigUnknown,
+				},
 			},
 		},
 	}
@@ -1475,6 +1585,24 @@ func TestReadDataSourceRequest(t *testing.T) {
 				TypeName:     "test_data_source",
 			},
 		},
+		"client-capabilities-deferral-allowed": {
+			in: &tfprotov6.ReadDataSourceRequest{
+				Config:       &testTfprotov6DynamicValue,
+				ProviderMeta: &testTfprotov6DynamicValue,
+				TypeName:     "test_data_source",
+				ClientCapabilities: &tfprotov6.ReadDataSourceClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			expected: &tfprotov5.ReadDataSourceRequest{
+				Config:       &testTfprotov5DynamicValue,
+				ProviderMeta: &testTfprotov5DynamicValue,
+				TypeName:     "test_data_source",
+				ClientCapabilities: &tfprotov5.ReadDataSourceClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -1511,6 +1639,22 @@ func TestReadDataSourceResponse(t *testing.T) {
 			expected: &tfprotov5.ReadDataSourceResponse{
 				Diagnostics: testTfprotov5Diagnostics,
 				State:       &testTfprotov5DynamicValue,
+			},
+		},
+		"deferred-reason": {
+			in: &tfprotov6.ReadDataSourceResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				State:       &testTfprotov6DynamicValue,
+				Deferred: &tfprotov6.Deferred{
+					Reason: tfprotov6.DeferredReasonResourceConfigUnknown,
+				},
+			},
+			expected: &tfprotov5.ReadDataSourceResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				State:       &testTfprotov5DynamicValue,
+				Deferred: &tfprotov5.Deferred{
+					Reason: tfprotov5.DeferredReasonResourceConfigUnknown,
+				},
 			},
 		},
 	}
@@ -1555,6 +1699,26 @@ func TestReadResourceRequest(t *testing.T) {
 				TypeName:     "test_resource",
 			},
 		},
+		"client-capabilities-deferral-allowed": {
+			in: &tfprotov6.ReadResourceRequest{
+				CurrentState: &testTfprotov6DynamicValue,
+				Private:      testBytes,
+				ProviderMeta: &testTfprotov6DynamicValue,
+				TypeName:     "test_resource",
+				ClientCapabilities: &tfprotov6.ReadResourceClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			expected: &tfprotov5.ReadResourceRequest{
+				CurrentState: &testTfprotov5DynamicValue,
+				Private:      testBytes,
+				ProviderMeta: &testTfprotov5DynamicValue,
+				TypeName:     "test_resource",
+				ClientCapabilities: &tfprotov5.ReadResourceClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
@@ -1593,6 +1757,24 @@ func TestReadResourceResponse(t *testing.T) {
 				Diagnostics: testTfprotov5Diagnostics,
 				NewState:    &testTfprotov5DynamicValue,
 				Private:     testBytes,
+			},
+		},
+		"deferred-reason": {
+			in: &tfprotov6.ReadResourceResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				NewState:    &testTfprotov6DynamicValue,
+				Private:     testBytes,
+				Deferred: &tfprotov6.Deferred{
+					Reason: tfprotov6.DeferredReasonResourceConfigUnknown,
+				},
+			},
+			expected: &tfprotov5.ReadResourceResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				NewState:    &testTfprotov5DynamicValue,
+				Private:     testBytes,
+				Deferred: &tfprotov5.Deferred{
+					Reason: tfprotov5.DeferredReasonResourceConfigUnknown,
+				},
 			},
 		},
 	}
