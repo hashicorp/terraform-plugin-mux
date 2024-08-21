@@ -5,6 +5,7 @@ package tfprotov5tov6_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -42,6 +43,14 @@ var (
 
 	testTfprotov5DynamicValue tfprotov5.DynamicValue
 	testTfprotov6DynamicValue tfprotov6.DynamicValue
+
+	testTfprotov5EphemeralResourceMetadata tfprotov5.EphemeralResourceMetadata = tfprotov5.EphemeralResourceMetadata{
+		TypeName: "test_ephemeral_resource",
+	}
+
+	testTfprotov6EphemeralResourceMetadata tfprotov6.EphemeralResourceMetadata = tfprotov6.EphemeralResourceMetadata{
+		TypeName: "test_ephemeral_resource",
+	}
 
 	testTfprotov5Function *tfprotov5.Function = &tfprotov5.Function{
 		Parameters: []*tfprotov5.FunctionParameter{},
@@ -107,6 +116,8 @@ var (
 		},
 		Version: 1,
 	}
+
+	testTime time.Time = time.Date(2000, 1, 2, 3, 4, 5, 6, time.UTC)
 )
 
 func init() {
@@ -274,6 +285,82 @@ func TestCallFunctionResponse(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov5tov6.CallFunctionResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestCloseEphemeralResourceRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.CloseEphemeralResourceRequest
+		expected *tfprotov6.CloseEphemeralResourceRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.CloseEphemeralResourceRequest{
+				PriorState: &testTfprotov5DynamicValue,
+				Private:    testBytes,
+				TypeName:   "test_ephemeral_resource",
+			},
+			expected: &tfprotov6.CloseEphemeralResourceRequest{
+				PriorState: &testTfprotov6DynamicValue,
+				Private:    testBytes,
+				TypeName:   "test_ephemeral_resource",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.CloseEphemeralResourceRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestCloseEphemeralResourceResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.CloseEphemeralResourceResponse
+		expected *tfprotov6.CloseEphemeralResourceResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.CloseEphemeralResourceResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+			expected: &tfprotov6.CloseEphemeralResourceResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.CloseEphemeralResourceResponse(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -767,6 +854,9 @@ func TestGetMetadataResponse(t *testing.T) {
 					testTfprotov5DataSourceMetadata,
 				},
 				Diagnostics: testTfprotov5Diagnostics,
+				EphemeralResources: []tfprotov5.EphemeralResourceMetadata{
+					testTfprotov5EphemeralResourceMetadata,
+				},
 				Functions: []tfprotov5.FunctionMetadata{
 					testTfprotov5FunctionMetadata,
 				},
@@ -779,6 +869,9 @@ func TestGetMetadataResponse(t *testing.T) {
 					testTfprotov6DataSourceMetadata,
 				},
 				Diagnostics: testTfprotov6Diagnostics,
+				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{
+					testTfprotov6EphemeralResourceMetadata,
+				},
 				Functions: []tfprotov6.FunctionMetadata{
 					testTfprotov6FunctionMetadata,
 				},
@@ -853,6 +946,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					"test_data_source": testTfprotov5Schema,
 				},
 				Diagnostics: testTfprotov5Diagnostics,
+				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_ephemeral_resource": testTfprotov5Schema,
+				},
 				Functions: map[string]*tfprotov5.Function{
 					"test_function": testTfprotov5Function,
 				},
@@ -867,6 +963,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 					"test_data_source": testTfprotov6Schema,
 				},
 				Diagnostics: testTfprotov6Diagnostics,
+				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
+					"test_ephemeral_resource": testTfprotov6Schema,
+				},
 				Functions: map[string]*tfprotov6.Function{
 					"test_function": testTfprotov6Function,
 				},
@@ -1183,6 +1282,88 @@ func TestMoveResourceStateResponse(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov5tov6.MoveResourceStateResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestOpenEphemeralResourceRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.OpenEphemeralResourceRequest
+		expected *tfprotov6.OpenEphemeralResourceRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.OpenEphemeralResourceRequest{
+				Config:   &testTfprotov5DynamicValue,
+				TypeName: "test_ephemeral_resource",
+			},
+			expected: &tfprotov6.OpenEphemeralResourceRequest{
+				Config:   &testTfprotov6DynamicValue,
+				TypeName: "test_ephemeral_resource",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.OpenEphemeralResourceRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestOpenEphemeralResourceResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.OpenEphemeralResourceResponse
+		expected *tfprotov6.OpenEphemeralResourceResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.OpenEphemeralResourceResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				IsClosable:  true,
+				Private:     testBytes,
+				RenewAt:     testTime,
+				State:       &testTfprotov5DynamicValue,
+			},
+			expected: &tfprotov6.OpenEphemeralResourceResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				IsClosable:  true,
+				Private:     testBytes,
+				RenewAt:     testTime,
+				State:       &testTfprotov6DynamicValue,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.OpenEphemeralResourceResponse(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -1597,6 +1778,88 @@ func TestReadResourceResponse(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov5tov6.ReadResourceResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestRenewEphemeralResourceRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.RenewEphemeralResourceRequest
+		expected *tfprotov6.RenewEphemeralResourceRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.RenewEphemeralResourceRequest{
+				Config:     &testTfprotov5DynamicValue,
+				PriorState: &testTfprotov5DynamicValue,
+				TypeName:   "test_ephemeral_resource",
+			},
+			expected: &tfprotov6.RenewEphemeralResourceRequest{
+				Config:     &testTfprotov6DynamicValue,
+				PriorState: &testTfprotov6DynamicValue,
+				TypeName:   "test_ephemeral_resource",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.RenewEphemeralResourceRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestRenewEphemeralResourceResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.RenewEphemeralResourceResponse
+		expected *tfprotov6.RenewEphemeralResourceResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.RenewEphemeralResourceResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				Private:     testBytes,
+				RenewAt:     testTime,
+				State:       &testTfprotov5DynamicValue,
+			},
+			expected: &tfprotov6.RenewEphemeralResourceResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				Private:     testBytes,
+				RenewAt:     testTime,
+				State:       &testTfprotov6DynamicValue,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.RenewEphemeralResourceResponse(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -2075,6 +2338,80 @@ func TestValidateDataResourceConfigResponse(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov5tov6.ValidateDataResourceConfigResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestValidateEphemeralResourceConfigRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.ValidateEphemeralResourceConfigRequest
+		expected *tfprotov6.ValidateEphemeralResourceConfigRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.ValidateEphemeralResourceConfigRequest{
+				Config:   &testTfprotov5DynamicValue,
+				TypeName: "test_ephemeral_resource",
+			},
+			expected: &tfprotov6.ValidateEphemeralResourceConfigRequest{
+				Config:   &testTfprotov6DynamicValue,
+				TypeName: "test_ephemeral_resource",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.ValidateEphemeralResourceConfigRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestValidateEphemeralResourceConfigResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.ValidateEphemeralResourceConfigResponse
+		expected *tfprotov6.ValidateEphemeralResourceConfigResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.ValidateEphemeralResourceConfigResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+			expected: &tfprotov6.ValidateEphemeralResourceConfigResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+		name, testCase := name, testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.ValidateEphemeralResourceConfigResponse(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)

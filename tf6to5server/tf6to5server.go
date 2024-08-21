@@ -67,6 +67,17 @@ func (s v6tov5Server) CallFunction(ctx context.Context, req *tfprotov5.CallFunct
 	return tfprotov6tov5.CallFunctionResponse(v6Resp), nil
 }
 
+func (s v6tov5Server) CloseEphemeralResource(ctx context.Context, req *tfprotov5.CloseEphemeralResourceRequest) (*tfprotov5.CloseEphemeralResourceResponse, error) {
+	v6Req := tfprotov5tov6.CloseEphemeralResourceRequest(req)
+
+	v6Resp, err := s.v6Server.CloseEphemeralResource(ctx, v6Req)
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov6tov5.CloseEphemeralResourceResponse(v6Resp), nil
+}
+
 func (s v6tov5Server) ConfigureProvider(ctx context.Context, req *tfprotov5.ConfigureProviderRequest) (*tfprotov5.ConfigureProviderResponse, error) {
 	v6Req := tfprotov5tov6.ConfigureProviderRequest(req)
 	v6Resp, err := s.v6Server.ConfigureProvider(ctx, v6Req)
@@ -133,6 +144,17 @@ func (s v6tov5Server) MoveResourceState(ctx context.Context, req *tfprotov5.Move
 	return tfprotov6tov5.MoveResourceStateResponse(v6Resp), nil
 }
 
+func (s v6tov5Server) OpenEphemeralResource(ctx context.Context, req *tfprotov5.OpenEphemeralResourceRequest) (*tfprotov5.OpenEphemeralResourceResponse, error) {
+	v6Req := tfprotov5tov6.OpenEphemeralResourceRequest(req)
+
+	v6Resp, err := s.v6Server.OpenEphemeralResource(ctx, v6Req)
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov6tov5.OpenEphemeralResourceResponse(v6Resp), nil
+}
+
 func (s v6tov5Server) PlanResourceChange(ctx context.Context, req *tfprotov5.PlanResourceChangeRequest) (*tfprotov5.PlanResourceChangeResponse, error) {
 	v6Req := tfprotov5tov6.PlanResourceChangeRequest(req)
 	v6Resp, err := s.v6Server.PlanResourceChange(ctx, v6Req)
@@ -182,6 +204,17 @@ func (s v6tov5Server) ReadResource(ctx context.Context, req *tfprotov5.ReadResou
 	return tfprotov6tov5.ReadResourceResponse(v6Resp), nil
 }
 
+func (s v6tov5Server) RenewEphemeralResource(ctx context.Context, req *tfprotov5.RenewEphemeralResourceRequest) (*tfprotov5.RenewEphemeralResourceResponse, error) {
+	v6Req := tfprotov5tov6.RenewEphemeralResourceRequest(req)
+
+	v6Resp, err := s.v6Server.RenewEphemeralResource(ctx, v6Req)
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov6tov5.RenewEphemeralResourceResponse(v6Resp), nil
+}
+
 func (s v6tov5Server) StopProvider(ctx context.Context, req *tfprotov5.StopProviderRequest) (*tfprotov5.StopProviderResponse, error) {
 	v6Req := tfprotov5tov6.StopProviderRequest(req)
 	v6Resp, err := s.v6Server.StopProvider(ctx, v6Req)
@@ -213,6 +246,17 @@ func (s v6tov5Server) ValidateDataSourceConfig(ctx context.Context, req *tfproto
 	}
 
 	return tfprotov6tov5.ValidateDataSourceConfigResponse(v6Resp), nil
+}
+
+func (s v6tov5Server) ValidateEphemeralResourceConfig(ctx context.Context, req *tfprotov5.ValidateEphemeralResourceConfigRequest) (*tfprotov5.ValidateEphemeralResourceConfigResponse, error) {
+	v6Req := tfprotov5tov6.ValidateEphemeralResourceConfigRequest(req)
+	v6Resp, err := s.v6Server.ValidateEphemeralResourceConfig(ctx, v6Req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov6tov5.ValidateEphemeralResourceConfigResponse(v6Resp), nil
 }
 
 func (s v6tov5Server) ValidateResourceTypeConfig(ctx context.Context, req *tfprotov5.ValidateResourceTypeConfigRequest) (*tfprotov5.ValidateResourceTypeConfigResponse, error) {

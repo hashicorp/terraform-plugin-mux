@@ -69,6 +69,28 @@ func CallFunctionResponse(in *tfprotov6.CallFunctionResponse) *tfprotov5.CallFun
 	}
 }
 
+func CloseEphemeralResourceRequest(in *tfprotov6.CloseEphemeralResourceRequest) *tfprotov5.CloseEphemeralResourceRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.CloseEphemeralResourceRequest{
+		TypeName:   in.TypeName,
+		PriorState: DynamicValue(in.PriorState),
+		Private:    in.Private,
+	}
+}
+
+func CloseEphemeralResourceResponse(in *tfprotov6.CloseEphemeralResourceResponse) *tfprotov5.CloseEphemeralResourceResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.CloseEphemeralResourceResponse{
+		Diagnostics: Diagnostics(in.Diagnostics),
+	}
+}
+
 func ConfigureProviderRequest(in *tfprotov6.ConfigureProviderRequest) *tfprotov5.ConfigureProviderRequest {
 	if in == nil {
 		return nil
@@ -153,6 +175,12 @@ func DynamicValue(in *tfprotov6.DynamicValue) *tfprotov5.DynamicValue {
 	return &tfprotov5.DynamicValue{
 		JSON:    in.JSON,
 		MsgPack: in.MsgPack,
+	}
+}
+
+func EphemeralResourceMetadata(in tfprotov6.EphemeralResourceMetadata) tfprotov5.EphemeralResourceMetadata {
+	return tfprotov5.EphemeralResourceMetadata{
+		TypeName: in.TypeName,
 	}
 }
 
@@ -263,6 +291,7 @@ func GetMetadataResponse(in *tfprotov6.GetMetadataResponse) *tfprotov5.GetMetada
 	resp := &tfprotov5.GetMetadataResponse{
 		DataSources:        make([]tfprotov5.DataSourceMetadata, 0, len(in.DataSources)),
 		Diagnostics:        Diagnostics(in.Diagnostics),
+		EphemeralResources: make([]tfprotov5.EphemeralResourceMetadata, 0, len(in.Resources)),
 		Functions:          make([]tfprotov5.FunctionMetadata, 0, len(in.Functions)),
 		Resources:          make([]tfprotov5.ResourceMetadata, 0, len(in.Resources)),
 		ServerCapabilities: ServerCapabilities(in.ServerCapabilities),
@@ -270,6 +299,10 @@ func GetMetadataResponse(in *tfprotov6.GetMetadataResponse) *tfprotov5.GetMetada
 
 	for _, datasource := range in.DataSources {
 		resp.DataSources = append(resp.DataSources, DataSourceMetadata(datasource))
+	}
+
+	for _, ephemeralResource := range in.EphemeralResources {
+		resp.EphemeralResources = append(resp.EphemeralResources, EphemeralResourceMetadata(ephemeralResource))
 	}
 
 	for _, function := range in.Functions {
@@ -308,6 +341,18 @@ func GetProviderSchemaResponse(in *tfprotov6.GetProviderSchemaResponse) (*tfprot
 		dataSourceSchemas[k] = v5Schema
 	}
 
+	ephemeralResourceSchemas := make(map[string]*tfprotov5.Schema, len(in.EphemeralResourceSchemas))
+
+	for k, v := range in.EphemeralResourceSchemas {
+		v5Schema, err := Schema(v)
+
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert ephemeral resource %q schema: %w", k, err)
+		}
+
+		ephemeralResourceSchemas[k] = v5Schema
+	}
+
 	functions := make(map[string]*tfprotov5.Function, len(in.Functions))
 
 	for name, function := range in.Functions {
@@ -339,12 +384,13 @@ func GetProviderSchemaResponse(in *tfprotov6.GetProviderSchemaResponse) (*tfprot
 	}
 
 	return &tfprotov5.GetProviderSchemaResponse{
-		DataSourceSchemas: dataSourceSchemas,
-		Diagnostics:       Diagnostics(in.Diagnostics),
-		Functions:         functions,
-		Provider:          provider,
-		ProviderMeta:      providerMeta,
-		ResourceSchemas:   resourceSchemas,
+		DataSourceSchemas:        dataSourceSchemas,
+		Diagnostics:              Diagnostics(in.Diagnostics),
+		EphemeralResourceSchemas: ephemeralResourceSchemas,
+		Functions:                functions,
+		Provider:                 provider,
+		ProviderMeta:             providerMeta,
+		ResourceSchemas:          resourceSchemas,
 	}, nil
 }
 
@@ -431,6 +477,31 @@ func MoveResourceStateResponse(in *tfprotov6.MoveResourceStateResponse) *tfproto
 		Diagnostics:   Diagnostics(in.Diagnostics),
 		TargetPrivate: in.TargetPrivate,
 		TargetState:   DynamicValue(in.TargetState),
+	}
+}
+
+func OpenEphemeralResourceRequest(in *tfprotov6.OpenEphemeralResourceRequest) *tfprotov5.OpenEphemeralResourceRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.OpenEphemeralResourceRequest{
+		TypeName: in.TypeName,
+		Config:   DynamicValue(in.Config),
+	}
+}
+
+func OpenEphemeralResourceResponse(in *tfprotov6.OpenEphemeralResourceResponse) *tfprotov5.OpenEphemeralResourceResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.OpenEphemeralResourceResponse{
+		State:       DynamicValue(in.State),
+		Diagnostics: Diagnostics(in.Diagnostics),
+		Private:     in.Private,
+		RenewAt:     in.RenewAt,
+		IsClosable:  in.IsClosable,
 	}
 }
 
@@ -580,6 +651,32 @@ func ReadResourceResponse(in *tfprotov6.ReadResourceResponse) *tfprotov5.ReadRes
 		Diagnostics: Diagnostics(in.Diagnostics),
 		NewState:    DynamicValue(in.NewState),
 		Private:     in.Private,
+	}
+}
+
+func RenewEphemeralResourceRequest(in *tfprotov6.RenewEphemeralResourceRequest) *tfprotov5.RenewEphemeralResourceRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.RenewEphemeralResourceRequest{
+		TypeName:   in.TypeName,
+		Config:     DynamicValue(in.Config),
+		PriorState: DynamicValue(in.PriorState),
+		Private:    in.Private,
+	}
+}
+
+func RenewEphemeralResourceResponse(in *tfprotov6.RenewEphemeralResourceResponse) *tfprotov5.RenewEphemeralResourceResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.RenewEphemeralResourceResponse{
+		State:       DynamicValue(in.State),
+		Diagnostics: Diagnostics(in.Diagnostics),
+		Private:     in.Private,
+		RenewAt:     in.RenewAt,
 	}
 }
 
@@ -768,6 +865,27 @@ func ValidateDataSourceConfigResponse(in *tfprotov6.ValidateDataResourceConfigRe
 	}
 
 	return &tfprotov5.ValidateDataSourceConfigResponse{
+		Diagnostics: Diagnostics(in.Diagnostics),
+	}
+}
+
+func ValidateEphemeralResourceConfigRequest(in *tfprotov6.ValidateEphemeralResourceConfigRequest) *tfprotov5.ValidateEphemeralResourceConfigRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.ValidateEphemeralResourceConfigRequest{
+		Config:   DynamicValue(in.Config),
+		TypeName: in.TypeName,
+	}
+}
+
+func ValidateEphemeralResourceConfigResponse(in *tfprotov6.ValidateEphemeralResourceConfigResponse) *tfprotov5.ValidateEphemeralResourceConfigResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.ValidateEphemeralResourceConfigResponse{
 		Diagnostics: Diagnostics(in.Diagnostics),
 	}
 }

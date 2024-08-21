@@ -19,14 +19,15 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		servers                    []func() tfprotov5.ProviderServer
-		expectedDataSourceSchemas  map[string]*tfprotov5.Schema
-		expectedDiagnostics        []*tfprotov5.Diagnostic
-		expectedFunctions          map[string]*tfprotov5.Function
-		expectedProviderSchema     *tfprotov5.Schema
-		expectedProviderMetaSchema *tfprotov5.Schema
-		expectedResourceSchemas    map[string]*tfprotov5.Schema
-		expectedServerCapabilities *tfprotov5.ServerCapabilities
+		servers                           []func() tfprotov5.ProviderServer
+		expectedDataSourceSchemas         map[string]*tfprotov5.Schema
+		expectedDiagnostics               []*tfprotov5.Diagnostic
+		expectedEphemeralResourcesSchemas map[string]*tfprotov5.Schema
+		expectedFunctions                 map[string]*tfprotov5.Function
+		expectedProviderSchema            *tfprotov5.Schema
+		expectedProviderMetaSchema        *tfprotov5.Schema
+		expectedResourceSchemas           map[string]*tfprotov5.Schema
+		expectedServerCapabilities        *tfprotov5.ServerCapabilities
 	}{
 		"combined": {
 			servers: []func() tfprotov5.ProviderServer{
@@ -149,6 +150,45 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 							"test_function1": {
 								Return: &tfprotov5.FunctionReturn{
 									Type: tftypes.String,
+								},
+							},
+						},
+						EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_ephemeral_foo": {
+								Version: 1,
+								Block: &tfprotov5.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov5.SchemaAttribute{
+										{
+											Name:            "secret_number",
+											Type:            tftypes.Number,
+											Required:        true,
+											Description:     "input the secret number",
+											DescriptionKind: tfprotov5.StringKindPlain,
+										},
+									},
+								},
+							},
+							"test_ephemeral_bar": {
+								Version: 1,
+								Block: &tfprotov5.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov5.SchemaAttribute{
+										{
+											Name:            "username",
+											Type:            tftypes.String,
+											Optional:        true,
+											Description:     "your username",
+											DescriptionKind: tfprotov5.StringKindPlain,
+										},
+										{
+											Name:            "password",
+											Type:            tftypes.String,
+											Optional:        true,
+											Description:     "your password",
+											DescriptionKind: tfprotov5.StringKindPlain,
+										},
+									},
 								},
 							},
 						},
@@ -276,6 +316,23 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 							"test_function3": {
 								Return: &tfprotov5.FunctionReturn{
 									Type: tftypes.String,
+								},
+							},
+						},
+						EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_ephemeral_foobar": {
+								Version: 1,
+								Block: &tfprotov5.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov5.SchemaAttribute{
+										{
+											Name:            "secret_number",
+											Type:            tftypes.Number,
+											Computed:        true,
+											Description:     "A generated secret number",
+											DescriptionKind: tfprotov5.StringKindPlain,
+										},
+									},
 								},
 							},
 						},
@@ -462,6 +519,60 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{
+				"test_ephemeral_foo": {
+					Version: 1,
+					Block: &tfprotov5.SchemaBlock{
+						Version: 1,
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:            "secret_number",
+								Type:            tftypes.Number,
+								Required:        true,
+								Description:     "input the secret number",
+								DescriptionKind: tfprotov5.StringKindPlain,
+							},
+						},
+					},
+				},
+				"test_ephemeral_bar": {
+					Version: 1,
+					Block: &tfprotov5.SchemaBlock{
+						Version: 1,
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:            "username",
+								Type:            tftypes.String,
+								Optional:        true,
+								Description:     "your username",
+								DescriptionKind: tfprotov5.StringKindPlain,
+							},
+							{
+								Name:            "password",
+								Type:            tftypes.String,
+								Optional:        true,
+								Description:     "your password",
+								DescriptionKind: tfprotov5.StringKindPlain,
+							},
+						},
+					},
+				},
+				"test_ephemeral_foobar": {
+					Version: 1,
+					Block: &tfprotov5.SchemaBlock{
+						Version: 1,
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:            "secret_number",
+								Type:            tftypes.Number,
+								Computed:        true,
+								Description:     "A generated secret number",
+								DescriptionKind: tfprotov5.StringKindPlain,
+							},
+						},
+					},
+				},
+			},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -497,6 +608,46 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
 						"Duplicate data source type: test_foo",
 				},
+			},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
+			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
+		},
+		"duplicate-ephemeral-resource-type": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_foo": {},
+						},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_foo": {},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same ephemeral resource type across underlying providers. " +
+						"Ephemeral resource types must be implemented by only one underlying provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate ephemeral resource type: test_foo",
+				},
+			},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{
+				"test_foo": {},
 			},
 			expectedFunctions:       map[string]*tfprotov5.Function{},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
@@ -534,6 +685,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						"Duplicate function: test_function",
 				},
 			},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
 			expectedFunctions: map[string]*tfprotov5.Function{
 				"test_function": {},
 			},
@@ -572,7 +724,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						"Duplicate resource type: test_foo",
 				},
 			},
-			expectedFunctions: map[string]*tfprotov5.Function{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{
 				"test_foo": {},
 			},
@@ -649,7 +802,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					),
 				},
 			},
-			expectedFunctions: map[string]*tfprotov5.Function{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedProviderSchema: &tfprotov5.Schema{
 				Block: &tfprotov5.SchemaBlock{
 					Attributes: []*tfprotov5.SchemaAttribute{
@@ -735,7 +889,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					),
 				},
 			},
-			expectedFunctions: map[string]*tfprotov5.Function{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedProviderMetaSchema: &tfprotov5.Schema{
 				Block: &tfprotov5.SchemaBlock{
 					Attributes: []*tfprotov5.SchemaAttribute{
@@ -775,8 +930,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
-			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
-			expectedFunctions:         map[string]*tfprotov5.Function{},
+			expectedDataSourceSchemas:         map[string]*tfprotov5.Schema{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{
 				"test_with_server_capabilities":    {},
 				"test_without_server_capabilities": {},
@@ -811,8 +967,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
-			expectedFunctions:       map[string]*tfprotov5.Function{},
-			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
+			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -858,8 +1015,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
-			expectedFunctions:       map[string]*tfprotov5.Function{},
-			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
+			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -890,8 +1048,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test warning details",
 				},
 			},
-			expectedFunctions:       map[string]*tfprotov5.Function{},
-			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
+			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -937,8 +1096,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test warning details",
 				},
 			},
-			expectedFunctions:       map[string]*tfprotov5.Function{},
-			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
+			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -984,8 +1144,9 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					Detail:   "test error details",
 				},
 			},
-			expectedFunctions:       map[string]*tfprotov5.Function{},
-			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
+			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1018,6 +1179,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 
 			if diff := cmp.Diff(resp.Diagnostics, testCase.expectedDiagnostics); diff != "" {
 				t.Errorf("diagnostics didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.EphemeralResourceSchemas, testCase.expectedEphemeralResourcesSchemas); diff != "" {
+				t.Errorf("ephemeral resources schemas didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.Functions, testCase.expectedFunctions); diff != "" {

@@ -29,6 +29,9 @@ func TestUpgradeServer(t *testing.T) {
 					DataSourceSchemas: map[string]*tfprotov5.Schema{
 						"test_data_source": {},
 					},
+					EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+						"test_ephemeral_resource": {},
+					},
 					Functions: map[string]*tfprotov5.Function{
 						"test_function": {},
 					},
@@ -188,6 +191,37 @@ func TestV6ToV5ServerCallFunction(t *testing.T) {
 
 	if !v5server.CallFunctionCalled["test_function"] {
 		t.Errorf("expected test_function CallFunction to be called")
+	}
+}
+
+func TestV6ToV5ServerCloseEphemeralResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_ephemeral_resource": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v6server.CloseEphemeralResource(ctx, &tfprotov6.CloseEphemeralResourceRequest{
+		TypeName: "test_ephemeral_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.CloseEphemeralResourceCalled["test_ephemeral_resource"] {
+		t.Errorf("expected test_ephemeral_resource CloseEphemeralResource to be called")
 	}
 }
 
@@ -371,6 +405,37 @@ func TestV5ToV6ServerMoveResourceState(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerOpenEphemeralResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_ephemeral_resource": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v6server.OpenEphemeralResource(ctx, &tfprotov6.OpenEphemeralResourceRequest{
+		TypeName: "test_ephemeral_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.OpenEphemeralResourceCalled["test_ephemeral_resource"] {
+		t.Errorf("expected test_ephemeral_resource OpenEphemeralResource to be called")
+	}
+}
+
 func TestV6ToV5ServerPlanResourceChange(t *testing.T) {
 	t.Parallel()
 
@@ -464,6 +529,37 @@ func TestV6ToV5ServerReadResource(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerRenewEphemeralResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_ephemeral_resource": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v6server.RenewEphemeralResource(ctx, &tfprotov6.RenewEphemeralResourceRequest{
+		TypeName: "test_ephemeral_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.RenewEphemeralResourceCalled["test_ephemeral_resource"] {
+		t.Errorf("expected test_ephemeral_resource RenewEphemeralResource to be called")
+	}
+}
+
 func TestV6ToV5ServerStopProvider(t *testing.T) {
 	t.Parallel()
 
@@ -552,6 +648,37 @@ func TestV6ToV5ServerValidateDataResourceConfig(t *testing.T) {
 
 	if !v5server.ValidateDataSourceConfigCalled["test_data_source"] {
 		t.Errorf("expected test_data_source ValidateDataSourceConfig to be called")
+	}
+}
+
+func TestV6ToV5ServerValidateEphemeralResourceConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v6server.ValidateEphemeralResourceConfig(ctx, &tfprotov6.ValidateEphemeralResourceConfigRequest{
+		TypeName: "test_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.ValidateEphemeralResourceConfigCalled["test_resource"] {
+		t.Errorf("expected test_resource ValidateEphemeralResourceConfig to be called")
 	}
 }
 
