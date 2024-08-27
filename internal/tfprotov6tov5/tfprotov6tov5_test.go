@@ -308,14 +308,14 @@ func TestCloseEphemeralResourceRequest(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov6.CloseEphemeralResourceRequest{
-				PriorState: &testTfprotov6DynamicValue,
-				Private:    testBytes,
-				TypeName:   "test_ephemeral_resource",
+				State:    &testTfprotov6DynamicValue,
+				Private:  testBytes,
+				TypeName: "test_ephemeral_resource",
 			},
 			expected: &tfprotov5.CloseEphemeralResourceRequest{
-				PriorState: &testTfprotov5DynamicValue,
-				Private:    testBytes,
-				TypeName:   "test_ephemeral_resource",
+				State:    &testTfprotov5DynamicValue,
+				Private:  testBytes,
+				TypeName: "test_ephemeral_resource",
 			},
 		},
 	}
@@ -2014,14 +2014,14 @@ func TestRenewEphemeralResourceRequest(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov6.RenewEphemeralResourceRequest{
-				Config:     &testTfprotov6DynamicValue,
-				PriorState: &testTfprotov6DynamicValue,
-				TypeName:   "test_ephemeral_resource",
+				Config:   &testTfprotov6DynamicValue,
+				State:    &testTfprotov6DynamicValue,
+				TypeName: "test_ephemeral_resource",
 			},
 			expected: &tfprotov5.RenewEphemeralResourceRequest{
-				Config:     &testTfprotov5DynamicValue,
-				PriorState: &testTfprotov5DynamicValue,
-				TypeName:   "test_ephemeral_resource",
+				Config:   &testTfprotov5DynamicValue,
+				State:    &testTfprotov5DynamicValue,
+				TypeName: "test_ephemeral_resource",
 			},
 		},
 	}
@@ -2057,13 +2057,11 @@ func TestRenewEphemeralResourceResponse(t *testing.T) {
 				Diagnostics: testTfprotov6Diagnostics,
 				Private:     testBytes,
 				RenewAt:     testTime,
-				State:       &testTfprotov6DynamicValue,
 			},
 			expected: &tfprotov5.RenewEphemeralResourceResponse{
 				Diagnostics: testTfprotov5Diagnostics,
 				Private:     testBytes,
 				RenewAt:     testTime,
-				State:       &testTfprotov5DynamicValue,
 			},
 		},
 	}

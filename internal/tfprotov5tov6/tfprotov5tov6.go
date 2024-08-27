@@ -70,9 +70,9 @@ func CloseEphemeralResourceRequest(in *tfprotov5.CloseEphemeralResourceRequest) 
 	}
 
 	return &tfprotov6.CloseEphemeralResourceRequest{
-		TypeName:   in.TypeName,
-		PriorState: DynamicValue(in.PriorState),
-		Private:    in.Private,
+		TypeName: in.TypeName,
+		State:    DynamicValue(in.State),
+		Private:  in.Private,
 	}
 }
 
@@ -606,10 +606,10 @@ func RenewEphemeralResourceRequest(in *tfprotov5.RenewEphemeralResourceRequest) 
 	}
 
 	return &tfprotov6.RenewEphemeralResourceRequest{
-		TypeName:   in.TypeName,
-		Config:     DynamicValue(in.Config),
-		PriorState: DynamicValue(in.PriorState),
-		Private:    in.Private,
+		TypeName: in.TypeName,
+		Config:   DynamicValue(in.Config),
+		State:    DynamicValue(in.State),
+		Private:  in.Private,
 	}
 }
 
@@ -619,7 +619,6 @@ func RenewEphemeralResourceResponse(in *tfprotov5.RenewEphemeralResourceResponse
 	}
 
 	return &tfprotov6.RenewEphemeralResourceResponse{
-		State:       DynamicValue(in.State),
 		Diagnostics: Diagnostics(in.Diagnostics),
 		Private:     in.Private,
 		RenewAt:     in.RenewAt,
