@@ -14,13 +14,26 @@ func ApplyResourceChangeRequest(in *tfprotov5.ApplyResourceChangeRequest) *tfpro
 	}
 
 	return &tfprotov6.ApplyResourceChangeRequest{
-		Config:         DynamicValue(in.Config),
-		PlannedPrivate: in.PlannedPrivate,
-		PlannedState:   DynamicValue(in.PlannedState),
-		PriorState:     DynamicValue(in.PriorState),
-		ProviderMeta:   DynamicValue(in.ProviderMeta),
-		TypeName:       in.TypeName,
+		ClientCapabilities: ApplyResourceChangeClientCapabilities(in.ClientCapabilities),
+		Config:             DynamicValue(in.Config),
+		PlannedPrivate:     in.PlannedPrivate,
+		PlannedState:       DynamicValue(in.PlannedState),
+		PriorState:         DynamicValue(in.PriorState),
+		ProviderMeta:       DynamicValue(in.ProviderMeta),
+		TypeName:           in.TypeName,
 	}
+}
+
+func ApplyResourceChangeClientCapabilities(in *tfprotov5.ApplyResourceChangeClientCapabilities) *tfprotov6.ApplyResourceChangeClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.ApplyResourceChangeClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+
+	return resp
 }
 
 func ApplyResourceChangeResponse(in *tfprotov5.ApplyResourceChangeResponse) *tfprotov6.ApplyResourceChangeResponse {
@@ -845,9 +858,22 @@ func ValidateResourceConfigRequest(in *tfprotov5.ValidateResourceTypeConfigReque
 	}
 
 	return &tfprotov6.ValidateResourceConfigRequest{
-		Config:   DynamicValue(in.Config),
-		TypeName: in.TypeName,
+		ClientCapabilities: ValidateResourceConfigClientCapabilities(in.ClientCapabilities),
+		Config:             DynamicValue(in.Config),
+		TypeName:           in.TypeName,
 	}
+}
+
+func ValidateResourceConfigClientCapabilities(in *tfprotov5.ValidateResourceTypeConfigClientCapabilities) *tfprotov6.ValidateResourceConfigClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.ValidateResourceConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+
+	return resp
 }
 
 func ValidateResourceConfigResponse(in *tfprotov5.ValidateResourceTypeConfigResponse) *tfprotov6.ValidateResourceConfigResponse {
