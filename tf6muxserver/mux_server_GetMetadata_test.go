@@ -257,6 +257,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 						},
 						ServerCapabilities: &tfprotov6.ServerCapabilities{
 							GetProviderSchemaOptional: true,
+							MoveResourceState:         true,
 							PlanDestroy:               true,
 						},
 					},
