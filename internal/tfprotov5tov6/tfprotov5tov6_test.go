@@ -1799,12 +1799,10 @@ func TestRenewEphemeralResourceRequest(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov5.RenewEphemeralResourceRequest{
-				Config:   &testTfprotov5DynamicValue,
 				State:    &testTfprotov5DynamicValue,
 				TypeName: "test_ephemeral_resource",
 			},
 			expected: &tfprotov6.RenewEphemeralResourceRequest{
-				Config:   &testTfprotov6DynamicValue,
 				State:    &testTfprotov6DynamicValue,
 				TypeName: "test_ephemeral_resource",
 			},
