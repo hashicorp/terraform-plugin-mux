@@ -212,7 +212,13 @@ func TestV6ToV5ServerCloseEphemeralResource(t *testing.T) {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	_, err = v6server.CloseEphemeralResource(ctx, &tfprotov6.CloseEphemeralResourceRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	ephemeralResourceServer, ok := v6server.(tfprotov6.ProviderServerWithEphemeralResources)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithEphemeralResources")
+	}
+
+	_, err = ephemeralResourceServer.CloseEphemeralResource(ctx, &tfprotov6.CloseEphemeralResourceRequest{
 		TypeName: "test_ephemeral_resource",
 	})
 
@@ -423,7 +429,13 @@ func TestV6ToV5ServerOpenEphemeralResource(t *testing.T) {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	_, err = v6server.OpenEphemeralResource(ctx, &tfprotov6.OpenEphemeralResourceRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	ephemeralResourceServer, ok := v6server.(tfprotov6.ProviderServerWithEphemeralResources)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithEphemeralResources")
+	}
+
+	_, err = ephemeralResourceServer.OpenEphemeralResource(ctx, &tfprotov6.OpenEphemeralResourceRequest{
 		TypeName: "test_ephemeral_resource",
 	})
 
@@ -547,7 +559,13 @@ func TestV6ToV5ServerRenewEphemeralResource(t *testing.T) {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	_, err = v6server.RenewEphemeralResource(ctx, &tfprotov6.RenewEphemeralResourceRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	ephemeralResourceServer, ok := v6server.(tfprotov6.ProviderServerWithEphemeralResources)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithEphemeralResources")
+	}
+
+	_, err = ephemeralResourceServer.RenewEphemeralResource(ctx, &tfprotov6.RenewEphemeralResourceRequest{
 		TypeName: "test_ephemeral_resource",
 	})
 
@@ -669,7 +687,13 @@ func TestV6ToV5ServerValidateEphemeralResourceConfig(t *testing.T) {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	_, err = v6server.ValidateEphemeralResourceConfig(ctx, &tfprotov6.ValidateEphemeralResourceConfigRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	ephemeralResourceServer, ok := v6server.(tfprotov6.ProviderServerWithEphemeralResources)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithEphemeralResources")
+	}
+
+	_, err = ephemeralResourceServer.ValidateEphemeralResourceConfig(ctx, &tfprotov6.ValidateEphemeralResourceConfigRequest{
 		TypeName: "test_resource",
 	})
 

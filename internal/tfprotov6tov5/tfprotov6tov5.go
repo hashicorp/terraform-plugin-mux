@@ -674,7 +674,6 @@ func RenewEphemeralResourceRequest(in *tfprotov6.RenewEphemeralResourceRequest) 
 
 	return &tfprotov5.RenewEphemeralResourceRequest{
 		TypeName: in.TypeName,
-		Config:   DynamicValue(in.Config),
 		State:    DynamicValue(in.State),
 		Private:  in.Private,
 	}
@@ -811,6 +810,7 @@ func ServerCapabilities(in *tfprotov6.ServerCapabilities) *tfprotov5.ServerCapab
 
 	return &tfprotov5.ServerCapabilities{
 		GetProviderSchemaOptional: in.GetProviderSchemaOptional,
+		MoveResourceState:         in.MoveResourceState,
 		PlanDestroy:               in.PlanDestroy,
 	}
 }

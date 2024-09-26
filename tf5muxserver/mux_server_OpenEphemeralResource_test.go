@@ -38,7 +38,13 @@ func TestMuxServerOpenEphemeralResource(t *testing.T) {
 		t.Fatalf("unexpected error setting up factory: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().OpenEphemeralResource(ctx, &tfprotov5.OpenEphemeralResourceRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	ephemeralResourceServer, ok := muxServer.ProviderServer().(tfprotov5.ProviderServerWithEphemeralResources)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov5.ProviderServerWithEphemeralResources")
+	}
+
+	_, err = ephemeralResourceServer.OpenEphemeralResource(ctx, &tfprotov5.OpenEphemeralResourceRequest{
 		TypeName: "test_ephemeral_resource_server1",
 	})
 
@@ -54,7 +60,7 @@ func TestMuxServerOpenEphemeralResource(t *testing.T) {
 		t.Errorf("unexpected test_ephemeral_resource_server1 OpenEphemeralResource called on server2")
 	}
 
-	_, err = muxServer.ProviderServer().OpenEphemeralResource(ctx, &tfprotov5.OpenEphemeralResourceRequest{
+	_, err = ephemeralResourceServer.OpenEphemeralResource(ctx, &tfprotov5.OpenEphemeralResourceRequest{
 		TypeName: "test_ephemeral_resource_server2",
 	})
 
