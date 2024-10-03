@@ -71,7 +71,6 @@ func CloseEphemeralResourceRequest(in *tfprotov5.CloseEphemeralResourceRequest) 
 
 	return &tfprotov6.CloseEphemeralResourceRequest{
 		TypeName: in.TypeName,
-		State:    DynamicValue(in.State),
 		Private:  in.Private,
 	}
 }
@@ -452,9 +451,22 @@ func OpenEphemeralResourceRequest(in *tfprotov5.OpenEphemeralResourceRequest) *t
 	}
 
 	return &tfprotov6.OpenEphemeralResourceRequest{
-		TypeName: in.TypeName,
-		Config:   DynamicValue(in.Config),
+		TypeName:           in.TypeName,
+		Config:             DynamicValue(in.Config),
+		ClientCapabilities: OpenEphemeralResourceClientCapabilities(in.ClientCapabilities),
 	}
+}
+
+func OpenEphemeralResourceClientCapabilities(in *tfprotov5.OpenEphemeralResourceClientCapabilities) *tfprotov6.OpenEphemeralResourceClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.OpenEphemeralResourceClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+
+	return resp
 }
 
 func OpenEphemeralResourceResponse(in *tfprotov5.OpenEphemeralResourceResponse) *tfprotov6.OpenEphemeralResourceResponse {
@@ -463,11 +475,11 @@ func OpenEphemeralResourceResponse(in *tfprotov5.OpenEphemeralResourceResponse) 
 	}
 
 	return &tfprotov6.OpenEphemeralResourceResponse{
-		State:       DynamicValue(in.State),
+		Result:      DynamicValue(in.Result),
 		Diagnostics: Diagnostics(in.Diagnostics),
 		Private:     in.Private,
 		RenewAt:     in.RenewAt,
-		IsClosable:  in.IsClosable,
+		Deferred:    Deferred(in.Deferred),
 	}
 }
 
@@ -607,7 +619,6 @@ func RenewEphemeralResourceRequest(in *tfprotov5.RenewEphemeralResourceRequest) 
 
 	return &tfprotov6.RenewEphemeralResourceRequest{
 		TypeName: in.TypeName,
-		State:    DynamicValue(in.State),
 		Private:  in.Private,
 	}
 }
