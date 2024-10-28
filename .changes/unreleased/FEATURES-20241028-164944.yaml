@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'all: Upgrade protocol versions to support ephemeral resource types'
+time: 2024-10-28T16:49:44.46102-04:00
+custom:
+    Issue: "257"
