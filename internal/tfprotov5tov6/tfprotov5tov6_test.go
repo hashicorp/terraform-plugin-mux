@@ -154,30 +154,6 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 				TypeName:       "test",
 			},
 		},
-		"client-capabilities-write-only-attributes-allowed": {
-			in: &tfprotov5.ApplyResourceChangeRequest{
-				ClientCapabilities: &tfprotov5.ApplyResourceChangeClientCapabilities{
-					WriteOnlyAttributesAllowed: true,
-				},
-				Config:         &testTfprotov5DynamicValue,
-				PlannedPrivate: testBytes,
-				PlannedState:   &testTfprotov5DynamicValue,
-				PriorState:     &testTfprotov5DynamicValue,
-				ProviderMeta:   &testTfprotov5DynamicValue,
-				TypeName:       "test",
-			},
-			expected: &tfprotov6.ApplyResourceChangeRequest{
-				ClientCapabilities: &tfprotov6.ApplyResourceChangeClientCapabilities{
-					WriteOnlyAttributesAllowed: true,
-				},
-				Config:         &testTfprotov6DynamicValue,
-				PlannedPrivate: testBytes,
-				PlannedState:   &testTfprotov6DynamicValue,
-				PriorState:     &testTfprotov6DynamicValue,
-				ProviderMeta:   &testTfprotov6DynamicValue,
-				TypeName:       "test",
-			},
-		},
 	}
 
 	for name, testCase := range testCases {

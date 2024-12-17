@@ -19,26 +19,13 @@ func ApplyResourceChangeRequest(in *tfprotov6.ApplyResourceChangeRequest) *tfpro
 	}
 
 	return &tfprotov5.ApplyResourceChangeRequest{
-		ClientCapabilities: ApplyResourceChangeClientCapabilities(in.ClientCapabilities),
-		Config:             DynamicValue(in.Config),
-		PlannedPrivate:     in.PlannedPrivate,
-		PlannedState:       DynamicValue(in.PlannedState),
-		PriorState:         DynamicValue(in.PriorState),
-		ProviderMeta:       DynamicValue(in.ProviderMeta),
-		TypeName:           in.TypeName,
+		Config:         DynamicValue(in.Config),
+		PlannedPrivate: in.PlannedPrivate,
+		PlannedState:   DynamicValue(in.PlannedState),
+		PriorState:     DynamicValue(in.PriorState),
+		ProviderMeta:   DynamicValue(in.ProviderMeta),
+		TypeName:       in.TypeName,
 	}
-}
-
-func ApplyResourceChangeClientCapabilities(in *tfprotov6.ApplyResourceChangeClientCapabilities) *tfprotov5.ApplyResourceChangeClientCapabilities {
-	if in == nil {
-		return nil
-	}
-
-	resp := &tfprotov5.ApplyResourceChangeClientCapabilities{
-		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
-	}
-
-	return resp
 }
 
 func ApplyResourceChangeResponse(in *tfprotov6.ApplyResourceChangeResponse) *tfprotov5.ApplyResourceChangeResponse {
