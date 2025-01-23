@@ -1946,6 +1946,7 @@ func TestSchemaAttribute(t *testing.T) {
 				Required:        true,
 				Sensitive:       true,
 				Type:            tftypes.String,
+				WriteOnly:       true,
 			},
 			expected: &tfprotov6.SchemaAttribute{
 				Computed:        true,
@@ -1957,6 +1958,7 @@ func TestSchemaAttribute(t *testing.T) {
 				Required:        true,
 				Sensitive:       true,
 				Type:            tftypes.String,
+				WriteOnly:       true,
 			},
 		},
 	}

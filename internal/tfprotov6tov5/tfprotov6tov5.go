@@ -731,6 +731,7 @@ func SchemaAttribute(in *tfprotov6.SchemaAttribute) (*tfprotov5.SchemaAttribute,
 		Required:        in.Required,
 		Sensitive:       in.Sensitive,
 		Type:            in.Type,
+		WriteOnly:       in.WriteOnly,
 	}, nil
 }
 
