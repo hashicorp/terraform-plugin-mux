@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'all: Upgrade protocol versions to support write-only attributes'
+time: 2025-01-23T12:59:24.759315-05:00
+custom:
+    Issue: "272"

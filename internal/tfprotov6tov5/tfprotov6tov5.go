@@ -731,6 +731,7 @@ func SchemaAttribute(in *tfprotov6.SchemaAttribute) (*tfprotov5.SchemaAttribute,
 		Required:        in.Required,
 		Sensitive:       in.Sensitive,
 		Type:            in.Type,
+		WriteOnly:       in.WriteOnly,
 	}, nil
 }
 
@@ -906,9 +907,22 @@ func ValidateResourceTypeConfigRequest(in *tfprotov6.ValidateResourceConfigReque
 	}
 
 	return &tfprotov5.ValidateResourceTypeConfigRequest{
-		Config:   DynamicValue(in.Config),
-		TypeName: in.TypeName,
+		ClientCapabilities: ValidateResourceConfigClientCapabilities(in.ClientCapabilities),
+		Config:             DynamicValue(in.Config),
+		TypeName:           in.TypeName,
 	}
+}
+
+func ValidateResourceConfigClientCapabilities(in *tfprotov6.ValidateResourceConfigClientCapabilities) *tfprotov5.ValidateResourceTypeConfigClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov5.ValidateResourceTypeConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+
+	return resp
 }
 
 func ValidateResourceTypeConfigResponse(in *tfprotov6.ValidateResourceConfigResponse) *tfprotov5.ValidateResourceTypeConfigResponse {
