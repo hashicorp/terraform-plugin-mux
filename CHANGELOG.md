@@ -1,3 +1,9 @@
+## 0.18.0 (January 23, 2025)
+
+FEATURES:
+
+* all: Upgrade protocol versions to support write-only attributes ([#272](https://github.com/hashicorp/terraform-plugin-mux/issues/272))
+
 ## 0.17.0 (October 30, 2024)
 
 NOTES:

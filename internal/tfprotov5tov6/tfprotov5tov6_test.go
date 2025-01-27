@@ -1946,6 +1946,7 @@ func TestSchemaAttribute(t *testing.T) {
 				Required:        true,
 				Sensitive:       true,
 				Type:            tftypes.String,
+				WriteOnly:       true,
 			},
 			expected: &tfprotov6.SchemaAttribute{
 				Computed:        true,
@@ -1957,6 +1958,7 @@ func TestSchemaAttribute(t *testing.T) {
 				Required:        true,
 				Sensitive:       true,
 				Type:            tftypes.String,
+				WriteOnly:       true,
 			},
 		},
 	}
@@ -2535,6 +2537,22 @@ func TestValidateResourceConfigRequest(t *testing.T) {
 				TypeName: "test_resource",
 			},
 			expected: &tfprotov6.ValidateResourceConfigRequest{
+				Config:   &testTfprotov6DynamicValue,
+				TypeName: "test_resource",
+			},
+		},
+		"client-capabilities-write-only-attributes-allowed": {
+			in: &tfprotov5.ValidateResourceTypeConfigRequest{
+				ClientCapabilities: &tfprotov5.ValidateResourceTypeConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+				Config:   &testTfprotov5DynamicValue,
+				TypeName: "test_resource",
+			},
+			expected: &tfprotov6.ValidateResourceConfigRequest{
+				ClientCapabilities: &tfprotov6.ValidateResourceConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				Config:   &testTfprotov6DynamicValue,
 				TypeName: "test_resource",
 			},

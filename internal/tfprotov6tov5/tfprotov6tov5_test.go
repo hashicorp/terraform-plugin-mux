@@ -2197,6 +2197,7 @@ func TestSchemaAttribute(t *testing.T) {
 				Required:        true,
 				Sensitive:       true,
 				Type:            tftypes.String,
+				WriteOnly:       true,
 			},
 			expected: &tfprotov5.SchemaAttribute{
 				Computed:        true,
@@ -2208,6 +2209,7 @@ func TestSchemaAttribute(t *testing.T) {
 				Required:        true,
 				Sensitive:       true,
 				Type:            tftypes.String,
+				WriteOnly:       true,
 			},
 		},
 		"NestedType-error": {
@@ -2810,6 +2812,22 @@ func TestValidateResourceTypeConfigRequest(t *testing.T) {
 				TypeName: "test_resource",
 			},
 			expected: &tfprotov5.ValidateResourceTypeConfigRequest{
+				Config:   &testTfprotov5DynamicValue,
+				TypeName: "test_resource",
+			},
+		},
+		"client-capabilities-write-only-attributes-allowed": {
+			in: &tfprotov6.ValidateResourceConfigRequest{
+				ClientCapabilities: &tfprotov6.ValidateResourceConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
+				Config:   &testTfprotov6DynamicValue,
+				TypeName: "test_resource",
+			},
+			expected: &tfprotov5.ValidateResourceTypeConfigRequest{
+				ClientCapabilities: &tfprotov5.ValidateResourceTypeConfigClientCapabilities{
+					WriteOnlyAttributesAllowed: true,
+				},
 				Config:   &testTfprotov5DynamicValue,
 				TypeName: "test_resource",
 			},
