@@ -167,6 +167,41 @@ func (s *muxServer) getFunctionServer(ctx context.Context, name string) (tfproto
 	return server, s.serverDiscoveryDiagnostics, nil
 }
 
+func (s *muxServer) getIdentityResourceServer(ctx context.Context, typeName string) (tfprotov5.ProviderServer, []*tfprotov5.Diagnostic, error) {
+	s.serverDiscoveryMutex.RLock()
+	server, ok := s.resourceIdentity[typeName]
+	discoveryComplete := s.serverDiscoveryComplete
+	s.serverDiscoveryMutex.RUnlock()
+
+	if discoveryComplete {
+		if ok {
+			return server, s.serverDiscoveryDiagnostics, nil
+		}
+
+		return nil, []*tfprotov5.Diagnostic{
+			resourceIdentityMissingError(typeName),
+		}, nil
+	}
+
+	err := s.serverDiscovery(ctx)
+
+	if err != nil || diagnosticsHasError(s.serverDiscoveryDiagnostics) {
+		return nil, s.serverDiscoveryDiagnostics, err
+	}
+
+	s.serverDiscoveryMutex.RLock()
+	server, ok = s.resourceIdentity[typeName]
+	s.serverDiscoveryMutex.RUnlock()
+
+	if !ok {
+		return nil, []*tfprotov5.Diagnostic{
+			resourceIdentityMissingError(typeName),
+		}, nil
+	}
+
+	return server, s.serverDiscoveryDiagnostics, nil
+}
+
 func (s *muxServer) getResourceServer(ctx context.Context, typeName string) (tfprotov5.ProviderServer, []*tfprotov5.Diagnostic, error) {
 	s.serverDiscoveryMutex.RLock()
 	server, ok := s.resources[typeName]

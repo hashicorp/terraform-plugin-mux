@@ -18,15 +18,15 @@ func TestMuxServerUpgradeResourceIdentity(t *testing.T) {
 
 	ctx := context.Background()
 	testServer1 := &tf5testserver.TestServer{
-		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
-			ResourceSchemas: map[string]*tfprotov5.Schema{
+		GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+			IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
 				"test_resource_server1": {},
 			},
 		},
 	}
 	testServer2 := &tf5testserver.TestServer{
-		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
-			ResourceSchemas: map[string]*tfprotov5.Schema{
+		GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+			IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
 				"test_resource_server2": {},
 			},
 		},
@@ -39,7 +39,6 @@ func TestMuxServerUpgradeResourceIdentity(t *testing.T) {
 		t.Fatalf("unexpected error setting up factory: %s", err)
 	}
 
-	//_, err = muxServer.ProviderServer().UpgradeResourceIdentity(ctx, &tfprotov5.UpgradeResourceIdentityRequest{
 	resourceIdentityServer, ok := muxServer.ProviderServer().(tfprotov5.ProviderServerWithResourceIdentity)
 	if !ok {
 		t.Fatal("muxServer should implement tfprotov5.ProviderServerWithEphemeralResources")

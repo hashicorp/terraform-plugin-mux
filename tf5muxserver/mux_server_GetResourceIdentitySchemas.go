@@ -43,7 +43,7 @@ func (s *muxServer) GetResourceIdentitySchemas(ctx context.Context, req *tfproto
 
 		for resourceIdentityType, schema := range resourceIdentityServer.IdentitySchemas {
 			if _, ok := resp.IdentitySchemas[resourceIdentityType]; ok {
-				resp.Diagnostics = append(resp.Diagnostics, ephemeralResourceDuplicateError(resourceIdentityType))
+				resp.Diagnostics = append(resp.Diagnostics, resourceIdentityDuplicateError(resourceIdentityType))
 
 				continue
 			}
