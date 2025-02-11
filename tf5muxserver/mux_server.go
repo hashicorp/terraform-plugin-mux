@@ -35,6 +35,9 @@ type muxServer struct {
 	// Resource capabilities are cached during GetMetadata/GetProviderSchema
 	resourceCapabilities map[string]*tfprotov5.ServerCapabilities
 
+	// Routing for resource identity
+	resourceIdentity map[string]tfprotov5.ProviderServer
+
 	// serverDiscoveryComplete is whether the mux server's underlying server
 	// discovery of resource types has been completed against all servers.
 	// If false during a resource type specific RPC, the mux server needs to
@@ -349,11 +352,13 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 //   - Only one provider implements each data source
 //   - Only one provider implements each function
 //   - Only one provider implements each ephemeral resource
+//   - Only one provider implements each resource identity
 func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer) (*muxServer, error) {
 	result := muxServer{
 		dataSources:          make(map[string]tfprotov5.ProviderServer),
 		ephemeralResources:   make(map[string]tfprotov5.ProviderServer),
 		functions:            make(map[string]tfprotov5.ProviderServer),
+		resourceIdentity:     make(map[string]tfprotov5.ProviderServer),
 		resources:            make(map[string]tfprotov5.ProviderServer),
 		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
 	}
