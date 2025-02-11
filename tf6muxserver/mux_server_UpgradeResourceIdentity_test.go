@@ -18,7 +18,7 @@ func TestMuxServerUpgradeResourceIdentity(t *testing.T) {
 
 	ctx := context.Background()
 	testServer1 := &tf6testserver.TestServer{
-		GetResourceIdentityResponse: &tfprotov6.GetResourceIdentitySchemasResponse{
+		GetResourceIdentitySchemasResponse: &tfprotov6.GetResourceIdentitySchemasResponse{
 			IdentitySchemas: map[string]*tfprotov6.ResourceIdentitySchema{
 				"test_resource_server1": {},
 			},
@@ -30,7 +30,7 @@ func TestMuxServerUpgradeResourceIdentity(t *testing.T) {
 		},
 	}
 	testServer2 := &tf6testserver.TestServer{
-		GetResourceIdentityResponse: &tfprotov6.GetResourceIdentitySchemasResponse{
+		GetResourceIdentitySchemasResponse: &tfprotov6.GetResourceIdentitySchemasResponse{
 			IdentitySchemas: map[string]*tfprotov6.ResourceIdentitySchema{
 				"test_resource_server2": {},
 			},
