@@ -31,8 +31,8 @@ type TestServer struct {
 	GetProviderSchemaCalled   bool
 	GetProviderSchemaResponse *tfprotov6.GetProviderSchemaResponse
 
-	GetResourceIdentitySchemaCalled bool
-	GetResourceIdentityResponse     *tfprotov6.GetResourceIdentitySchemasResponse
+	GetResourceIdentitySchemasCalled   bool
+	GetResourceIdentitySchemasResponse *tfprotov6.GetResourceIdentitySchemasResponse
 
 	ImportResourceStateCalled map[string]bool
 
@@ -141,10 +141,10 @@ func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov6.GetProvid
 }
 
 func (s *TestServer) GetResourceIdentitySchemas(_ context.Context, _ *tfprotov6.GetResourceIdentitySchemasRequest) (*tfprotov6.GetResourceIdentitySchemasResponse, error) {
-	s.GetResourceIdentitySchemaCalled = true
+	s.GetResourceIdentitySchemasCalled = true
 
-	if s.GetResourceIdentityResponse != nil {
-		return s.GetResourceIdentityResponse, nil
+	if s.GetResourceIdentitySchemasResponse != nil {
+		return s.GetResourceIdentitySchemasResponse, nil
 	}
 
 	return &tfprotov6.GetResourceIdentitySchemasResponse{}, nil
