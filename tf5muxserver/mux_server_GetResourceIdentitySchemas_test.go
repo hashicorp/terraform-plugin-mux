@@ -363,7 +363,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(resp.IdentitySchemas, testCase.expectedIdentitySchemas); diff != "" {
-				t.Errorf("ephemeral resources schemas didn't match expectations: %s", diff)
+				t.Errorf("identity schemas didn't match expectations: %s", diff)
 			}
 		})
 	}
