@@ -108,10 +108,10 @@ func resourceIdentityDuplicateError(typeName string) *tfprotov5.Diagnostic {
 	return &tfprotov5.Diagnostic{
 		Severity: tfprotov5.DiagnosticSeverityError,
 		Summary:  "Invalid Provider Server Combination",
-		Detail: "The combined provider has multiple implementations of the same data source type across underlying providers. " +
-			"Data source types must be implemented by only one underlying provider. " +
+		Detail: "The combined provider has multiple implementations of the same resource identity across underlying providers. " +
+			"Resource identity types must be implemented by only one underlying provider. " +
 			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-			"Duplicate data source type: " + typeName,
+			"Duplicate identity type for resource: " + typeName,
 	}
 }
 
