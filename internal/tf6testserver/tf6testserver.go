@@ -273,6 +273,7 @@ func (s *TestServer) ValidateProviderConfig(_ context.Context, req *tfprotov6.Va
 	return s.ValidateProviderConfigResponse, nil
 }
 
+//nolint:staticcheck // Intentionally verifying interface implementation
 func (s *TestServer) ProviderServerWithResourceIdentity() tfprotov6.ProviderServerWithResourceIdentity {
 	return s
 }

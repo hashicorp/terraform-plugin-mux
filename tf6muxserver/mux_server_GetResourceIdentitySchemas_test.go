@@ -346,6 +346,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
+			//nolint:staticcheck // Intentionally verifying interface implementation
 			resourceIdentityServer, ok := muxServer.ProviderServer().(tfprotov6.ProviderServerWithResourceIdentity)
 			if !ok {
 				t.Fatal("muxServer should implement tfprotov6.ProviderServerWithResourceIdentity")
