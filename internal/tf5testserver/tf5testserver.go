@@ -274,6 +274,7 @@ func (s *TestServer) PrepareProviderConfig(_ context.Context, req *tfprotov5.Pre
 	return s.PrepareProviderConfigResponse, nil
 }
 
+//nolint:staticcheck // Intentionally verifying interface implementation
 func (s *TestServer) ProviderServerWithResourceIdentity() tfprotov5.ProviderServerWithResourceIdentity {
 	return s
 }

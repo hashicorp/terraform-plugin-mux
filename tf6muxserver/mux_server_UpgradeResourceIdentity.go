@@ -31,6 +31,7 @@ func (s *muxServer) UpgradeResourceIdentity(ctx context.Context, req *tfprotov6.
 	}
 
 	// TODO: Remove and call server.UpgradeResourceIdentity below directly once interface becomes required.
+	//nolint:staticcheck // Intentionally verifying interface implementation
 	resourceIdentityServer, ok := server.(tfprotov6.ProviderServerWithResourceIdentity)
 	if !ok {
 		resp := &tfprotov6.UpgradeResourceIdentityResponse{

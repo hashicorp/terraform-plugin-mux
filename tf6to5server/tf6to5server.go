@@ -124,6 +124,7 @@ func (s v6tov5Server) GetProviderSchema(ctx context.Context, req *tfprotov5.GetP
 
 func (s v6tov5Server) GetResourceIdentitySchemas(ctx context.Context, req *tfprotov5.GetResourceIdentitySchemasRequest) (*tfprotov5.GetResourceIdentitySchemasResponse, error) {
 	// TODO: Remove and call s.v6Server.GetResourceIdentitySchemas below directly once interface becomes required
+	//nolint:staticcheck // Intentionally verifying interface implementation
 	resourceIdentityServer, ok := s.v6Server.(tfprotov6.ProviderServerWithResourceIdentity)
 	if !ok {
 		v5Resp := &tfprotov5.GetResourceIdentitySchemasResponse{
@@ -267,15 +268,16 @@ func (s v6tov5Server) UpgradeResourceState(ctx context.Context, req *tfprotov5.U
 
 func (s v6tov5Server) UpgradeResourceIdentity(ctx context.Context, req *tfprotov5.UpgradeResourceIdentityRequest) (*tfprotov5.UpgradeResourceIdentityResponse, error) {
 	// TODO: Remove and call s.v6Server.UpgradeResourceIdentity below directly once interface becomes required
+	//nolint:staticcheck // Intentionally verifying interface implementation
 	resourceIdentityServer, ok := s.v6Server.(tfprotov6.ProviderServerWithResourceIdentity)
 	if !ok {
 		v5Resp := &tfprotov5.UpgradeResourceIdentityResponse{
 			Diagnostics: []*tfprotov5.Diagnostic{
 				{
 					Severity: tfprotov5.DiagnosticSeverityError,
-					Summary:  "GetResourceIdentitySchemas Not Implemented",
-					Detail: "A GetResourceIdentitySchemas call was received by the provider, however the provider does not implement the RPC. " +
-						"Either upgrade the provider to a version that implements GetResourceIdentitySchemas or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+					Summary:  "UpgradeResourceIdentity Not Implemented",
+					Detail: "A UpgradeResourceIdentity call was received by the provider, however the provider does not implement the RPC. " +
+						"Either upgrade the provider to a version that implements UpgradeResourceIdentity or this is a bug in Terraform that should be reported to the Terraform maintainers.",
 				},
 			},
 		}

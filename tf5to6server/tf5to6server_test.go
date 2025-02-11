@@ -20,7 +20,7 @@ func TestUpgradeServer(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		v5Server      func() tfprotov5.ProviderServerWithResourceIdentity
+		v5Server      func() tfprotov5.ProviderServer
 		expectedError error
 	}{
 		"compatible": {
@@ -103,7 +103,7 @@ func TestUpgradeServer(t *testing.T) {
 						"test_resource": {},
 					},
 				},
-			}).ProviderServerWithResourceIdentity,
+			}).ProviderServer,
 		},
 	}
 
@@ -144,7 +144,7 @@ func TestV6ToV5ServerApplyResourceChange(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -175,7 +175,7 @@ func TestV6ToV5ServerCallFunction(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error upgrading server: %s", err)
@@ -206,7 +206,7 @@ func TestV6ToV5ServerCloseEphemeralResource(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -237,7 +237,7 @@ func TestV6ToV5ServerConfigureProvider(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -266,7 +266,7 @@ func TestV6ToV5ServerGetFunctions(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error upgrading server: %s", err)
@@ -297,7 +297,7 @@ func TestV6ToV5ServerGetMetadata(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -326,7 +326,7 @@ func TestV6ToV5ServerGetProviderSchema(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -351,13 +351,19 @@ func TestV6ToV5ServerGetResourceIdentitySchemas(t *testing.T) {
 		GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	_, err = v6server.GetResourceIdentitySchemas(ctx, &tfprotov6.GetResourceIdentitySchemasRequest{})
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	resourceIdentityServer, ok := v6server.(tfprotov6.ProviderServerWithResourceIdentity)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithResourceIdentity")
+	}
+
+	_, err = resourceIdentityServer.GetResourceIdentitySchemas(ctx, &tfprotov6.GetResourceIdentitySchemasRequest{})
 
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
@@ -380,7 +386,7 @@ func TestV6ToV5ServerImportResourceState(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -411,7 +417,7 @@ func TestV5ToV6ServerMoveResourceState(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -442,7 +448,7 @@ func TestV6ToV5ServerOpenEphemeralResource(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -473,7 +479,7 @@ func TestV6ToV5ServerPlanResourceChange(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -504,7 +510,7 @@ func TestV6ToV5ServerReadDataSource(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -535,7 +541,7 @@ func TestV6ToV5ServerReadResource(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -566,7 +572,7 @@ func TestV6ToV5ServerRenewEphemeralResource(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -597,7 +603,7 @@ func TestV6ToV5ServerStopProvider(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -626,7 +632,7 @@ func TestV6ToV5ServerUpgradeResourceState(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -657,13 +663,19 @@ func TestV6ToV5ServerUpgradeResourceIdentity(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	_, err = v6server.UpgradeResourceIdentity(ctx, &tfprotov6.UpgradeResourceIdentityRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	resourceIdentityServer, ok := v6server.(tfprotov6.ProviderServerWithResourceIdentity)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithResourceIdentity")
+	}
+
+	_, err = resourceIdentityServer.UpgradeResourceIdentity(ctx, &tfprotov6.UpgradeResourceIdentityRequest{
 		TypeName: "test_resource",
 	})
 
@@ -688,7 +700,7 @@ func TestV6ToV5ServerValidateDataResourceConfig(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -719,7 +731,7 @@ func TestV6ToV5ServerValidateEphemeralResourceConfig(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -750,7 +762,7 @@ func TestV6ToV5ServerValidateProviderConfig(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)
@@ -779,7 +791,7 @@ func TestV6ToV5ServerValidateResourceConfig(t *testing.T) {
 		},
 	}
 
-	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServerWithResourceIdentity)
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
 		t.Fatalf("unexpected error downgrading server: %s", err)

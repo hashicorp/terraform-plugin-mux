@@ -21,16 +21,16 @@ import (
 //
 // Terraform CLI 1.1.5 or later is required for terraform-provider-sdk based
 // protocol version 5 servers to properly upgrade to protocol version 6.
-func UpgradeServer(_ context.Context, v5server func() tfprotov5.ProviderServerWithResourceIdentity) (tfprotov6.ProviderServerWithResourceIdentity, error) {
+func UpgradeServer(_ context.Context, v5server func() tfprotov5.ProviderServer) (tfprotov6.ProviderServer, error) {
 	return v5tov6Server{
 		v5Server: v5server(),
 	}, nil
 }
 
-var _ tfprotov6.ProviderServerWithResourceIdentity = v5tov6Server{}
+var _ tfprotov6.ProviderServer = v5tov6Server{}
 
 type v5tov6Server struct {
-	v5Server tfprotov5.ProviderServerWithResourceIdentity
+	v5Server tfprotov5.ProviderServer
 }
 
 func (s v5tov6Server) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {
@@ -111,8 +111,26 @@ func (s v5tov6Server) GetProviderSchema(ctx context.Context, req *tfprotov6.GetP
 }
 
 func (s v5tov6Server) GetResourceIdentitySchemas(ctx context.Context, req *tfprotov6.GetResourceIdentitySchemasRequest) (*tfprotov6.GetResourceIdentitySchemasResponse, error) {
+	// TODO: Remove and call s.v6Server.GetResourceIdentitySchemas below directly once interface becomes required
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	resourceIdentityServer, ok := s.v5Server.(tfprotov5.ProviderServerWithResourceIdentity)
+	if !ok {
+		v6Resp := &tfprotov6.GetResourceIdentitySchemasResponse{
+			Diagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "GetResourceIdentitySchemas Not Implemented",
+					Detail: "A GetResourceIdentitySchemas call was received by the provider, however the provider does not implement the RPC. " +
+						"Either upgrade the provider to a version that implements GetResourceIdentitySchemas or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return v6Resp, nil
+	}
+
 	v5Req := tfprotov6tov5.GetResourceIdentitySchemasRequest(req)
-	v5Resp, err := s.v5Server.GetResourceIdentitySchemas(ctx, v5Req)
+	v5Resp, err := resourceIdentityServer.GetResourceIdentitySchemas(ctx, v5Req)
 
 	if err != nil {
 		return nil, err
@@ -226,8 +244,25 @@ func (s v5tov6Server) UpgradeResourceState(ctx context.Context, req *tfprotov6.U
 }
 
 func (s v5tov6Server) UpgradeResourceIdentity(ctx context.Context, req *tfprotov6.UpgradeResourceIdentityRequest) (*tfprotov6.UpgradeResourceIdentityResponse, error) {
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	resourceIdentityServer, ok := s.v5Server.(tfprotov5.ProviderServerWithResourceIdentity)
+	if !ok {
+		v6Resp := &tfprotov6.UpgradeResourceIdentityResponse{
+			Diagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "UpgradeResourceIdentity Not Implemented",
+					Detail: "A UpgradeResourceIdentity call was received by the provider, however the provider does not implement the RPC. " +
+						"Either upgrade the provider to a version that implements UpgradeResourceIdentity or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return v6Resp, nil
+	}
+
 	v5Req := tfprotov6tov5.UpgradeResourceIdentityRequest(req)
-	v5Resp, err := s.v5Server.UpgradeResourceIdentity(ctx, v5Req)
+	v5Resp, err := resourceIdentityServer.UpgradeResourceIdentity(ctx, v5Req)
 
 	if err != nil {
 		return nil, err

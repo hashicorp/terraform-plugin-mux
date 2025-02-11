@@ -33,6 +33,7 @@ func (s *muxServer) GetResourceIdentitySchemas(ctx context.Context, req *tfproto
 		logging.MuxTrace(ctx, "calling downstream server")
 
 		// TODO: Remove and call server.GetResourceIdentitySchemas below directly once interface becomes required.
+		//nolint:staticcheck // Intentionally verifying interface implementation
 		resourceIdentityServer, err := server.(tfprotov5.ProviderServerWithResourceIdentity).GetResourceIdentitySchemas(ctx, req)
 
 		if err != nil {
