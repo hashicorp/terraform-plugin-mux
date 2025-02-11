@@ -26,7 +26,6 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
 					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
-						Diagnostics: []*tfprotov5.Diagnostic{},
 						IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
 							"test_resource_identity_foo": {
 								Version: 1,
@@ -63,7 +62,6 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
 					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
-						Diagnostics: []*tfprotov5.Diagnostic{},
 						IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
 							"test_resource_identity_foobar": {
 								Version: 1,
@@ -131,6 +129,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 					},
 				},
 			},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{},
 		},
 		"duplicate-identity-schema-type": {
 			servers: []func() tfprotov5.ProviderServer{
@@ -156,10 +155,10 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 				{
 					Severity: tfprotov5.DiagnosticSeverityError,
 					Summary:  "Invalid Provider Server Combination",
-					Detail: "The combined provider has multiple implementations of the same data source type across underlying providers. " +
-						"Data source types must be implemented by only one underlying provider. " +
+					Detail: "The combined provider has multiple implementations of the same resource identity across underlying providers. " +
+						"Resource identity types must be implemented by only one underlying provider. " +
 						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-						"Duplicate data source type: test_foo",
+						"Duplicate identity type for resource: test_foo",
 				},
 			},
 		},
