@@ -307,6 +307,9 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 
 				s.resources[serverResource.TypeName] = server
 				s.resourceCapabilities[serverResource.TypeName] = metadataResp.ServerCapabilities
+
+				// Resource identity is expected to be implemented in the same server as the resource
+				s.resourceIdentity[serverResource.TypeName] = server
 			}
 
 			continue
@@ -369,6 +372,8 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 
 			s.resources[typeName] = server
 			s.resourceCapabilities[typeName] = providerSchemaResp.ServerCapabilities
+			// Resource identity is expected to be implemented in the same server as the resource
+			s.resourceIdentity[typeName] = server
 		}
 	}
 

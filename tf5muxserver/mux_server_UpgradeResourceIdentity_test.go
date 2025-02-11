@@ -23,10 +23,20 @@ func TestMuxServerUpgradeResourceIdentity(t *testing.T) {
 				"test_resource_server1": {},
 			},
 		},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource_server1": {},
+			},
+		},
 	}
 	testServer2 := &tf5testserver.TestServer{
 		GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 			IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
+				"test_resource_server2": {},
+			},
+		},
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
 				"test_resource_server2": {},
 			},
 		},
