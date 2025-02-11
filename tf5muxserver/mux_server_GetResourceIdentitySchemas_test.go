@@ -25,7 +25,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 		"combined": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
 							"test_resource_identity_foo": {
 								Version: 1,
@@ -61,7 +61,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
 							"test_resource_identity_foobar": {
 								Version: 1,
@@ -134,14 +134,14 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 		"duplicate-identity-schema-type": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
 							"test_foo": {},
 						},
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
 							"test_foo": {},
 						},
@@ -165,7 +165,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 		"error-once": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
 								Severity: tfprotov5.DiagnosticSeverityError,
@@ -190,7 +190,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 		"error-multiple": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
 								Severity: tfprotov5.DiagnosticSeverityError,
@@ -202,7 +202,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 				}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
 								Severity: tfprotov5.DiagnosticSeverityError,
@@ -230,7 +230,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 		"warning-once": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
 								Severity: tfprotov5.DiagnosticSeverityWarning,
@@ -255,7 +255,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 		"warning-multiple": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
 								Severity: tfprotov5.DiagnosticSeverityWarning,
@@ -267,7 +267,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 				}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
 								Severity: tfprotov5.DiagnosticSeverityWarning,
@@ -295,7 +295,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 		"warning-then-error": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
 								Severity: tfprotov5.DiagnosticSeverityWarning,
@@ -307,7 +307,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 				}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{
-					GetResourceIdentityResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
+					GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{
 						Diagnostics: []*tfprotov5.Diagnostic{
 							{
 								Severity: tfprotov5.DiagnosticSeverityError,
