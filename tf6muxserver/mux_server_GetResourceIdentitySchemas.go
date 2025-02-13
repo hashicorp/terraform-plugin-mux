@@ -6,6 +6,7 @@ package tf6muxserver
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
@@ -34,15 +35,28 @@ func (s *muxServer) GetResourceIdentitySchemas(ctx context.Context, req *tfproto
 
 		// TODO: Remove and call server.GetResourceIdentitySchemas below directly once interface becomes required.
 		//nolint:staticcheck // Intentionally verifying interface implementation
-		resourceIdentityServer, err := server.(tfprotov6.ProviderServerWithResourceIdentity).GetResourceIdentitySchemas(ctx, req)
+		resourceIdentityServer, ok := server.(tfprotov6.ProviderServerWithResourceIdentity)
+
+		if !ok {
+			resp.Diagnostics = append(resp.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "GetResourceIdentitySchemas Not Implemented",
+				Detail: "A GetResourceIdentitySchemas call was received by the provider, however the provider does not implement GetResourceIdentitySchemas. " +
+					"Either upgrade the provider to a version that implements GetResourceIdentitySchemas or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+			})
+
+			continue
+		}
+
+		resourceIdentitySchemas, err := resourceIdentityServer.GetResourceIdentitySchemas(ctx, req)
 
 		if err != nil {
 			return resp, fmt.Errorf("error calling GetResourceIdentitySchemas for %T: %w", server, err)
 		}
 
-		resp.Diagnostics = append(resp.Diagnostics, resourceIdentityServer.Diagnostics...)
+		resp.Diagnostics = append(resp.Diagnostics, resourceIdentitySchemas.Diagnostics...)
 
-		for resourceIdentityType, schema := range resourceIdentityServer.IdentitySchemas {
+		for resourceIdentityType, schema := range resourceIdentitySchemas.IdentitySchemas {
 			if _, ok := resp.IdentitySchemas[resourceIdentityType]; ok {
 				resp.Diagnostics = append(resp.Diagnostics, resourceIdentityDuplicateError(resourceIdentityType))
 
