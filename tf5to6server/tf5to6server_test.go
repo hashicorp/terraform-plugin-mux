@@ -343,6 +343,37 @@ func TestV6ToV5ServerGetProviderSchema(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerGetResourceIdentitySchemas(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetResourceIdentitySchemasResponse: &tfprotov5.GetResourceIdentitySchemasResponse{},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	resourceIdentityServer, ok := v6server.(tfprotov6.ProviderServerWithResourceIdentity)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithResourceIdentity")
+	}
+
+	_, err = resourceIdentityServer.GetResourceIdentitySchemas(ctx, &tfprotov6.GetResourceIdentitySchemasRequest{})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.GetResourceIdentitySchemasCalled {
+		t.Errorf("expected GetResourceIdentitySchemas to be called")
+	}
+}
+
 func TestV6ToV5ServerImportResourceState(t *testing.T) {
 	t.Parallel()
 
@@ -616,6 +647,43 @@ func TestV6ToV5ServerUpgradeResourceState(t *testing.T) {
 	}
 
 	if !v5server.UpgradeResourceStateCalled["test_resource"] {
+		t.Errorf("expected test_resource UpgradeResourceState to be called")
+	}
+}
+
+func TestV6ToV5ServerUpgradeResourceIdentity(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	resourceIdentityServer, ok := v6server.(tfprotov6.ProviderServerWithResourceIdentity)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithResourceIdentity")
+	}
+
+	_, err = resourceIdentityServer.UpgradeResourceIdentity(ctx, &tfprotov6.UpgradeResourceIdentityRequest{
+		TypeName: "test_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.UpgradeResourceIdentityCalled["test_resource"] {
 		t.Errorf("expected test_resource UpgradeResourceState to be called")
 	}
 }
