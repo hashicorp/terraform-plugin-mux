@@ -1004,7 +1004,7 @@ func TestGetProviderSchemaRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := tfprotov6tov5.GetProviderSchemaRequest(testCase.in) // TODO: we need this for GetResourceIdentitySchemas() (or similarly named)
+			got := tfprotov6tov5.GetProviderSchemaRequest(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -1964,7 +1964,7 @@ func TestRawState(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := tfprotov6tov5.RawState(testCase.in) // TODO: we need this for raw identity
+			got := tfprotov6tov5.RawState(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -2896,7 +2896,7 @@ func TestUpgradeResourceStateRequest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := tfprotov6tov5.UpgradeResourceStateRequest(testCase.in) // TODO: we need this for UpgradeResourceIdentityState() or similarly named
+			got := tfprotov6tov5.UpgradeResourceStateRequest(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
