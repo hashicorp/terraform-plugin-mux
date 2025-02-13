@@ -6,6 +6,7 @@ package tf5muxserver
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
@@ -49,7 +50,6 @@ func (s *muxServer) GetResourceIdentitySchemas(ctx context.Context, req *tfproto
 				continue
 			}
 
-			s.resourceIdentity[resourceIdentityType] = server
 			resp.IdentitySchemas[resourceIdentityType] = schema
 		}
 	}

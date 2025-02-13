@@ -18,7 +18,7 @@ func (s *muxServer) UpgradeResourceIdentity(ctx context.Context, req *tfprotov5.
 	ctx = logging.InitContext(ctx)
 	ctx = logging.RpcContext(ctx, rpc)
 
-	server, diags, err := s.getIdentityResourceServer(ctx, req.TypeName)
+	server, diags, err := s.getResourceServer(ctx, req.TypeName)
 
 	if err != nil {
 		return nil, err

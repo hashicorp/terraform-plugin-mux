@@ -35,9 +35,6 @@ type muxServer struct {
 	// Resource capabilities are cached during GetMetadata/GetProviderSchema
 	resourceCapabilities map[string]*tfprotov5.ServerCapabilities
 
-	// Routing for resource identity
-	resourceIdentity map[string]tfprotov5.ProviderServer
-
 	// serverDiscoveryComplete is whether the mux server's underlying server
 	// discovery of resource types has been completed against all servers.
 	// If false during a resource type specific RPC, the mux server needs to
@@ -167,41 +164,6 @@ func (s *muxServer) getFunctionServer(ctx context.Context, name string) (tfproto
 	return server, s.serverDiscoveryDiagnostics, nil
 }
 
-func (s *muxServer) getIdentityResourceServer(ctx context.Context, typeName string) (tfprotov5.ProviderServer, []*tfprotov5.Diagnostic, error) {
-	s.serverDiscoveryMutex.RLock()
-	server, ok := s.resourceIdentity[typeName]
-	discoveryComplete := s.serverDiscoveryComplete
-	s.serverDiscoveryMutex.RUnlock()
-
-	if discoveryComplete {
-		if ok {
-			return server, s.serverDiscoveryDiagnostics, nil
-		}
-
-		return nil, []*tfprotov5.Diagnostic{
-			resourceIdentityMissingError(typeName),
-		}, nil
-	}
-
-	err := s.serverDiscovery(ctx)
-
-	if err != nil || diagnosticsHasError(s.serverDiscoveryDiagnostics) {
-		return nil, s.serverDiscoveryDiagnostics, err
-	}
-
-	s.serverDiscoveryMutex.RLock()
-	server, ok = s.resourceIdentity[typeName]
-	s.serverDiscoveryMutex.RUnlock()
-
-	if !ok {
-		return nil, []*tfprotov5.Diagnostic{
-			resourceIdentityMissingError(typeName),
-		}, nil
-	}
-
-	return server, s.serverDiscoveryDiagnostics, nil
-}
-
 func (s *muxServer) getResourceServer(ctx context.Context, typeName string) (tfprotov5.ProviderServer, []*tfprotov5.Diagnostic, error) {
 	s.serverDiscoveryMutex.RLock()
 	server, ok := s.resources[typeName]
@@ -307,9 +269,6 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 
 				s.resources[serverResource.TypeName] = server
 				s.resourceCapabilities[serverResource.TypeName] = metadataResp.ServerCapabilities
-
-				// Resource identity is expected to be implemented in the same server as the resource
-				s.resourceIdentity[serverResource.TypeName] = server
 			}
 
 			continue
@@ -372,8 +331,6 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 
 			s.resources[typeName] = server
 			s.resourceCapabilities[typeName] = providerSchemaResp.ServerCapabilities
-			// Resource identity is expected to be implemented in the same server as the resource
-			s.resourceIdentity[typeName] = server
 		}
 	}
 
@@ -398,7 +355,6 @@ func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer)
 		dataSources:          make(map[string]tfprotov5.ProviderServer),
 		ephemeralResources:   make(map[string]tfprotov5.ProviderServer),
 		functions:            make(map[string]tfprotov5.ProviderServer),
-		resourceIdentity:     make(map[string]tfprotov5.ProviderServer),
 		resources:            make(map[string]tfprotov5.ProviderServer),
 		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
 	}
