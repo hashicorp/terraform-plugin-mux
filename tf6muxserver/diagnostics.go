@@ -115,13 +115,3 @@ func resourceIdentityDuplicateError(typeName string) *tfprotov6.Diagnostic {
 			"Duplicate identity type for resource: " + typeName,
 	}
 }
-
-func resourceIdentityMissingError(typeName string) *tfprotov6.Diagnostic {
-	return &tfprotov6.Diagnostic{
-		Severity: tfprotov6.DiagnosticSeverityError,
-		Summary:  "Resource Identity Not Implemented",
-		Detail: "The combined provider does not implement the requested resource identity type. " +
-			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
-			"Missing identity type for resource: " + typeName,
-	}
-}
