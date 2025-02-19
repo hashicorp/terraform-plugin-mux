@@ -67,6 +67,5 @@ func (s *muxServer) GetResourceIdentitySchemas(ctx context.Context, req *tfproto
 		}
 	}
 
-
 	return resp, nil
 }
