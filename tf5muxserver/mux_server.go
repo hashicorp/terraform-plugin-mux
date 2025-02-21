@@ -32,6 +32,9 @@ type muxServer struct {
 	// Routing for resource types
 	resources map[string]tfprotov5.ProviderServer
 
+	// Routing for ImportResourceState
+	importResources map[string]tfprotov5.ProviderServer
+
 	// RPC-level Routing for resource types
 	resourceRPCRoutes map[string]*ResourceRouteConfig
 
@@ -58,7 +61,7 @@ type muxServer struct {
 }
 
 type ResourceRouteConfig struct {
-	ImportResourceState tfprotov5.ProviderServer
+	ImportResourceState int
 }
 
 // ProviderServer is a function compatible with tf6server.Serve.
@@ -206,6 +209,37 @@ func (s *muxServer) getResourceServer(ctx context.Context, typeName string) (tfp
 	return server, s.serverDiscoveryDiagnostics, nil
 }
 
+func (s *muxServer) getImportResourceServer(ctx context.Context, typeName string) (tfprotov5.ProviderServer, []*tfprotov5.Diagnostic, error) {
+	s.serverDiscoveryMutex.RLock()
+	server, ok := s.importResources[typeName]
+	discoveryComplete := s.serverDiscoveryComplete
+	s.serverDiscoveryMutex.RUnlock()
+
+	if discoveryComplete {
+		if ok {
+			return server, s.serverDiscoveryDiagnostics, nil
+		}
+
+		return nil, nil, nil
+	}
+
+	err := s.serverDiscovery(ctx)
+
+	if err != nil || diagnosticsHasError(s.serverDiscoveryDiagnostics) {
+		return nil, s.serverDiscoveryDiagnostics, err
+	}
+
+	s.serverDiscoveryMutex.RLock()
+	server, ok = s.importResources[typeName]
+	s.serverDiscoveryMutex.RUnlock()
+
+	if !ok {
+		return nil, nil, nil
+	}
+
+	return server, s.serverDiscoveryDiagnostics, nil
+}
+
 // serverDiscovery will populate the mux server "routing" for functions and
 // resource types by calling all underlying server GetMetadata RPC and falling
 // back to GetProviderSchema RPC. It is intended to only be called through
@@ -224,7 +258,7 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 
 	logging.MuxTrace(ctx, "starting underlying server discovery via GetMetadata or GetProviderSchema")
 
-	for _, server := range s.servers {
+	for i, server := range s.servers {
 		ctx := logging.Tfprotov5ProviderServerContext(ctx, server)
 		ctx = logging.RpcContext(ctx, "GetMetadata")
 
@@ -330,6 +364,12 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 		}
 
 		for typeName := range providerSchemaResp.ResourceSchemas {
+			if config, ok := s.resourceRPCRoutes[typeName]; ok {
+				if config.ImportResourceState == i {
+					s.importResources[typeName] = server
+				}
+			}
+
 			if _, ok := s.resources[typeName]; ok {
 				//s.serverDiscoveryDiagnostics = append(s.serverDiscoveryDiagnostics, resourceDuplicateError(typeName))
 				//
@@ -388,6 +428,7 @@ func NewMuxServerWithResourceRouting(_ context.Context, resourceRPCRoutes map[st
 		ephemeralResources:   make(map[string]tfprotov5.ProviderServer),
 		functions:            make(map[string]tfprotov5.ProviderServer),
 		resources:            make(map[string]tfprotov5.ProviderServer),
+		importResources:      make(map[string]tfprotov5.ProviderServer),
 		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
 		resourceRPCRoutes:    resourceRPCRoutes,
 	}

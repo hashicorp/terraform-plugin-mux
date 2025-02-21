@@ -31,9 +31,9 @@ func (s *muxServer) ImportResourceState(ctx context.Context, req *tfprotov5.Impo
 		}, nil
 	}
 
-	config, ok := s.resourceRPCRoutes[req.TypeName]
-	if ok {
-		server = config.ImportResourceState
+	importServ, diags, err := s.getImportResourceServer(ctx, req.TypeName)
+	if importServ != nil {
+		server = importServ
 	}
 
 	ctx = logging.Tfprotov5ProviderServerContext(ctx, server)

@@ -95,7 +95,7 @@ func TestMuxServerImportResourceState_ResourceRPC(t *testing.T) {
 
 	resourceRPCRoutes := make(map[string]*tf5muxserver.ResourceRouteConfig)
 	resourceRPCRoutes["test_resource"] = &tf5muxserver.ResourceRouteConfig{
-		ImportResourceState: testServer2.ProviderServer(),
+		ImportResourceState: 1,
 	}
 	muxServer, err := tf5muxserver.NewMuxServerWithResourceRouting(ctx, resourceRPCRoutes, servers...)
 
