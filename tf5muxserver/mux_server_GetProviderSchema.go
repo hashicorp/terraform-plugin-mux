@@ -76,7 +76,7 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 
 		for resourceType, schema := range serverResp.ResourceSchemas {
 			if _, ok := resp.ResourceSchemas[resourceType]; ok {
-				resp.Diagnostics = append(resp.Diagnostics, resourceDuplicateError(resourceType))
+				//resp.Diagnostics = append(resp.Diagnostics, resourceDuplicateError(resourceType))
 
 				continue
 			}
