@@ -32,7 +32,7 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 		ServerCapabilities:       serverCapabilities,
 	}
 
-	for _, server := range s.servers {
+	for i, server := range s.servers {
 		ctx := logging.Tfprotov5ProviderServerContext(ctx, server)
 		logging.MuxTrace(ctx, "calling downstream server")
 
@@ -75,6 +75,12 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 		}
 
 		for resourceType, schema := range serverResp.ResourceSchemas {
+			if config, ok := s.resourceRPCRoutes[resourceType]; ok {
+				if config.ImportResourceState == i {
+					s.importResources[resourceType] = server
+				}
+			}
+
 			if _, ok := resp.ResourceSchemas[resourceType]; ok {
 				//resp.Diagnostics = append(resp.Diagnostics, resourceDuplicateError(resourceType))
 
