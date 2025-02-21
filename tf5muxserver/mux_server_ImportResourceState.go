@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
 )
 
@@ -28,6 +29,11 @@ func (s *muxServer) ImportResourceState(ctx context.Context, req *tfprotov5.Impo
 		return &tfprotov5.ImportResourceStateResponse{
 			Diagnostics: diags,
 		}, nil
+	}
+
+	config, ok := s.resourceRPCRoutes[req.TypeName]
+	if ok {
+		server = config.ImportResourceState
 	}
 
 	ctx = logging.Tfprotov5ProviderServerContext(ctx, server)

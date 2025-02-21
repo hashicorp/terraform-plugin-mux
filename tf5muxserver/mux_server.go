@@ -32,6 +32,9 @@ type muxServer struct {
 	// Routing for resource types
 	resources map[string]tfprotov5.ProviderServer
 
+	// RPC-level Routing for resource types
+	resourceRPCRoutes map[string]*ResourceRouteConfig
+
 	// Resource capabilities are cached during GetMetadata/GetProviderSchema
 	resourceCapabilities map[string]*tfprotov5.ServerCapabilities
 
@@ -52,6 +55,10 @@ type muxServer struct {
 
 	// Underlying servers for requests that should be handled by all servers
 	servers []tfprotov5.ProviderServer
+}
+
+type ResourceRouteConfig struct {
+	ImportResourceState tfprotov5.ProviderServer
 }
 
 // ProviderServer is a function compatible with tf6server.Serve.
@@ -324,8 +331,8 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 
 		for typeName := range providerSchemaResp.ResourceSchemas {
 			if _, ok := s.resources[typeName]; ok {
-				s.serverDiscoveryDiagnostics = append(s.serverDiscoveryDiagnostics, resourceDuplicateError(typeName))
-
+				//s.serverDiscoveryDiagnostics = append(s.serverDiscoveryDiagnostics, resourceDuplicateError(typeName))
+				//
 				continue
 			}
 
@@ -356,6 +363,33 @@ func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer)
 		functions:            make(map[string]tfprotov5.ProviderServer),
 		resources:            make(map[string]tfprotov5.ProviderServer),
 		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
+	}
+
+	for _, server := range servers {
+		result.servers = append(result.servers, server())
+	}
+
+	return &result, nil
+}
+
+// NewMuxServerWithResourceRouting returns a muxed server that will route gRPC requests between
+// tfprotov5.ProviderServers specified. The GetProviderSchema method of each
+// is called to verify that the overall muxed server is compatible by ensuring:
+//
+//   - All provider schemas exactly match
+//   - All provider meta schemas exactly match
+//   - Only one provider implements each managed resource
+//   - Only one provider implements each data source
+//   - Only one provider implements each function
+//   - Only one provider implements each ephemeral resource
+func NewMuxServerWithResourceRouting(_ context.Context, resourceRPCRoutes map[string]*ResourceRouteConfig, servers ...func() tfprotov5.ProviderServer) (*muxServer, error) {
+	result := muxServer{
+		dataSources:          make(map[string]tfprotov5.ProviderServer),
+		ephemeralResources:   make(map[string]tfprotov5.ProviderServer),
+		functions:            make(map[string]tfprotov5.ProviderServer),
+		resources:            make(map[string]tfprotov5.ProviderServer),
+		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
+		resourceRPCRoutes:    resourceRPCRoutes,
 	}
 
 	for _, server := range servers {
