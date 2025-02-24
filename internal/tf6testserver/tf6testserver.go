@@ -5,6 +5,7 @@ package tf6testserver
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -271,9 +272,4 @@ func (s *TestServer) ValidateResourceConfig(_ context.Context, req *tfprotov6.Va
 func (s *TestServer) ValidateProviderConfig(_ context.Context, req *tfprotov6.ValidateProviderConfigRequest) (*tfprotov6.ValidateProviderConfigResponse, error) {
 	s.ValidateProviderConfigCalled = true
 	return s.ValidateProviderConfigResponse, nil
-}
-
-//nolint:staticcheck // Intentionally verifying interface implementation
-func (s *TestServer) ProviderServerWithResourceIdentity() tfprotov6.ProviderServerWithResourceIdentity {
-	return s
 }
