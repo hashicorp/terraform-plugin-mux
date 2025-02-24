@@ -32,6 +32,9 @@ type TestServer struct {
 	GetProviderSchemaCalled   bool
 	GetProviderSchemaResponse *tfprotov5.GetProviderSchemaResponse
 
+	GetResourceIdentitySchemasCalled   bool
+	GetResourceIdentitySchemasResponse *tfprotov5.GetResourceIdentitySchemasResponse
+
 	ImportResourceStateCalled map[string]bool
 
 	MoveResourceStateCalled map[string]bool
@@ -51,6 +54,8 @@ type TestServer struct {
 
 	StopProviderCalled   bool
 	StopProviderResponse *tfprotov5.StopProviderResponse
+
+	UpgradeResourceIdentityCalled map[string]bool
 
 	UpgradeResourceStateCalled map[string]bool
 
@@ -136,6 +141,16 @@ func (s *TestServer) GetProviderSchema(_ context.Context, _ *tfprotov5.GetProvid
 	return &tfprotov5.GetProviderSchemaResponse{}, nil
 }
 
+func (s *TestServer) GetResourceIdentitySchemas(_ context.Context, _ *tfprotov5.GetResourceIdentitySchemasRequest) (*tfprotov5.GetResourceIdentitySchemasResponse, error) {
+	s.GetResourceIdentitySchemasCalled = true
+
+	if s.GetResourceIdentitySchemasResponse != nil {
+		return s.GetResourceIdentitySchemasResponse, nil
+	}
+
+	return &tfprotov5.GetResourceIdentitySchemasResponse{}, nil
+}
+
 func (s *TestServer) ImportResourceState(_ context.Context, req *tfprotov5.ImportResourceStateRequest) (*tfprotov5.ImportResourceStateResponse, error) {
 	if s.ImportResourceStateCalled == nil {
 		s.ImportResourceStateCalled = make(map[string]bool)
@@ -207,6 +222,15 @@ func (s *TestServer) StopProvider(_ context.Context, _ *tfprotov5.StopProviderRe
 	}
 
 	return &tfprotov5.StopProviderResponse{}, nil
+}
+
+func (s *TestServer) UpgradeResourceIdentity(_ context.Context, req *tfprotov5.UpgradeResourceIdentityRequest) (*tfprotov5.UpgradeResourceIdentityResponse, error) {
+	if s.UpgradeResourceIdentityCalled == nil {
+		s.UpgradeResourceIdentityCalled = make(map[string]bool)
+	}
+
+	s.UpgradeResourceIdentityCalled[req.TypeName] = true
+	return nil, nil
 }
 
 func (s *TestServer) UpgradeResourceState(_ context.Context, req *tfprotov5.UpgradeResourceStateRequest) (*tfprotov5.UpgradeResourceStateResponse, error) {

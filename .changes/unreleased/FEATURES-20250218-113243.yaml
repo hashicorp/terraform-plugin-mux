@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'tf5muxserver+tf6muxserver+tf6to5server+tf5to6server: Upgraded protocols and added types to support the new resource identity feature'
+time: 2025-02-18T11:32:43.959465-05:00
+custom:
+    Issue: "278"

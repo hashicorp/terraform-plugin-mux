@@ -46,6 +46,9 @@ var (
 	testTfprotov5DynamicValue tfprotov5.DynamicValue
 	testTfprotov6DynamicValue tfprotov6.DynamicValue
 
+	testTfprotov5ResourceIdentityData tfprotov5.ResourceIdentityData
+	testTfprotov6ResourceIdentityData tfprotov6.ResourceIdentityData
+
 	testTfprotov5EphemeralResourceMetadata tfprotov5.EphemeralResourceMetadata = tfprotov5.EphemeralResourceMetadata{
 		TypeName: "test_ephemeral_resource",
 	}
@@ -119,12 +122,53 @@ var (
 		Version: 1,
 	}
 
+	testTfprotov5ResourceIdentitySchema *tfprotov5.ResourceIdentitySchema = &tfprotov5.ResourceIdentitySchema{
+		Version: 1,
+		IdentityAttributes: []*tfprotov5.ResourceIdentitySchemaAttribute{
+			{
+				Name:              "req",
+				Type:              tftypes.String,
+				RequiredForImport: true,
+				Description:       "this one's required",
+			},
+			{
+				Name:              "opt",
+				Type:              tftypes.String,
+				OptionalForImport: true,
+				Description:       "this one's optional",
+			},
+		},
+	}
+	testTfprotov6ResourceIdentitySchema *tfprotov6.ResourceIdentitySchema = &tfprotov6.ResourceIdentitySchema{
+		Version: 1,
+		IdentityAttributes: []*tfprotov6.ResourceIdentitySchemaAttribute{
+			{
+				Name:              "req",
+				Type:              tftypes.String,
+				RequiredForImport: true,
+				Description:       "this one's required",
+			},
+			{
+				Name:              "opt",
+				Type:              tftypes.String,
+				OptionalForImport: true,
+				Description:       "this one's optional",
+			},
+		},
+	}
+
 	testTime time.Time = time.Date(2000, 1, 2, 3, 4, 5, 6, time.UTC)
 )
 
 func init() {
 	testTfprotov5DynamicValue, _ = tfprotov5.NewDynamicValue(tftypes.String, tftypes.NewValue(tftypes.String, "test"))
 	testTfprotov6DynamicValue, _ = tfprotov6.NewDynamicValue(tftypes.String, tftypes.NewValue(tftypes.String, "test"))
+	testTfprotov5ResourceIdentityData = tfprotov5.ResourceIdentityData{
+		IdentityData: &testTfprotov5DynamicValue,
+	}
+	testTfprotov6ResourceIdentityData = tfprotov6.ResourceIdentityData{
+		IdentityData: &testTfprotov6DynamicValue,
+	}
 }
 
 func TestApplyResourceChangeRequest(t *testing.T) {
@@ -140,26 +184,27 @@ func TestApplyResourceChangeRequest(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov6.ApplyResourceChangeRequest{
-				Config:         &testTfprotov6DynamicValue,
-				PlannedPrivate: testBytes,
-				PlannedState:   &testTfprotov6DynamicValue,
-				PriorState:     &testTfprotov6DynamicValue,
-				ProviderMeta:   &testTfprotov6DynamicValue,
-				TypeName:       "test",
+				Config:          &testTfprotov6DynamicValue,
+				PlannedPrivate:  testBytes,
+				PlannedState:    &testTfprotov6DynamicValue,
+				PriorState:      &testTfprotov6DynamicValue,
+				ProviderMeta:    &testTfprotov6DynamicValue,
+				TypeName:        "test",
+				PlannedIdentity: &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.ApplyResourceChangeRequest{
-				Config:         &testTfprotov5DynamicValue,
-				PlannedPrivate: testBytes,
-				PlannedState:   &testTfprotov5DynamicValue,
-				PriorState:     &testTfprotov5DynamicValue,
-				ProviderMeta:   &testTfprotov5DynamicValue,
-				TypeName:       "test",
+				Config:          &testTfprotov5DynamicValue,
+				PlannedPrivate:  testBytes,
+				PlannedState:    &testTfprotov5DynamicValue,
+				PriorState:      &testTfprotov5DynamicValue,
+				ProviderMeta:    &testTfprotov5DynamicValue,
+				TypeName:        "test",
+				PlannedIdentity: &testTfprotov5ResourceIdentityData,
 			},
 		},
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -190,18 +235,19 @@ func TestApplyResourceChangeResponse(t *testing.T) {
 				NewState:                    &testTfprotov6DynamicValue,
 				Private:                     testBytes,
 				UnsafeToUseLegacyTypeSystem: true,
+				NewIdentity:                 &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.ApplyResourceChangeResponse{
 				Diagnostics:                 testTfprotov5Diagnostics,
 				NewState:                    &testTfprotov5DynamicValue,
 				Private:                     testBytes,
 				UnsafeToUseLegacyTypeSystem: true,
+				NewIdentity:                 &testTfprotov5ResourceIdentityData,
 			},
 		},
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -243,7 +289,6 @@ func TestCallFunctionRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -281,7 +326,6 @@ func TestCallFunctionResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -319,7 +363,6 @@ func TestCloseEphemeralResourceRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -355,7 +398,6 @@ func TestCloseEphemeralResourceResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -409,7 +451,6 @@ func TestConfigureProviderRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -445,7 +486,6 @@ func TestConfigureProviderResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -507,7 +547,6 @@ func TestDiagnostics(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -545,12 +584,46 @@ func TestDynamicValue(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov6tov5.DynamicValue(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestResourceIdentityData(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.ResourceIdentityData
+		expected *tfprotov5.ResourceIdentityData
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.ResourceIdentityData{
+				IdentityData: &testTfprotov6DynamicValue,
+			},
+			expected: &tfprotov5.ResourceIdentityData{
+				IdentityData: &testTfprotov5DynamicValue,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.ResourceIdentityData(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -609,7 +682,6 @@ func TestFunction(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -641,7 +713,6 @@ func TestFunctionMetadata(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -681,7 +752,6 @@ func TestFunctionParameter(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -717,7 +787,6 @@ func TestFunctionReturn(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -749,7 +818,6 @@ func TestGetFunctionsRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -791,7 +859,6 @@ func TestGetFunctionsResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -823,7 +890,6 @@ func TestGetMetadataRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -883,7 +949,6 @@ func TestGetMetadataResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -915,7 +980,6 @@ func TestGetProviderSchemaRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1106,7 +1170,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1132,6 +1195,78 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 	}
 }
 
+func TestGetResourceIdentitySchemasRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.GetResourceIdentitySchemasRequest
+		expected *tfprotov5.GetResourceIdentitySchemasRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in:       &tfprotov6.GetResourceIdentitySchemasRequest{},
+			expected: &tfprotov5.GetResourceIdentitySchemasRequest{},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.GetResourceIdentitySchemasRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestGetResourceIdentitySchemasResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.GetResourceIdentitySchemasResponse
+		expected *tfprotov5.GetResourceIdentitySchemasResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.GetResourceIdentitySchemasResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				IdentitySchemas: map[string]*tfprotov6.ResourceIdentitySchema{
+					"test_resource": testTfprotov6ResourceIdentitySchema,
+				},
+			},
+			expected: &tfprotov5.GetResourceIdentitySchemasResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{
+					"test_resource": testTfprotov5ResourceIdentitySchema,
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.GetResourceIdentitySchemasResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestImportResourceStateRequest(t *testing.T) {
 	t.Parallel()
 
@@ -1147,10 +1282,12 @@ func TestImportResourceStateRequest(t *testing.T) {
 			in: &tfprotov6.ImportResourceStateRequest{
 				ID:       "test-id",
 				TypeName: "test_resource",
+				Identity: &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.ImportResourceStateRequest{
 				ID:       "test-id",
 				TypeName: "test_resource",
+				Identity: &testTfprotov5ResourceIdentityData,
 			},
 		},
 		"client-capabilities-deferral-allowed": {
@@ -1172,7 +1309,6 @@ func TestImportResourceStateRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1205,6 +1341,7 @@ func TestImportResourceStateResponse(t *testing.T) {
 						Private:  testBytes,
 						State:    &testTfprotov6DynamicValue,
 						TypeName: "test_resource1",
+						Identity: &testTfprotov6ResourceIdentityData,
 					},
 				},
 			},
@@ -1215,6 +1352,7 @@ func TestImportResourceStateResponse(t *testing.T) {
 						Private:  testBytes,
 						State:    &testTfprotov5DynamicValue,
 						TypeName: "test_resource1",
+						Identity: &testTfprotov5ResourceIdentityData,
 					},
 				},
 			},
@@ -1250,7 +1388,6 @@ func TestImportResourceStateResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1285,6 +1422,7 @@ func TestImportedResources(t *testing.T) {
 					Private:  testBytes,
 					State:    &testTfprotov6DynamicValue,
 					TypeName: "test_resource1",
+					Identity: &testTfprotov6ResourceIdentityData,
 				},
 			},
 			expected: []*tfprotov5.ImportedResource{
@@ -1292,6 +1430,7 @@ func TestImportedResources(t *testing.T) {
 					Private:  testBytes,
 					State:    &testTfprotov5DynamicValue,
 					TypeName: "test_resource1",
+					Identity: &testTfprotov5ResourceIdentityData,
 				},
 			},
 		},
@@ -1325,7 +1464,6 @@ func TestImportedResources(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1360,6 +1498,7 @@ func TestMoveResourceStateRequest(t *testing.T) {
 				},
 				SourceTypeName: "test_source",
 				TargetTypeName: "test_target",
+				SourceIdentity: &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.MoveResourceStateRequest{
 				SourcePrivate:         testBytes,
@@ -1370,12 +1509,12 @@ func TestMoveResourceStateRequest(t *testing.T) {
 				},
 				SourceTypeName: "test_source",
 				TargetTypeName: "test_target",
+				SourceIdentity: &testTfprotov5ResourceIdentityData,
 			},
 		},
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1402,20 +1541,21 @@ func TestMoveResourceStateResponse(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov6.MoveResourceStateResponse{
-				Diagnostics:   testTfprotov6Diagnostics,
-				TargetPrivate: testBytes,
-				TargetState:   &testTfprotov6DynamicValue,
+				Diagnostics:    testTfprotov6Diagnostics,
+				TargetPrivate:  testBytes,
+				TargetState:    &testTfprotov6DynamicValue,
+				TargetIdentity: &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.MoveResourceStateResponse{
-				Diagnostics:   testTfprotov5Diagnostics,
-				TargetState:   &testTfprotov5DynamicValue,
-				TargetPrivate: testBytes,
+				Diagnostics:    testTfprotov5Diagnostics,
+				TargetState:    &testTfprotov5DynamicValue,
+				TargetPrivate:  testBytes,
+				TargetIdentity: &testTfprotov5ResourceIdentityData,
 			},
 		},
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1469,7 +1609,6 @@ func TestOpenEphemeralResourceRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1527,7 +1666,6 @@ func TestOpenEphemeralResourceResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1560,6 +1698,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 				ProposedNewState: &testTfprotov6DynamicValue,
 				ProviderMeta:     &testTfprotov6DynamicValue,
 				TypeName:         "test_resource",
+				PriorIdentity:    &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.PlanResourceChangeRequest{
 				Config:           &testTfprotov5DynamicValue,
@@ -1568,6 +1707,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 				ProposedNewState: &testTfprotov5DynamicValue,
 				ProviderMeta:     &testTfprotov5DynamicValue,
 				TypeName:         "test_resource",
+				PriorIdentity:    &testTfprotov5ResourceIdentityData,
 			},
 		},
 		"client-capabilities-deferral-allowed": {
@@ -1578,6 +1718,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 				ProposedNewState: &testTfprotov6DynamicValue,
 				ProviderMeta:     &testTfprotov6DynamicValue,
 				TypeName:         "test_resource",
+				PriorIdentity:    &testTfprotov6ResourceIdentityData,
 				ClientCapabilities: &tfprotov6.PlanResourceChangeClientCapabilities{
 					DeferralAllowed: true,
 				},
@@ -1589,6 +1730,7 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 				ProposedNewState: &testTfprotov5DynamicValue,
 				ProviderMeta:     &testTfprotov5DynamicValue,
 				TypeName:         "test_resource",
+				PriorIdentity:    &testTfprotov5ResourceIdentityData,
 				ClientCapabilities: &tfprotov5.PlanResourceChangeClientCapabilities{
 					DeferralAllowed: true,
 				},
@@ -1597,7 +1739,6 @@ func TestPlanResourceChangeRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1631,6 +1772,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 					tftypes.NewAttributePath().WithAttributeName("test"),
 				},
 				UnsafeToUseLegacyTypeSystem: true,
+				PlannedIdentity:             &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.PlanResourceChangeResponse{
 				Diagnostics:    testTfprotov5Diagnostics,
@@ -1640,6 +1782,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 					tftypes.NewAttributePath().WithAttributeName("test"),
 				},
 				UnsafeToUseLegacyTypeSystem: true,
+				PlannedIdentity:             &testTfprotov5ResourceIdentityData,
 			},
 		},
 		"deferred-reason": {
@@ -1651,6 +1794,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 					tftypes.NewAttributePath().WithAttributeName("test"),
 				},
 				UnsafeToUseLegacyTypeSystem: true,
+				PlannedIdentity:             &testTfprotov6ResourceIdentityData,
 				Deferred: &tfprotov6.Deferred{
 					Reason: tfprotov6.DeferredReasonResourceConfigUnknown,
 				},
@@ -1663,6 +1807,7 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 					tftypes.NewAttributePath().WithAttributeName("test"),
 				},
 				UnsafeToUseLegacyTypeSystem: true,
+				PlannedIdentity:             &testTfprotov5ResourceIdentityData,
 				Deferred: &tfprotov5.Deferred{
 					Reason: tfprotov5.DeferredReasonResourceConfigUnknown,
 				},
@@ -1671,7 +1816,6 @@ func TestPlanResourceChangeResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1707,7 +1851,6 @@ func TestPrepareProviderConfigRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1745,7 +1888,6 @@ func TestPrepareProviderConfigResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1783,12 +1925,46 @@ func TestRawState(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov6tov5.RawState(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestRawIdentity(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.RawIdentity
+		expected *tfprotov5.RawIdentity
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.RawIdentity{
+				JSON: testBytes,
+			},
+			expected: &tfprotov5.RawIdentity{
+				JSON: testBytes,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.RawIdentity(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -1841,7 +2017,6 @@ func TestReadDataSourceRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1895,7 +2070,6 @@ func TestReadDataSourceResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1922,33 +2096,37 @@ func TestReadResourceRequest(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov6.ReadResourceRequest{
-				CurrentState: &testTfprotov6DynamicValue,
-				Private:      testBytes,
-				ProviderMeta: &testTfprotov6DynamicValue,
-				TypeName:     "test_resource",
+				CurrentState:    &testTfprotov6DynamicValue,
+				Private:         testBytes,
+				ProviderMeta:    &testTfprotov6DynamicValue,
+				TypeName:        "test_resource",
+				CurrentIdentity: &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.ReadResourceRequest{
-				CurrentState: &testTfprotov5DynamicValue,
-				Private:      testBytes,
-				ProviderMeta: &testTfprotov5DynamicValue,
-				TypeName:     "test_resource",
+				CurrentState:    &testTfprotov5DynamicValue,
+				Private:         testBytes,
+				ProviderMeta:    &testTfprotov5DynamicValue,
+				TypeName:        "test_resource",
+				CurrentIdentity: &testTfprotov5ResourceIdentityData,
 			},
 		},
 		"client-capabilities-deferral-allowed": {
 			in: &tfprotov6.ReadResourceRequest{
-				CurrentState: &testTfprotov6DynamicValue,
-				Private:      testBytes,
-				ProviderMeta: &testTfprotov6DynamicValue,
-				TypeName:     "test_resource",
+				CurrentState:    &testTfprotov6DynamicValue,
+				Private:         testBytes,
+				ProviderMeta:    &testTfprotov6DynamicValue,
+				TypeName:        "test_resource",
+				CurrentIdentity: &testTfprotov6ResourceIdentityData,
 				ClientCapabilities: &tfprotov6.ReadResourceClientCapabilities{
 					DeferralAllowed: true,
 				},
 			},
 			expected: &tfprotov5.ReadResourceRequest{
-				CurrentState: &testTfprotov5DynamicValue,
-				Private:      testBytes,
-				ProviderMeta: &testTfprotov5DynamicValue,
-				TypeName:     "test_resource",
+				CurrentState:    &testTfprotov5DynamicValue,
+				Private:         testBytes,
+				ProviderMeta:    &testTfprotov5DynamicValue,
+				TypeName:        "test_resource",
+				CurrentIdentity: &testTfprotov5ResourceIdentityData,
 				ClientCapabilities: &tfprotov5.ReadResourceClientCapabilities{
 					DeferralAllowed: true,
 				},
@@ -1957,7 +2135,6 @@ func TestReadResourceRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -1987,11 +2164,13 @@ func TestReadResourceResponse(t *testing.T) {
 				Diagnostics: testTfprotov6Diagnostics,
 				NewState:    &testTfprotov6DynamicValue,
 				Private:     testBytes,
+				NewIdentity: &testTfprotov6ResourceIdentityData,
 			},
 			expected: &tfprotov5.ReadResourceResponse{
 				Diagnostics: testTfprotov5Diagnostics,
 				NewState:    &testTfprotov5DynamicValue,
 				Private:     testBytes,
+				NewIdentity: &testTfprotov5ResourceIdentityData,
 			},
 		},
 		"deferred-reason": {
@@ -1999,6 +2178,7 @@ func TestReadResourceResponse(t *testing.T) {
 				Diagnostics: testTfprotov6Diagnostics,
 				NewState:    &testTfprotov6DynamicValue,
 				Private:     testBytes,
+				NewIdentity: &testTfprotov6ResourceIdentityData,
 				Deferred: &tfprotov6.Deferred{
 					Reason: tfprotov6.DeferredReasonResourceConfigUnknown,
 				},
@@ -2007,6 +2187,7 @@ func TestReadResourceResponse(t *testing.T) {
 				Diagnostics: testTfprotov5Diagnostics,
 				NewState:    &testTfprotov5DynamicValue,
 				Private:     testBytes,
+				NewIdentity: &testTfprotov5ResourceIdentityData,
 				Deferred: &tfprotov5.Deferred{
 					Reason: tfprotov5.DeferredReasonResourceConfigUnknown,
 				},
@@ -2015,7 +2196,6 @@ func TestReadResourceResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2053,7 +2233,6 @@ func TestRenewEphemeralResourceRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2093,7 +2272,6 @@ func TestRenewEphemeralResourceResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2148,7 +2326,6 @@ func TestSchema(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2231,7 +2408,6 @@ func TestSchemaAttribute(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2344,7 +2520,6 @@ func TestSchemaBlock(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2439,7 +2614,6 @@ func TestSchemaNestedBlock(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2457,6 +2631,80 @@ func TestSchemaNestedBlock(t *testing.T) {
 			} else if testCase.expectedError != nil {
 				t.Fatalf("got no error, expected error: %s", testCase.expectedError)
 			}
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestResourceIdentitySchema(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.ResourceIdentitySchema
+		expected *tfprotov5.ResourceIdentitySchema
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in:       testTfprotov6ResourceIdentitySchema,
+			expected: testTfprotov5ResourceIdentitySchema,
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.ResourceIdentitySchema(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestResourceIdentitySchemaAttribute(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.ResourceIdentitySchemaAttribute
+		expected *tfprotov5.ResourceIdentitySchemaAttribute
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.ResourceIdentitySchemaAttribute{
+				Name:              "test",
+				Description:       "test description",
+				Type:              tftypes.String,
+				RequiredForImport: true,
+				OptionalForImport: true,
+			},
+			expected: &tfprotov5.ResourceIdentitySchemaAttribute{
+				Name:              "test",
+				Description:       "test description",
+				Type:              tftypes.String,
+				RequiredForImport: true,
+				OptionalForImport: true,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.ResourceIdentitySchemaAttribute(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -2483,7 +2731,6 @@ func TestStopProviderRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2519,7 +2766,6 @@ func TestStopProviderResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2551,7 +2797,6 @@ func TestStringKind(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2595,7 +2840,6 @@ func TestUpgradeResourceStateRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2633,12 +2877,91 @@ func TestUpgradeResourceStateResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov6tov5.UpgradeResourceStateResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestUpgradeResourceIdentityRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.UpgradeResourceIdentityRequest
+		expected *tfprotov5.UpgradeResourceIdentityRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.UpgradeResourceIdentityRequest{
+				RawIdentity: &tfprotov6.RawIdentity{
+					JSON: testBytes,
+				},
+				TypeName: "test_resource",
+				Version:  1,
+			},
+			expected: &tfprotov5.UpgradeResourceIdentityRequest{
+				RawIdentity: &tfprotov5.RawIdentity{
+					JSON: testBytes,
+				},
+				TypeName: "test_resource",
+				Version:  1,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.UpgradeResourceIdentityRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestUpgradeResourceIdentityResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.UpgradeResourceIdentityResponse
+		expected *tfprotov5.UpgradeResourceIdentityResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.UpgradeResourceIdentityResponse{
+				Diagnostics:      testTfprotov6Diagnostics,
+				UpgradedIdentity: &testTfprotov6ResourceIdentityData,
+			},
+			expected: &tfprotov5.UpgradeResourceIdentityResponse{
+				Diagnostics:      testTfprotov5Diagnostics,
+				UpgradedIdentity: &testTfprotov5ResourceIdentityData,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.UpgradeResourceIdentityResponse(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -2671,7 +2994,6 @@ func TestValidateDataSourceConfigRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2707,7 +3029,6 @@ func TestValidateDataSourceConfigResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2745,7 +3066,6 @@ func TestValidateEphemeralResourceConfigRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2781,7 +3101,6 @@ func TestValidateEphemeralResourceConfigResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2835,7 +3154,6 @@ func TestValidateResourceTypeConfigRequest(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -2871,7 +3189,6 @@ func TestValidateResourceTypeConfigResponse(t *testing.T) {
 	}
 
 	for name, testCase := range testCases {
-		name, testCase := name, testCase
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
