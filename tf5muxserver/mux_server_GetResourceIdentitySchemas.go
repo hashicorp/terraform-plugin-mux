@@ -21,9 +21,6 @@ func (s *muxServer) GetResourceIdentitySchemas(ctx context.Context, req *tfproto
 	ctx = logging.InitContext(ctx)
 	ctx = logging.RpcContext(ctx, rpc)
 
-	s.serverDiscoveryMutex.Lock()
-	defer s.serverDiscoveryMutex.Unlock()
-
 	resp := &tfprotov5.GetResourceIdentitySchemasResponse{
 		IdentitySchemas: map[string]*tfprotov5.ResourceIdentitySchema{},
 		Diagnostics:     []*tfprotov5.Diagnostic{},
