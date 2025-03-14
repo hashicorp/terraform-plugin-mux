@@ -1357,7 +1357,9 @@ func TestMoveResourceStateRequest(t *testing.T) {
 				},
 				SourceTypeName: "test_source",
 				TargetTypeName: "test_target",
-				SourceIdentity: &testTfprotov5ResourceIdentityData,
+				SourceIdentity: &tfprotov5.RawState{
+					JSON: testBytes,
+				},
 			},
 			expected: &tfprotov6.MoveResourceStateRequest{
 				SourcePrivate:         testBytes,
@@ -1368,7 +1370,9 @@ func TestMoveResourceStateRequest(t *testing.T) {
 				},
 				SourceTypeName: "test_source",
 				TargetTypeName: "test_target",
-				SourceIdentity: &testTfprotov6ResourceIdentityData,
+				SourceIdentity: &tfprotov6.RawState{
+					JSON: testBytes,
+				},
 			},
 		},
 	}
@@ -1717,41 +1721,6 @@ func TestRawState(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov5tov6.RawState(testCase.in)
-
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
-			}
-		})
-	}
-}
-
-func TestRawIdentity(t *testing.T) {
-	t.Parallel()
-
-	testCases := map[string]struct {
-		in       *tfprotov5.RawIdentity
-		expected *tfprotov6.RawIdentity
-	}{
-		"nil": {
-			in:       nil,
-			expected: nil,
-		},
-		"all-valid-fields": {
-			in: &tfprotov5.RawIdentity{
-				JSON: testBytes,
-			},
-			expected: &tfprotov6.RawIdentity{
-				JSON: testBytes,
-			},
-		},
-	}
-
-	for name, testCase := range testCases {
-
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			got := tfprotov5tov6.RawIdentity(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
@@ -2556,14 +2525,14 @@ func TestUpgradeResourceIdentityRequest(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov5.UpgradeResourceIdentityRequest{
-				RawIdentity: &tfprotov5.RawIdentity{
+				RawIdentity: &tfprotov5.RawState{
 					JSON: testBytes,
 				},
 				TypeName: "test_resource",
 				Version:  1,
 			},
 			expected: &tfprotov6.UpgradeResourceIdentityRequest{
-				RawIdentity: &tfprotov6.RawIdentity{
+				RawIdentity: &tfprotov6.RawState{
 					JSON: testBytes,
 				},
 				TypeName: "test_resource",
