@@ -503,7 +503,7 @@ func MoveResourceStateRequest(in *tfprotov6.MoveResourceStateRequest) *tfprotov5
 		SourceState:           RawState(in.SourceState),
 		SourceTypeName:        in.SourceTypeName,
 		TargetTypeName:        in.TargetTypeName,
-		SourceIdentity:        ResourceIdentityData(in.SourceIdentity),
+		SourceIdentity:        RawState(in.SourceIdentity),
 	}
 }
 
@@ -631,16 +631,6 @@ func RawState(in *tfprotov6.RawState) *tfprotov5.RawState {
 	return &tfprotov5.RawState{
 		Flatmap: in.Flatmap,
 		JSON:    in.JSON,
-	}
-}
-
-func RawIdentity(in *tfprotov6.RawIdentity) *tfprotov5.RawIdentity {
-	if in == nil {
-		return nil
-	}
-
-	return &tfprotov5.RawIdentity{
-		JSON: in.JSON,
 	}
 }
 
@@ -978,7 +968,7 @@ func UpgradeResourceIdentityRequest(in *tfprotov6.UpgradeResourceIdentityRequest
 	return &tfprotov5.UpgradeResourceIdentityRequest{
 		TypeName:    in.TypeName,
 		Version:     in.Version,
-		RawIdentity: RawIdentity(in.RawIdentity),
+		RawIdentity: RawState(in.RawIdentity),
 	}
 }
 
