@@ -1,0 +1,6 @@
+kind: NOTES
+body: This alpha pre-release contains the muxing logic for managed resource identity, which can used with Terraform v1.12.0-alpha20250312,
+    to store and read identity data during plan and apply workflows.
+time: 2025-03-17T15:22:56.88667-04:00
+custom:
+    Issue: "278"
