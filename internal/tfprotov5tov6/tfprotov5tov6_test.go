@@ -1360,6 +1360,7 @@ func TestMoveResourceStateRequest(t *testing.T) {
 				SourceIdentity: &tfprotov5.RawState{
 					JSON: testBytes,
 				},
+				SourceIdentitySchemaVersion: 1,
 			},
 			expected: &tfprotov6.MoveResourceStateRequest{
 				SourcePrivate:         testBytes,
@@ -1373,6 +1374,7 @@ func TestMoveResourceStateRequest(t *testing.T) {
 				SourceIdentity: &tfprotov6.RawState{
 					JSON: testBytes,
 				},
+				SourceIdentitySchemaVersion: 1,
 			},
 		},
 	}
