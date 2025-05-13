@@ -463,13 +463,14 @@ func MoveResourceStateRequest(in *tfprotov5.MoveResourceStateRequest) *tfprotov6
 	}
 
 	return &tfprotov6.MoveResourceStateRequest{
-		SourcePrivate:         in.SourcePrivate,
-		SourceProviderAddress: in.SourceProviderAddress,
-		SourceSchemaVersion:   in.SourceSchemaVersion,
-		SourceState:           RawState(in.SourceState),
-		SourceTypeName:        in.SourceTypeName,
-		TargetTypeName:        in.TargetTypeName,
-		SourceIdentity:        RawState(in.SourceIdentity),
+		SourcePrivate:               in.SourcePrivate,
+		SourceProviderAddress:       in.SourceProviderAddress,
+		SourceSchemaVersion:         in.SourceSchemaVersion,
+		SourceState:                 RawState(in.SourceState),
+		SourceTypeName:              in.SourceTypeName,
+		TargetTypeName:              in.TargetTypeName,
+		SourceIdentity:              RawState(in.SourceIdentity),
+		SourceIdentitySchemaVersion: in.SourceIdentitySchemaVersion,
 	}
 }
 
