@@ -30,26 +30,8 @@ func (s *muxServer) UpgradeResourceIdentity(ctx context.Context, req *tfprotov6.
 		}, nil
 	}
 
-	// TODO: Remove and call server.UpgradeResourceIdentity below directly once interface becomes required.
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	resourceIdentityServer, ok := server.(tfprotov6.ProviderServerWithResourceIdentity)
-	if !ok {
-		resp := &tfprotov6.UpgradeResourceIdentityResponse{
-			Diagnostics: []*tfprotov6.Diagnostic{
-				{
-					Severity: tfprotov6.DiagnosticSeverityError,
-					Summary:  "UpgradeResourceIdentity Not Implemented",
-					Detail: "A UpgradeResourceIdentity call was received by the provider, however the provider does not implement UpgradeResourceIdentity. " +
-						"Either upgrade the provider to a version that implements UpgradeResourceIdentity or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return resp, nil
-	}
-
 	ctx = logging.Tfprotov6ProviderServerContext(ctx, server)
 	logging.MuxTrace(ctx, "calling downstream server")
 
-	return resourceIdentityServer.UpgradeResourceIdentity(ctx, req)
+	return server.UpgradeResourceIdentity(ctx, req)
 }

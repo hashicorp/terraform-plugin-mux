@@ -356,13 +356,7 @@ func TestV6ToV5ServerGetResourceIdentitySchemas(t *testing.T) {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	resourceIdentityServer, ok := v6server.(tfprotov6.ProviderServerWithResourceIdentity)
-	if !ok {
-		t.Fatal("v6server should implement tfprotov6.ProviderServerWithResourceIdentity")
-	}
-
-	_, err = resourceIdentityServer.GetResourceIdentitySchemas(ctx, &tfprotov6.GetResourceIdentitySchemasRequest{})
+	_, err = v6server.GetResourceIdentitySchemas(ctx, &tfprotov6.GetResourceIdentitySchemasRequest{})
 
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
@@ -668,13 +662,7 @@ func TestV6ToV5ServerUpgradeResourceIdentity(t *testing.T) {
 		t.Fatalf("unexpected error downgrading server: %s", err)
 	}
 
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	resourceIdentityServer, ok := v6server.(tfprotov6.ProviderServerWithResourceIdentity)
-	if !ok {
-		t.Fatal("v6server should implement tfprotov6.ProviderServerWithResourceIdentity")
-	}
-
-	_, err = resourceIdentityServer.UpgradeResourceIdentity(ctx, &tfprotov6.UpgradeResourceIdentityRequest{
+	_, err = v6server.UpgradeResourceIdentity(ctx, &tfprotov6.UpgradeResourceIdentityRequest{
 		TypeName: "test_resource",
 	})
 
