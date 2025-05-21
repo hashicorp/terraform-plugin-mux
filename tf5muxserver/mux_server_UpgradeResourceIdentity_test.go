@@ -49,13 +49,7 @@ func TestMuxServerUpgradeResourceIdentity(t *testing.T) {
 		t.Fatalf("unexpected error setting up factory: %s", err)
 	}
 
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	resourceIdentityServer, ok := muxServer.ProviderServer().(tfprotov5.ProviderServerWithResourceIdentity)
-	if !ok {
-		t.Fatal("muxServer should implement tfprotov5.ProviderServerWithEphemeralResources")
-	}
-
-	_, err = resourceIdentityServer.UpgradeResourceIdentity(ctx, &tfprotov5.UpgradeResourceIdentityRequest{
+	_, err = muxServer.ProviderServer().UpgradeResourceIdentity(ctx, &tfprotov5.UpgradeResourceIdentityRequest{
 		TypeName: "test_resource_server1",
 	})
 
@@ -71,7 +65,7 @@ func TestMuxServerUpgradeResourceIdentity(t *testing.T) {
 		t.Errorf("unexpected test_resource_server1 UpgradeResourceIdentity called on server2")
 	}
 
-	_, err = resourceIdentityServer.UpgradeResourceIdentity(ctx, &tfprotov5.UpgradeResourceIdentityRequest{
+	_, err = muxServer.ProviderServer().UpgradeResourceIdentity(ctx, &tfprotov5.UpgradeResourceIdentityRequest{
 		TypeName: "test_resource_server2",
 	})
 

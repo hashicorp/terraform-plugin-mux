@@ -345,13 +345,7 @@ func TestMuxServerGetResourceIdentitySchema(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
-			//nolint:staticcheck // Intentionally verifying interface implementation
-			resourceIdentityServer, ok := muxServer.ProviderServer().(tfprotov5.ProviderServerWithResourceIdentity)
-			if !ok {
-				t.Fatal("muxServer should implement tfprotov5.ProviderServerWithResourceIdentity")
-			}
-
-			resp, err := resourceIdentityServer.GetResourceIdentitySchemas(context.Background(), &tfprotov5.GetResourceIdentitySchemasRequest{})
+			resp, err := muxServer.ProviderServer().GetResourceIdentitySchemas(context.Background(), &tfprotov5.GetResourceIdentitySchemasRequest{})
 
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
