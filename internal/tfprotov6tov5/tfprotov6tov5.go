@@ -303,6 +303,7 @@ func GetMetadataResponse(in *tfprotov6.GetMetadataResponse) *tfprotov5.GetMetada
 		DataSources:        make([]tfprotov5.DataSourceMetadata, 0, len(in.DataSources)),
 		Diagnostics:        Diagnostics(in.Diagnostics),
 		EphemeralResources: make([]tfprotov5.EphemeralResourceMetadata, 0, len(in.Resources)),
+		ListResources:      make([]tfprotov5.ListResourceMetadata, 0, len(in.Resources)),
 		Functions:          make([]tfprotov5.FunctionMetadata, 0, len(in.Functions)),
 		Resources:          make([]tfprotov5.ResourceMetadata, 0, len(in.Resources)),
 		ServerCapabilities: ServerCapabilities(in.ServerCapabilities),
@@ -314,6 +315,10 @@ func GetMetadataResponse(in *tfprotov6.GetMetadataResponse) *tfprotov5.GetMetada
 
 	for _, ephemeralResource := range in.EphemeralResources {
 		resp.EphemeralResources = append(resp.EphemeralResources, EphemeralResourceMetadata(ephemeralResource))
+	}
+
+	for _, listResource := range in.ListResources {
+		resp.ListResources = append(resp.ListResources, ListResourceMetadata(listResource))
 	}
 
 	for _, function := range in.Functions {
@@ -364,6 +369,18 @@ func GetProviderSchemaResponse(in *tfprotov6.GetProviderSchemaResponse) (*tfprot
 		ephemeralResourceSchemas[k] = v5Schema
 	}
 
+	listResourceSchemas := make(map[string]*tfprotov5.Schema, len(in.ListResourceSchemas))
+
+	for k, v := range in.ListResourceSchemas {
+		v5Schema, err := Schema(v)
+
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert list resource %q schema: %w", k, err)
+		}
+
+		listResourceSchemas[k] = v5Schema
+	}
+
 	functions := make(map[string]*tfprotov5.Function, len(in.Functions))
 
 	for name, function := range in.Functions {
@@ -398,6 +415,7 @@ func GetProviderSchemaResponse(in *tfprotov6.GetProviderSchemaResponse) (*tfprot
 		DataSourceSchemas:        dataSourceSchemas,
 		Diagnostics:              Diagnostics(in.Diagnostics),
 		EphemeralResourceSchemas: ephemeralResourceSchemas,
+		ListResourceSchemas:      listResourceSchemas,
 		Functions:                functions,
 		Provider:                 provider,
 		ProviderMeta:             providerMeta,
@@ -1035,6 +1053,27 @@ func ValidateResourceTypeConfigResponse(in *tfprotov6.ValidateResourceConfigResp
 	}
 
 	return &tfprotov5.ValidateResourceTypeConfigResponse{
+		Diagnostics: Diagnostics(in.Diagnostics),
+	}
+}
+
+func ValidateListResourceConfigRequest(in *tfprotov6.ValidateListResourceConfigRequest) *tfprotov5.ValidateListResourceConfigRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.ValidateListResourceConfigRequest{
+		Config:   DynamicValue(in.Config),
+		TypeName: in.TypeName,
+	}
+}
+
+func ValidateListResourceConfigResponse(in *tfprotov6.ValidateListResourceConfigResponse) *tfprotov5.ValidateListResourceConfigResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.ValidateListResourceConfigResponse{
 		Diagnostics: Diagnostics(in.Diagnostics),
 	}
 }

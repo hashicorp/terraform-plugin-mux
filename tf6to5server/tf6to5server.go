@@ -291,3 +291,32 @@ func (s v6tov5Server) ValidateResourceTypeConfig(ctx context.Context, req *tfpro
 
 	return tfprotov6tov5.ValidateResourceTypeConfigResponse(v6Resp), nil
 }
+
+func (s v6tov5Server) ValidateListResourceConfig(ctx context.Context, req *tfprotov5.ValidateListResourceConfigRequest) (*tfprotov5.ValidateListResourceConfigResponse, error) {
+	// TODO: Remove and call s.v6Server.ValidateListResourceConfig below directly once interface becomes required
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	listResourceServer, ok := s.v6Server.(tfprotov6.ProviderServerWithListResource)
+	if !ok {
+		v5Resp := &tfprotov5.ValidateListResourceConfigResponse{
+			Diagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "ValidateListResourceConfig Not Implemented",
+					Detail: "A ValidateListResourceConfig call was received by the provider, however the provider does not implement the RPC. " +
+						"Either upgrade the provider to a version that implements ValidateListResourceConfig or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return v5Resp, nil
+	}
+
+	v6Req := tfprotov5tov6.ValidateListResourceConfigRequest(req)
+
+	v6Resp, err := s.v6Server.ValidateListResourceConfig(ctx, v6Req)
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov6tov5.ValidateListResourceConfigResponse(v6Resp), nil
+}

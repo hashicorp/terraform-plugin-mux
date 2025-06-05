@@ -894,3 +894,34 @@ func TestV6ToV5ServerValidateResourceTypeConfig(t *testing.T) {
 		t.Errorf("expected test_resource ValidateResourceConfig to be called")
 	}
 }
+
+func TestV6ToV5ServerValidateListResourceConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_ephemeral_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v5server.ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
+		TypeName: "test_ephemeral_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.ValidateListResourceConfigCalled["test_ephemeral_resource"] {
+		t.Errorf("expected test_ephemeral_resource ValidateListResourceConfig to be called")
+	}
+}
