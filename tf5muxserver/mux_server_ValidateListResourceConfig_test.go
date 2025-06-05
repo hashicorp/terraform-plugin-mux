@@ -38,7 +38,13 @@ func TestMuxServerValidateListResourceConfig(t *testing.T) {
 		t.Fatalf("unexpected error setting up factory: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	listResourceServer, ok := muxServer.ProviderServer().(tfprotov5.ProviderServerWithListResource)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov5.ProviderServerWithListResource")
+	}
+
+	_, err = listResourceServer.ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
 		TypeName: "test_list_resource_server1",
 	})
 
@@ -54,7 +60,7 @@ func TestMuxServerValidateListResourceConfig(t *testing.T) {
 		t.Errorf("unexpected test_list_resource_server1 ValidateListResourceConfig called on server2")
 	}
 
-	_, err = muxServer.ProviderServer().ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
+	_, err = listResourceServer.ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
 		TypeName: "test_list_resource_server2",
 	})
 

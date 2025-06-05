@@ -195,6 +195,12 @@ func EphemeralResourceMetadata(in tfprotov6.EphemeralResourceMetadata) tfprotov5
 	}
 }
 
+func ListResourceMetadata(in tfprotov6.ListResourceMetadata) tfprotov5.ListResourceMetadata {
+	return tfprotov5.ListResourceMetadata{
+		TypeName: in.TypeName,
+	}
+}
+
 func Function(in *tfprotov6.Function) *tfprotov5.Function {
 	if in == nil {
 		return nil

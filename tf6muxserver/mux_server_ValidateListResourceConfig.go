@@ -5,7 +5,6 @@ package tf6muxserver
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
@@ -28,8 +27,26 @@ func (s *muxServer) ValidateListResourceConfig(ctx context.Context, req *tfproto
 		}, nil
 	}
 
+	// TODO: Remove and call server.ValidateListResourceConfig below directly once interface becomes required.
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	listResourceServer, ok := server.(tfprotov6.ProviderServerWithListResource)
+	if !ok {
+		resp := &tfprotov6.ValidateListResourceConfigResponse{
+			Diagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "ValidateListResourceConfig Not Implemented",
+					Detail: "A ValidateListResourceConfig call was received by the provider, however the provider does not implement ValidateListResourceConfig. " +
+						"Either upgrade the provider to a version that implements ValidateListResourceConfig or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return resp, nil
+	}
+
 	ctx = logging.Tfprotov6ProviderServerContext(ctx, server)
 	logging.MuxTrace(ctx, "calling downstream server")
 
-	return server.ValidateListResourceConfig(ctx, req)
+	return listResourceServer.ValidateListResourceConfig(ctx, req)
 }

@@ -313,7 +313,7 @@ func (s v6tov5Server) ValidateListResourceConfig(ctx context.Context, req *tfpro
 
 	v6Req := tfprotov5tov6.ValidateListResourceConfigRequest(req)
 
-	v6Resp, err := s.v6Server.ValidateListResourceConfig(ctx, v6Req)
+	v6Resp, err := listResourceServer.ValidateListResourceConfig(ctx, v6Req)
 	if err != nil {
 		return nil, err
 	}
