@@ -55,6 +55,14 @@ var (
 		TypeName: "test_ephemeral_resource",
 	}
 
+	testTfprotov5ListResourceMetadata tfprotov5.ListResourceMetadata = tfprotov5.ListResourceMetadata{
+		TypeName: "test_list_resource",
+	}
+
+	testTfprotov6ListResourceMetadata tfprotov6.ListResourceMetadata = tfprotov6.ListResourceMetadata{
+		TypeName: "test_list_resource",
+	}
+
 	testTfprotov5Function *tfprotov5.Function = &tfprotov5.Function{
 		Parameters: []*tfprotov5.FunctionParameter{},
 		Return: &tfprotov5.FunctionReturn{
@@ -921,6 +929,9 @@ func TestGetMetadataResponse(t *testing.T) {
 				EphemeralResources: []tfprotov5.EphemeralResourceMetadata{
 					testTfprotov5EphemeralResourceMetadata,
 				},
+				ListResources: []tfprotov5.ListResourceMetadata{
+					testTfprotov5ListResourceMetadata,
+				},
 				Functions: []tfprotov5.FunctionMetadata{
 					testTfprotov5FunctionMetadata,
 				},
@@ -935,6 +946,9 @@ func TestGetMetadataResponse(t *testing.T) {
 				Diagnostics: testTfprotov6Diagnostics,
 				EphemeralResources: []tfprotov6.EphemeralResourceMetadata{
 					testTfprotov6EphemeralResourceMetadata,
+				},
+				ListResources: []tfprotov6.ListResourceMetadata{
+					testTfprotov6ListResourceMetadata,
 				},
 				Functions: []tfprotov6.FunctionMetadata{
 					testTfprotov6FunctionMetadata,
@@ -1011,6 +1025,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				EphemeralResourceSchemas: map[string]*tfprotov5.Schema{
 					"test_ephemeral_resource": testTfprotov5Schema,
 				},
+				ListResourceSchemas: map[string]*tfprotov5.Schema{
+					"test_list_resource": testTfprotov5Schema,
+				},
 				Functions: map[string]*tfprotov5.Function{
 					"test_function": testTfprotov5Function,
 				},
@@ -1027,6 +1044,9 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				Diagnostics: testTfprotov6Diagnostics,
 				EphemeralResourceSchemas: map[string]*tfprotov6.Schema{
 					"test_ephemeral_resource": testTfprotov6Schema,
+				},
+				ListResourceSchemas: map[string]*tfprotov6.Schema{
+					"test_list_resource": testTfprotov6Schema,
 				},
 				Functions: map[string]*tfprotov6.Function{
 					"test_function": testTfprotov6Function,
@@ -2890,6 +2910,78 @@ func TestValidateResourceConfigResponse(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov5tov6.ValidateResourceConfigResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestValidateListResourceConfigRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.ValidateListResourceConfigRequest
+		expected *tfprotov6.ValidateListResourceConfigRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.ValidateListResourceConfigRequest{
+				Config:   &testTfprotov5DynamicValue,
+				TypeName: "test_list_resource",
+			},
+			expected: &tfprotov6.ValidateListResourceConfigRequest{
+				Config:   &testTfprotov6DynamicValue,
+				TypeName: "test_list_resource",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.ValidateListResourceConfigRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestValidateListResourceConfigResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.ValidateListResourceConfigResponse
+		expected *tfprotov6.ValidateListResourceConfigResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.ValidateListResourceConfigResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+			expected: &tfprotov6.ValidateListResourceConfigResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.ValidateListResourceConfigResponse(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
