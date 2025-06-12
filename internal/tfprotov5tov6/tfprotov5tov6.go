@@ -190,6 +190,12 @@ func EphemeralResourceMetadata(in tfprotov5.EphemeralResourceMetadata) tfprotov6
 	}
 }
 
+func ListResourceMetadata(in tfprotov5.ListResourceMetadata) tfprotov6.ListResourceMetadata {
+	return tfprotov6.ListResourceMetadata{
+		TypeName: in.TypeName,
+	}
+}
+
 func Function(in *tfprotov5.Function) *tfprotov6.Function {
 	if in == nil {
 		return nil
@@ -298,6 +304,7 @@ func GetMetadataResponse(in *tfprotov5.GetMetadataResponse) *tfprotov6.GetMetada
 		DataSources:        make([]tfprotov6.DataSourceMetadata, 0, len(in.DataSources)),
 		Diagnostics:        Diagnostics(in.Diagnostics),
 		EphemeralResources: make([]tfprotov6.EphemeralResourceMetadata, 0, len(in.Resources)),
+		ListResources:      make([]tfprotov6.ListResourceMetadata, 0, len(in.Resources)),
 		Functions:          make([]tfprotov6.FunctionMetadata, 0, len(in.Functions)),
 		Resources:          make([]tfprotov6.ResourceMetadata, 0, len(in.Resources)),
 		ServerCapabilities: ServerCapabilities(in.ServerCapabilities),
@@ -309,6 +316,10 @@ func GetMetadataResponse(in *tfprotov5.GetMetadataResponse) *tfprotov6.GetMetada
 
 	for _, ephemeralResource := range in.EphemeralResources {
 		resp.EphemeralResources = append(resp.EphemeralResources, EphemeralResourceMetadata(ephemeralResource))
+	}
+
+	for _, listResource := range in.ListResources {
+		resp.ListResources = append(resp.ListResources, ListResourceMetadata(listResource))
 	}
 
 	for _, function := range in.Functions {
@@ -347,6 +358,12 @@ func GetProviderSchemaResponse(in *tfprotov5.GetProviderSchemaResponse) *tfproto
 		ephemeralResourceSchemas[k] = Schema(v)
 	}
 
+	listResourceSchemas := make(map[string]*tfprotov6.Schema, len(in.ListResourceSchemas))
+
+	for k, v := range in.ListResourceSchemas {
+		listResourceSchemas[k] = Schema(v)
+	}
+
 	functions := make(map[string]*tfprotov6.Function, len(in.Functions))
 
 	for name, function := range in.Functions {
@@ -363,6 +380,7 @@ func GetProviderSchemaResponse(in *tfprotov5.GetProviderSchemaResponse) *tfproto
 		DataSourceSchemas:        dataSourceSchemas,
 		Diagnostics:              Diagnostics(in.Diagnostics),
 		EphemeralResourceSchemas: ephemeralResourceSchemas,
+		ListResourceSchemas:      listResourceSchemas,
 		Functions:                functions,
 		Provider:                 Schema(in.Provider),
 		ProviderMeta:             Schema(in.ProviderMeta),
@@ -974,6 +992,27 @@ func ValidateResourceConfigResponse(in *tfprotov5.ValidateResourceTypeConfigResp
 	}
 
 	return &tfprotov6.ValidateResourceConfigResponse{
+		Diagnostics: Diagnostics(in.Diagnostics),
+	}
+}
+
+func ValidateListResourceConfigRequest(in *tfprotov5.ValidateListResourceConfigRequest) *tfprotov6.ValidateListResourceConfigRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.ValidateListResourceConfigRequest{
+		Config:   DynamicValue(in.Config),
+		TypeName: in.TypeName,
+	}
+}
+
+func ValidateListResourceConfigResponse(in *tfprotov5.ValidateListResourceConfigResponse) *tfprotov6.ValidateListResourceConfigResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.ValidateListResourceConfigResponse{
 		Diagnostics: Diagnostics(in.Diagnostics),
 	}
 }
