@@ -812,13 +812,13 @@ func TestV6ToV5ServerValidateListResourceConfig(t *testing.T) {
 	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
 
 	if err != nil {
-		t.Fatalf("unexpected error downgrading server: %s", err)
+		t.Fatalf("unexpected error upgrading server: %s", err)
 	}
 
 	//nolint:staticcheck // Intentionally verifying interface implementation
 	listResourceServer, ok := v6server.(tfprotov6.ProviderServerWithListResource)
 	if !ok {
-		t.Fatal("v6server should implement tfprotov6.ProviderServerWithResourceIdentity")
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithListResource")
 	}
 
 	_, err = listResourceServer.ValidateListResourceConfig(ctx, &tfprotov6.ValidateListResourceConfigRequest{

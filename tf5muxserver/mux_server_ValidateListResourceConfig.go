@@ -12,7 +12,7 @@ import (
 )
 
 func (s *muxServer) ValidateListResourceConfig(ctx context.Context, req *tfprotov5.ValidateListResourceConfigRequest) (*tfprotov5.ValidateListResourceConfigResponse, error) {
-	rpc := "ValidateListResourceTypeConfig"
+	rpc := "ValidateListResourceConfig"
 	ctx = logging.InitContext(ctx)
 	ctx = logging.RpcContext(ctx, rpc)
 

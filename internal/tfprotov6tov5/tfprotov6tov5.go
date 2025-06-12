@@ -309,7 +309,7 @@ func GetMetadataResponse(in *tfprotov6.GetMetadataResponse) *tfprotov5.GetMetada
 		DataSources:        make([]tfprotov5.DataSourceMetadata, 0, len(in.DataSources)),
 		Diagnostics:        Diagnostics(in.Diagnostics),
 		EphemeralResources: make([]tfprotov5.EphemeralResourceMetadata, 0, len(in.Resources)),
-		ListResources:      make([]tfprotov5.ListResourceMetadata, 0, len(in.Resources)),
+		ListResources:      make([]tfprotov5.ListResourceMetadata, 0, len(in.ListResources)),
 		Functions:          make([]tfprotov5.FunctionMetadata, 0, len(in.Functions)),
 		Resources:          make([]tfprotov5.ResourceMetadata, 0, len(in.Resources)),
 		ServerCapabilities: ServerCapabilities(in.ServerCapabilities),
