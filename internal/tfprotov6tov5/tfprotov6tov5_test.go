@@ -171,6 +171,9 @@ var (
 	testStreamv5 *tfprotov5.ListResourceServerStream = &tfprotov5.ListResourceServerStream{
 		Results: slices.Values([]tfprotov5.ListResourceResult{
 			{
+				DisplayName: "test",
+				Resource:    &testTfprotov5DynamicValue,
+				Identity:    &testTfprotov5ResourceIdentityData,
 				Diagnostics: testTfprotov5Diagnostics,
 			},
 		}),
@@ -179,6 +182,9 @@ var (
 	testStreamv6 *tfprotov6.ListResourceServerStream = &tfprotov6.ListResourceServerStream{
 		Results: slices.Values([]tfprotov6.ListResourceResult{
 			{
+				DisplayName: "test",
+				Resource:    &testTfprotov6DynamicValue,
+				Identity:    &testTfprotov6ResourceIdentityData,
 				Diagnostics: testTfprotov6Diagnostics,
 			},
 		}),
@@ -3343,23 +3349,29 @@ func TestListResourceServerStream(t *testing.T) {
 
 			got := tfprotov6tov5.ListResourceServerStream(testCase.in)
 
-			resultSlice := make([]tfprotov5.ListResourceResult, 0)
-			for res := range got.Results {
-				resultSlice = append(resultSlice, res)
-			}
-
-			expectedSlice := make([]tfprotov5.ListResourceResult, 0)
-			for res := range testCase.expected.Results {
-				expectedSlice = append(expectedSlice, res)
-			}
-
-			if len(expectedSlice) != len(resultSlice) {
-				t.Fatalf("expected iterator and result iterator lengths do not match")
-			}
-
-			for idx := range resultSlice {
-				if diff := cmp.Diff(resultSlice[idx], expectedSlice[idx]); diff != "" {
+			if got == nil {
+				if diff := cmp.Diff(got, testCase.expected); diff != "" {
 					t.Errorf("unexpected difference: %s", diff)
+				}
+			} else {
+				resultSlice := make([]tfprotov5.ListResourceResult, 0)
+				for res := range got.Results {
+					resultSlice = append(resultSlice, res)
+				}
+
+				expectedSlice := make([]tfprotov5.ListResourceResult, 0)
+				for res := range testCase.expected.Results {
+					expectedSlice = append(expectedSlice, res)
+				}
+
+				if len(expectedSlice) != len(resultSlice) {
+					t.Fatalf("expected iterator and result iterator lengths do not match")
+				}
+
+				for idx := range resultSlice {
+					if diff := cmp.Diff(resultSlice[idx], expectedSlice[idx]); diff != "" {
+						t.Errorf("unexpected difference: %s", diff)
+					}
 				}
 			}
 		})

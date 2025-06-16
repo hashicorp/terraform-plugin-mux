@@ -4,6 +4,7 @@
 package tfprotov5tov6_test
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -164,6 +165,28 @@ var (
 	}
 
 	testTime time.Time = time.Date(2000, 1, 2, 3, 4, 5, 6, time.UTC)
+
+	testStreamv5 *tfprotov5.ListResourceServerStream = &tfprotov5.ListResourceServerStream{
+		Results: slices.Values([]tfprotov5.ListResourceResult{
+			{
+				DisplayName: "test",
+				Resource:    &testTfprotov5DynamicValue,
+				Identity:    &testTfprotov5ResourceIdentityData,
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+		}),
+	}
+
+	testStreamv6 *tfprotov6.ListResourceServerStream = &tfprotov6.ListResourceServerStream{
+		Results: slices.Values([]tfprotov6.ListResourceResult{
+			{
+				DisplayName: "test",
+				Resource:    &testTfprotov6DynamicValue,
+				Identity:    &testTfprotov6ResourceIdentityData,
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+		}),
+	}
 )
 
 func init() {
@@ -3027,7 +3050,7 @@ func TestListResourceRequest(t *testing.T) {
 	}
 }
 
-/*func TestListResourceServerStream(t *testing.T) {
+func TestListResourceServerStream(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -3039,20 +3062,8 @@ func TestListResourceRequest(t *testing.T) {
 			expected: nil,
 		},
 		"all-valid-fields": {
-			in: &tfprotov5.ListResourceServerStream{
-				Results: slices.Values([]tfprotov5.ListResourceResult{
-					{
-						Diagnostics: testTfprotov5Diagnostics,
-					},
-				}),
-			},
-			expected: &tfprotov6.ListResourceServerStream{
-				Results: slices.Values([]tfprotov6.ListResourceResult{
-					{
-						Diagnostics: testTfprotov6Diagnostics,
-					},
-				}),
-			},
+			in:       testStreamv5,
+			expected: testStreamv6,
 		},
 	}
 
@@ -3063,12 +3074,34 @@ func TestListResourceRequest(t *testing.T) {
 
 			got := tfprotov5tov6.ListResourceServerStream(testCase.in)
 
-			if diff := cmp.Diff(got, testCase.expected); diff != "" {
-				t.Errorf("unexpected difference: %s", diff)
+			if got == nil {
+				if diff := cmp.Diff(got, testCase.expected); diff != "" {
+					t.Errorf("unexpected difference: %s", diff)
+				}
+			} else {
+				resultSlice := make([]tfprotov6.ListResourceResult, 0)
+				for res := range got.Results {
+					resultSlice = append(resultSlice, res)
+				}
+
+				expectedSlice := make([]tfprotov6.ListResourceResult, 0)
+				for res := range testCase.expected.Results {
+					expectedSlice = append(expectedSlice, res)
+				}
+
+				if len(expectedSlice) != len(resultSlice) {
+					t.Fatalf("expected iterator and result iterator lengths do not match")
+				}
+
+				for idx := range resultSlice {
+					if diff := cmp.Diff(resultSlice[idx], expectedSlice[idx]); diff != "" {
+						t.Errorf("unexpected difference: %s", diff)
+					}
+				}
 			}
 		})
 	}
-}*/
+}
 
 func TestListResourceResult(t *testing.T) {
 	t.Parallel()
