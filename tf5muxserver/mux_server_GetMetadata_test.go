@@ -22,6 +22,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 		expectedDataSources        []tfprotov5.DataSourceMetadata
 		expectedDiagnostics        []*tfprotov5.Diagnostic
 		expectedEphemeralResources []tfprotov5.EphemeralResourceMetadata
+		expectedListResources      []tfprotov5.ListResourceMetadata
 		expectedFunctions          []tfprotov5.FunctionMetadata
 		expectedResources          []tfprotov5.ResourceMetadata
 		expectedServerCapabilities *tfprotov5.ServerCapabilities
@@ -56,6 +57,14 @@ func TestMuxServerGetMetadata(t *testing.T) {
 								TypeName: "test_bar",
 							},
 						},
+						ListResources: []tfprotov5.ListResourceMetadata{
+							{
+								TypeName: "test_foo",
+							},
+							{
+								TypeName: "test_bar",
+							},
+						},
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
@@ -82,6 +91,11 @@ func TestMuxServerGetMetadata(t *testing.T) {
 							},
 						},
 						EphemeralResources: []tfprotov5.EphemeralResourceMetadata{
+							{
+								TypeName: "test_quux",
+							},
+						},
+						ListResources: []tfprotov5.ListResourceMetadata{
 							{
 								TypeName: "test_quux",
 							},
@@ -123,6 +137,17 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{
+				{
+					TypeName: "test_foo",
+				},
+				{
+					TypeName: "test_bar",
+				},
+				{
+					TypeName: "test_quux",
+				},
+			},
+			expectedListResources: []tfprotov5.ListResourceMetadata{
 				{
 					TypeName: "test_foo",
 				},
@@ -176,6 +201,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov5.FunctionMetadata{},
 			expectedResources:          []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -221,6 +247,53 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					TypeName: "test_foo",
 				},
 			},
+			expectedListResources: []tfprotov5.ListResourceMetadata{},
+			expectedFunctions:     []tfprotov5.FunctionMetadata{},
+			expectedResources:     []tfprotov5.ResourceMetadata{},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
+		},
+		"duplicate-list-resource-type": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+						ListResources: []tfprotov5.ListResourceMetadata{
+							{
+								TypeName: "test_foo",
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					GetMetadataResponse: &tfprotov5.GetMetadataResponse{
+						ListResources: []tfprotov5.ListResourceMetadata{
+							{
+								TypeName: "test_foo",
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSources: []tfprotov5.DataSourceMetadata{},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same list resource type across underlying providers. " +
+						"List resource types must be implemented by only one underlying provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate list resource type: test_foo",
+				},
+			},
+			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources: []tfprotov5.ListResourceMetadata{
+				{
+					TypeName: "test_foo",
+				},
+			},
 			expectedFunctions: []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -262,6 +335,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions: []tfprotov5.FunctionMetadata{
 				{
 					Name: "test_function",
@@ -307,6 +381,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{
 				{
@@ -347,6 +422,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			},
 			expectedDataSources:        []tfprotov5.DataSourceMetadata{},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov5.FunctionMetadata{},
 			expectedResources: []tfprotov5.ResourceMetadata{
 				{
@@ -387,6 +463,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov5.FunctionMetadata{},
 			expectedResources:          []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -435,6 +512,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov5.FunctionMetadata{},
 			expectedResources:          []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -468,6 +546,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov5.FunctionMetadata{},
 			expectedResources:          []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -516,6 +595,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov5.FunctionMetadata{},
 			expectedResources:          []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -564,6 +644,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 				},
 			},
 			expectedEphemeralResources: []tfprotov5.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov5.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov5.FunctionMetadata{},
 			expectedResources:          []tfprotov5.ResourceMetadata{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -601,6 +682,10 @@ func TestMuxServerGetMetadata(t *testing.T) {
 
 			if diff := cmp.Diff(resp.EphemeralResources, testCase.expectedEphemeralResources); diff != "" {
 				t.Errorf("ephemeral resources didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.ListResources, testCase.expectedListResources); diff != "" {
+				t.Errorf("list resources didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.Functions, testCase.expectedFunctions); diff != "" {

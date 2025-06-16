@@ -23,6 +23,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		expectedDataSourceSchemas         map[string]*tfprotov5.Schema
 		expectedDiagnostics               []*tfprotov5.Diagnostic
 		expectedEphemeralResourcesSchemas map[string]*tfprotov5.Schema
+		expectedListResourcesSchemas      map[string]*tfprotov5.Schema
 		expectedFunctions                 map[string]*tfprotov5.Function
 		expectedProviderSchema            *tfprotov5.Schema
 		expectedProviderMetaSchema        *tfprotov5.Schema
@@ -192,6 +193,45 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 								},
 							},
 						},
+						ListResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_list_foo": {
+								Version: 1,
+								Block: &tfprotov5.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov5.SchemaAttribute{
+										{
+											Name:            "query_name",
+											Type:            tftypes.String,
+											Required:        true,
+											Description:     "input the query name",
+											DescriptionKind: tfprotov5.StringKindPlain,
+										},
+									},
+								},
+							},
+							"test_list_bar": {
+								Version: 1,
+								Block: &tfprotov5.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov5.SchemaAttribute{
+										{
+											Name:            "filter",
+											Type:            tftypes.String,
+											Optional:        true,
+											Description:     "search filter",
+											DescriptionKind: tfprotov5.StringKindPlain,
+										},
+										{
+											Name:            "prefix",
+											Type:            tftypes.String,
+											Optional:        true,
+											Description:     "name prefix",
+											DescriptionKind: tfprotov5.StringKindPlain,
+										},
+									},
+								},
+							},
+						},
 					},
 				}).ProviderServer,
 				(&tf5testserver.TestServer{
@@ -330,6 +370,23 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 											Type:            tftypes.Number,
 											Computed:        true,
 											Description:     "A generated secret number",
+											DescriptionKind: tfprotov5.StringKindPlain,
+										},
+									},
+								},
+							},
+						},
+						ListResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_list_foobar": {
+								Version: 1,
+								Block: &tfprotov5.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov5.SchemaAttribute{
+										{
+											Name:            "query_name",
+											Type:            tftypes.String,
+											Computed:        true,
+											Description:     "A generated query name",
 											DescriptionKind: tfprotov5.StringKindPlain,
 										},
 									},
@@ -573,6 +630,60 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
+			expectedListResourcesSchemas: map[string]*tfprotov5.Schema{
+				"test_list_foo": {
+					Version: 1,
+					Block: &tfprotov5.SchemaBlock{
+						Version: 1,
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:            "query_name",
+								Type:            tftypes.String,
+								Required:        true,
+								Description:     "input the query name",
+								DescriptionKind: tfprotov5.StringKindPlain,
+							},
+						},
+					},
+				},
+				"test_list_bar": {
+					Version: 1,
+					Block: &tfprotov5.SchemaBlock{
+						Version: 1,
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:            "filter",
+								Type:            tftypes.String,
+								Optional:        true,
+								Description:     "search filter",
+								DescriptionKind: tfprotov5.StringKindPlain,
+							},
+							{
+								Name:            "prefix",
+								Type:            tftypes.String,
+								Optional:        true,
+								Description:     "name prefix",
+								DescriptionKind: tfprotov5.StringKindPlain,
+							},
+						},
+					},
+				},
+				"test_list_foobar": {
+					Version: 1,
+					Block: &tfprotov5.SchemaBlock{
+						Version: 1,
+						Attributes: []*tfprotov5.SchemaAttribute{
+							{
+								Name:            "query_name",
+								Type:            tftypes.String,
+								Computed:        true,
+								Description:     "A generated query name",
+								DescriptionKind: tfprotov5.StringKindPlain,
+							},
+						},
+					},
+				},
+			},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -610,6 +721,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -649,6 +761,47 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{
 				"test_foo": {},
 			},
+			expectedListResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedFunctions:            map[string]*tfprotov5.Function{},
+			expectedResourceSchemas:      map[string]*tfprotov5.Schema{},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
+		},
+		"duplicate-list-resource-type": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ListResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_foo": {},
+						},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ListResourceSchemas: map[string]*tfprotov5.Schema{
+							"test_foo": {},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same list resource type across underlying providers. " +
+						"List resource types must be implemented by only one underlying provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate list resource type: test_foo",
+				},
+			},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas: map[string]*tfprotov5.Schema{
+				"test_foo": {},
+			},
 			expectedFunctions:       map[string]*tfprotov5.Function{},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -686,6 +839,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions: map[string]*tfprotov5.Function{
 				"test_function": {},
 			},
@@ -725,6 +879,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{
 				"test_foo": {},
@@ -803,6 +958,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedProviderSchema: &tfprotov5.Schema{
 				Block: &tfprotov5.SchemaBlock{
@@ -890,6 +1046,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedProviderMetaSchema: &tfprotov5.Schema{
 				Block: &tfprotov5.SchemaBlock{
@@ -933,6 +1090,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			},
 			expectedDataSourceSchemas:         map[string]*tfprotov5.Schema{},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas: map[string]*tfprotov5.Schema{
 				"test_with_server_capabilities":    {},
@@ -969,6 +1127,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -1017,6 +1176,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -1050,6 +1210,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -1098,6 +1259,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -1146,6 +1308,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				},
 			},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
 			expectedFunctions:                 map[string]*tfprotov5.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
 			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
@@ -1183,6 +1346,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 
 			if diff := cmp.Diff(resp.EphemeralResourceSchemas, testCase.expectedEphemeralResourcesSchemas); diff != "" {
 				t.Errorf("ephemeral resources schemas didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.ListResourceSchemas, testCase.expectedListResourcesSchemas); diff != "" {
+				t.Errorf("list resources schemas didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.Functions, testCase.expectedFunctions); diff != "" {

@@ -916,7 +916,7 @@ func TestV6ToV5ServerValidateListResourceConfig(t *testing.T) {
 	//nolint:staticcheck // Intentionally verifying interface implementation
 	listResourceServer, ok := v5server.(tfprotov5.ProviderServerWithListResource)
 	if !ok {
-		t.Fatal("v6server should implement tfprotov5.ProviderServerWithResourceIdentity")
+		t.Fatal("v6server should implement tfprotov5.ProviderServerWithListResource")
 	}
 
 	_, err = listResourceServer.ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{

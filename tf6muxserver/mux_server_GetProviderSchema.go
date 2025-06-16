@@ -26,6 +26,7 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov6.GetPro
 
 	resp := &tfprotov6.GetProviderSchemaResponse{
 		DataSourceSchemas:        make(map[string]*tfprotov6.Schema),
+		ListResourceSchemas:      make(map[string]*tfprotov6.Schema),
 		EphemeralResourceSchemas: make(map[string]*tfprotov6.Schema),
 		Functions:                make(map[string]*tfprotov6.Function),
 		ResourceSchemas:          make(map[string]*tfprotov6.Schema),
@@ -117,6 +118,17 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov6.GetPro
 
 			s.ephemeralResources[ephemeralResourceType] = server
 			resp.EphemeralResourceSchemas[ephemeralResourceType] = schema
+		}
+
+		for listResourceType, schema := range serverResp.ListResourceSchemas {
+			if _, ok := resp.ListResourceSchemas[listResourceType]; ok {
+				resp.Diagnostics = append(resp.Diagnostics, listResourceDuplicateError(listResourceType))
+
+				continue
+			}
+
+			s.listResources[listResourceType] = server
+			resp.ListResourceSchemas[listResourceType] = schema
 		}
 	}
 
