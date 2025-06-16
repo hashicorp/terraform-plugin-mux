@@ -685,7 +685,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(resp.ListResources, testCase.expectedListResources); diff != "" {
-				t.Errorf("ephemeral resources didn't match expectations: %s", diff)
+				t.Errorf("list resources didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.Functions, testCase.expectedFunctions); diff != "" {

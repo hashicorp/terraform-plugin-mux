@@ -193,17 +193,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 								},
 							},
 						},
-						ListResourceSchemas: map[string]*tfprotov6.Schema{ // TODO: Think of a good test
+						ListResourceSchemas: map[string]*tfprotov6.Schema{
 							"test_list_foo": {
 								Version: 1,
 								Block: &tfprotov6.SchemaBlock{
 									Version: 1,
 									Attributes: []*tfprotov6.SchemaAttribute{
 										{
-											Name:            "secret_number",
-											Type:            tftypes.Number,
+											Name:            "query_name",
+											Type:            tftypes.String,
 											Required:        true,
-											Description:     "input the secret number",
+											Description:     "input the query name",
 											DescriptionKind: tfprotov6.StringKindPlain,
 										},
 									},
@@ -215,17 +215,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 									Version: 1,
 									Attributes: []*tfprotov6.SchemaAttribute{
 										{
-											Name:            "username",
+											Name:            "filter",
 											Type:            tftypes.String,
 											Optional:        true,
-											Description:     "your username",
+											Description:     "search filter",
 											DescriptionKind: tfprotov6.StringKindPlain,
 										},
 										{
-											Name:            "password",
+											Name:            "prefix",
 											Type:            tftypes.String,
 											Optional:        true,
-											Description:     "your password",
+											Description:     "name prefix",
 											DescriptionKind: tfprotov6.StringKindPlain,
 										},
 									},
@@ -383,10 +383,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 									Version: 1,
 									Attributes: []*tfprotov6.SchemaAttribute{
 										{
-											Name:            "secret_number",
-											Type:            tftypes.Number,
+											Name:            "query_name",
+											Type:            tftypes.String,
 											Computed:        true,
-											Description:     "A generated secret number",
+											Description:     "A generated query name",
 											DescriptionKind: tfprotov6.StringKindPlain,
 										},
 									},
@@ -637,10 +637,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						Version: 1,
 						Attributes: []*tfprotov6.SchemaAttribute{
 							{
-								Name:            "secret_number",
-								Type:            tftypes.Number,
+								Name:            "query_name",
+								Type:            tftypes.String,
 								Required:        true,
-								Description:     "input the secret number",
+								Description:     "input the query name",
 								DescriptionKind: tfprotov6.StringKindPlain,
 							},
 						},
@@ -652,17 +652,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						Version: 1,
 						Attributes: []*tfprotov6.SchemaAttribute{
 							{
-								Name:            "username",
+								Name:            "filter",
 								Type:            tftypes.String,
 								Optional:        true,
-								Description:     "your username",
+								Description:     "search filter",
 								DescriptionKind: tfprotov6.StringKindPlain,
 							},
 							{
-								Name:            "password",
+								Name:            "prefix",
 								Type:            tftypes.String,
 								Optional:        true,
-								Description:     "your password",
+								Description:     "name prefix",
 								DescriptionKind: tfprotov6.StringKindPlain,
 							},
 						},
@@ -674,10 +674,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						Version: 1,
 						Attributes: []*tfprotov6.SchemaAttribute{
 							{
-								Name:            "secret_number",
-								Type:            tftypes.Number,
+								Name:            "query_name",
+								Type:            tftypes.String,
 								Computed:        true,
-								Description:     "A generated secret number",
+								Description:     "A generated query name",
 								DescriptionKind: tfprotov6.StringKindPlain,
 							},
 						},

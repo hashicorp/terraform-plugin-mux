@@ -193,17 +193,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 								},
 							},
 						},
-						ListResourceSchemas: map[string]*tfprotov5.Schema{ //TODO: Think of example
+						ListResourceSchemas: map[string]*tfprotov5.Schema{
 							"test_list_foo": {
 								Version: 1,
 								Block: &tfprotov5.SchemaBlock{
 									Version: 1,
 									Attributes: []*tfprotov5.SchemaAttribute{
 										{
-											Name:            "secret_number",
-											Type:            tftypes.Number,
+											Name:            "query_name",
+											Type:            tftypes.String,
 											Required:        true,
-											Description:     "input the secret number",
+											Description:     "input the query name",
 											DescriptionKind: tfprotov5.StringKindPlain,
 										},
 									},
@@ -215,17 +215,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 									Version: 1,
 									Attributes: []*tfprotov5.SchemaAttribute{
 										{
-											Name:            "username",
+											Name:            "filter",
 											Type:            tftypes.String,
 											Optional:        true,
-											Description:     "your username",
+											Description:     "search filter",
 											DescriptionKind: tfprotov5.StringKindPlain,
 										},
 										{
-											Name:            "password",
+											Name:            "prefix",
 											Type:            tftypes.String,
 											Optional:        true,
-											Description:     "your password",
+											Description:     "name prefix",
 											DescriptionKind: tfprotov5.StringKindPlain,
 										},
 									},
@@ -376,17 +376,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 								},
 							},
 						},
-						ListResourceSchemas: map[string]*tfprotov5.Schema{ //TODO: Think of example
+						ListResourceSchemas: map[string]*tfprotov5.Schema{
 							"test_list_foobar": {
 								Version: 1,
 								Block: &tfprotov5.SchemaBlock{
 									Version: 1,
 									Attributes: []*tfprotov5.SchemaAttribute{
 										{
-											Name:            "secret_number",
-											Type:            tftypes.Number,
+											Name:            "query_name",
+											Type:            tftypes.String,
 											Computed:        true,
-											Description:     "A generated secret number",
+											Description:     "A generated query name",
 											DescriptionKind: tfprotov5.StringKindPlain,
 										},
 									},
@@ -630,17 +630,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
-			expectedListResourcesSchemas: map[string]*tfprotov5.Schema{ // TODO: Update with example
+			expectedListResourcesSchemas: map[string]*tfprotov5.Schema{
 				"test_list_foo": {
 					Version: 1,
 					Block: &tfprotov5.SchemaBlock{
 						Version: 1,
 						Attributes: []*tfprotov5.SchemaAttribute{
 							{
-								Name:            "secret_number",
-								Type:            tftypes.Number,
+								Name:            "query_name",
+								Type:            tftypes.String,
 								Required:        true,
-								Description:     "input the secret number",
+								Description:     "input the query name",
 								DescriptionKind: tfprotov5.StringKindPlain,
 							},
 						},
@@ -652,17 +652,17 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						Version: 1,
 						Attributes: []*tfprotov5.SchemaAttribute{
 							{
-								Name:            "username",
+								Name:            "filter",
 								Type:            tftypes.String,
 								Optional:        true,
-								Description:     "your username",
+								Description:     "search filter",
 								DescriptionKind: tfprotov5.StringKindPlain,
 							},
 							{
-								Name:            "password",
+								Name:            "prefix",
 								Type:            tftypes.String,
 								Optional:        true,
-								Description:     "your password",
+								Description:     "name prefix",
 								DescriptionKind: tfprotov5.StringKindPlain,
 							},
 						},
@@ -674,10 +674,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 						Version: 1,
 						Attributes: []*tfprotov5.SchemaAttribute{
 							{
-								Name:            "secret_number",
-								Type:            tftypes.Number,
+								Name:            "query_name",
+								Type:            tftypes.String,
 								Computed:        true,
-								Description:     "A generated secret number",
+								Description:     "A generated query name",
 								DescriptionKind: tfprotov5.StringKindPlain,
 							},
 						},
