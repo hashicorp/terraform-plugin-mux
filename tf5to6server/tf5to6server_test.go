@@ -797,7 +797,7 @@ func TestV6ToV5ServerValidateResourceConfig(t *testing.T) {
 	}
 }
 
-func TestV6ToV5ServerValidateListResourceConfig(t *testing.T) {
+func TestV5ToV6ServerValidateListResourceConfig(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -831,5 +831,42 @@ func TestV6ToV5ServerValidateListResourceConfig(t *testing.T) {
 
 	if !v5server.ValidateListResourceConfigCalled["test_list_resource"] {
 		t.Errorf("expected test_list_resource ValidateListResourceConfig to be called")
+	}
+}
+
+func TestV5ToV6ServerListResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ListResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_list_resource": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error upgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	listResourceServer, ok := v6server.(tfprotov6.ProviderServerWithListResource)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov6.ProviderServerWithListResource")
+	}
+
+	_, err = listResourceServer.ListResource(ctx, &tfprotov6.ListResourceRequest{
+		TypeName: "test_list_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.ListResourceCalled["test_list_resource"] {
+		t.Errorf("expected test_list_resource ListResourceConfig to be called")
 	}
 }

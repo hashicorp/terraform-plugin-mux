@@ -931,3 +931,40 @@ func TestV6ToV5ServerValidateListResourceConfig(t *testing.T) {
 		t.Errorf("expected test_list_resource ValidateListResourceConfig to be called")
 	}
 }
+
+func TestV6ToV5ServerListResource(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_list_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	listResourceServer, ok := v5server.(tfprotov5.ProviderServerWithListResource)
+	if !ok {
+		t.Fatal("v6server should implement tfprotov5.ProviderServerWithListResource")
+	}
+
+	_, err = listResourceServer.ListResource(ctx, &tfprotov5.ListResourceRequest{
+		TypeName: "test_list_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.ListResourceCalled["test_list_resource"] {
+		t.Errorf("expected test_list_resource ListResource to be called")
+	}
+}

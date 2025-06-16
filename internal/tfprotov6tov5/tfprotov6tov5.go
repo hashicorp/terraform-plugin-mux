@@ -1083,3 +1083,41 @@ func ValidateListResourceConfigResponse(in *tfprotov6.ValidateListResourceConfig
 		Diagnostics: Diagnostics(in.Diagnostics),
 	}
 }
+
+func ListResourceRequest(in *tfprotov6.ListResourceRequest) *tfprotov5.ListResourceRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.ListResourceRequest{
+		Config:   DynamicValue(in.Config),
+		TypeName: in.TypeName,
+	}
+}
+
+func ListResourceServerStream(in *tfprotov6.ListResourceServerStream) *tfprotov5.ListResourceServerStream {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.ListResourceServerStream{
+		Results: func(yield func(tfprotov5.ListResourceResult) bool) {
+			for res := range in.Results {
+				yield(*ListResourceResult(&res))
+			}
+		},
+	}
+}
+
+func ListResourceResult(in *tfprotov6.ListResourceResult) *tfprotov5.ListResourceResult {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.ListResourceResult{
+		DisplayName: in.DisplayName,
+		Resource:    DynamicValue(in.Resource),
+		Identity:    ResourceIdentityData(in.Identity),
+		Diagnostics: Diagnostics(in.Diagnostics),
+	}
+}

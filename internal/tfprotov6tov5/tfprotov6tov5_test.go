@@ -5,6 +5,7 @@ package tfprotov6tov5_test
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -166,6 +167,22 @@ var (
 	}
 
 	testTime time.Time = time.Date(2000, 1, 2, 3, 4, 5, 6, time.UTC)
+
+	testStreamv5 *tfprotov5.ListResourceServerStream = &tfprotov5.ListResourceServerStream{
+		Results: slices.Values([]tfprotov5.ListResourceResult{
+			{
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+		}),
+	}
+
+	testStreamv6 *tfprotov6.ListResourceServerStream = &tfprotov6.ListResourceServerStream{
+		Results: slices.Values([]tfprotov6.ListResourceResult{
+			{
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+		}),
+	}
 )
 
 func init() {
@@ -3257,6 +3274,114 @@ func TestValidateListResourceConfigResponse(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov6tov5.ValidateListResourceConfigResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestListResourceRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.ListResourceRequest
+		expected *tfprotov5.ListResourceRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.ListResourceRequest{
+				Config:   &testTfprotov6DynamicValue,
+				TypeName: "test_list_resource",
+			},
+			expected: &tfprotov5.ListResourceRequest{
+				Config:   &testTfprotov5DynamicValue,
+				TypeName: "test_list_resource",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.ListResourceRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+/*func TestListResourceServerStream(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.ListResourceServerStream
+		expected *tfprotov5.ListResourceServerStream
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in:       testStreamv6,
+			expected: testStreamv5,
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.ListResourceServerStream(testCase.in)
+			for res := range got.Results {
+				if diff := cmp.Diff(res, testCase.expected.Results); diff != "" {
+					t.Errorf("unexpected difference: %s", diff)
+				}
+			}
+
+			//if diff := cmp.Diff(got.Results, testCase.expected.Results); diff != "" {
+			//	t.Errorf("unexpected difference: %s", diff)
+			//}
+		})
+	}
+}*/
+
+func TestListResourceResult(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.ListResourceResult
+		expected *tfprotov5.ListResourceResult
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.ListResourceResult{
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+			expected: &tfprotov5.ListResourceResult{
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.ListResourceResult(testCase.in)
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
