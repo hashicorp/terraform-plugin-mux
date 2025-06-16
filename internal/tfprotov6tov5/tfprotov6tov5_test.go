@@ -3319,7 +3319,7 @@ func TestListResourceRequest(t *testing.T) {
 	}
 }
 
-/*func TestListResourceServerStream(t *testing.T) {
+func TestListResourceServerStream(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -3342,18 +3342,29 @@ func TestListResourceRequest(t *testing.T) {
 			t.Parallel()
 
 			got := tfprotov6tov5.ListResourceServerStream(testCase.in)
+
+			resultSlice := make([]tfprotov5.ListResourceResult, 0)
 			for res := range got.Results {
-				if diff := cmp.Diff(res, testCase.expected.Results); diff != "" {
+				resultSlice = append(resultSlice, res)
+			}
+
+			expectedSlice := make([]tfprotov5.ListResourceResult, 0)
+			for res := range testCase.expected.Results {
+				expectedSlice = append(expectedSlice, res)
+			}
+
+			if len(expectedSlice) != len(resultSlice) {
+				t.Fatalf("expected iterator and result iterator lengths do not match")
+			}
+
+			for idx := range resultSlice {
+				if diff := cmp.Diff(resultSlice[idx], expectedSlice[idx]); diff != "" {
 					t.Errorf("unexpected difference: %s", diff)
 				}
 			}
-
-			//if diff := cmp.Diff(got.Results, testCase.expected.Results); diff != "" {
-			//	t.Errorf("unexpected difference: %s", diff)
-			//}
 		})
 	}
-}*/
+}
 
 func TestListResourceResult(t *testing.T) {
 	t.Parallel()
