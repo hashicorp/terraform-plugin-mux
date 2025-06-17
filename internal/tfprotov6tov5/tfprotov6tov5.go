@@ -1106,7 +1106,7 @@ func ListResourceServerStream(in *tfprotov6.ListResourceServerStream) *tfprotov5
 				if !yield(ListResourceResult(res)) {
 					break
 				}
-				yield(ListResourceResult(res))
+				ListResourceResult(res)
 			}
 		},
 	}
