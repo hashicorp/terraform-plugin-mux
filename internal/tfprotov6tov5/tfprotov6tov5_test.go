@@ -3354,24 +3354,16 @@ func TestListResourceServerStream(t *testing.T) {
 					t.Errorf("unexpected difference: %s", diff)
 				}
 			} else {
-				resultSlice := make([]tfprotov5.ListResourceResult, 0)
-				for res := range got.Results {
-					resultSlice = append(resultSlice, res)
-				}
+				gotSlice := slices.Collect(got.Results)
 
-				expectedSlice := make([]tfprotov5.ListResourceResult, 0)
-				for res := range testCase.expected.Results {
-					expectedSlice = append(expectedSlice, res)
-				}
+				expectedSlice := slices.Collect(got.Results)
 
-				if len(expectedSlice) != len(resultSlice) {
+				if len(expectedSlice) != len(gotSlice) {
 					t.Fatalf("expected iterator and result iterator lengths do not match")
 				}
 
-				for idx := range resultSlice {
-					if diff := cmp.Diff(resultSlice[idx], expectedSlice[idx]); diff != "" {
-						t.Errorf("unexpected difference: %s", diff)
-					}
+				if diff := cmp.Diff(gotSlice, expectedSlice); diff != "" {
+					t.Errorf("unexpected difference: %s", diff)
 				}
 			}
 		})
@@ -3382,18 +3374,42 @@ func TestListResourceResult(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		in       *tfprotov6.ListResourceResult
-		expected *tfprotov5.ListResourceResult
+		in       tfprotov6.ListResourceResult
+		expected tfprotov5.ListResourceResult
 	}{
-		"nil": {
-			in:       nil,
-			expected: nil,
-		},
-		"all-valid-fields": {
-			in: &tfprotov6.ListResourceResult{
+		"identity-nil": {
+			in: tfprotov6.ListResourceResult{
+				DisplayName: "test",
+				Resource:    &testTfprotov6DynamicValue,
+				Identity:    nil,
 				Diagnostics: testTfprotov6Diagnostics,
 			},
-			expected: &tfprotov5.ListResourceResult{
+			expected: tfprotov5.ListResourceResult{
+				DisplayName: "test",
+				Resource:    &testTfprotov5DynamicValue,
+				Identity:    nil,
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+		},
+		"resource-nil": {
+			in: tfprotov6.ListResourceResult{
+				DisplayName: "test",
+				Resource:    nil,
+				Identity:    &testTfprotov6ResourceIdentityData,
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+			expected: tfprotov5.ListResourceResult{
+				DisplayName: "test",
+				Resource:    nil,
+				Identity:    &testTfprotov5ResourceIdentityData,
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+		},
+		"all-valid-fields": {
+			in: tfprotov6.ListResourceResult{
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+			expected: tfprotov5.ListResourceResult{
 				Diagnostics: testTfprotov5Diagnostics,
 			},
 		},

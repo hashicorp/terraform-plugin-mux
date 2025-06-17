@@ -3079,24 +3079,16 @@ func TestListResourceServerStream(t *testing.T) {
 					t.Errorf("unexpected difference: %s", diff)
 				}
 			} else {
-				resultSlice := make([]tfprotov6.ListResourceResult, 0)
-				for res := range got.Results {
-					resultSlice = append(resultSlice, res)
-				}
+				gotSlice := slices.Collect(got.Results)
 
-				expectedSlice := make([]tfprotov6.ListResourceResult, 0)
-				for res := range testCase.expected.Results {
-					expectedSlice = append(expectedSlice, res)
-				}
+				expectedSlice := slices.Collect(got.Results)
 
-				if len(expectedSlice) != len(resultSlice) {
+				if len(expectedSlice) != len(gotSlice) {
 					t.Fatalf("expected iterator and result iterator lengths do not match")
 				}
 
-				for idx := range resultSlice {
-					if diff := cmp.Diff(resultSlice[idx], expectedSlice[idx]); diff != "" {
-						t.Errorf("unexpected difference: %s", diff)
-					}
+				if diff := cmp.Diff(gotSlice, expectedSlice); diff != "" {
+					t.Errorf("unexpected difference: %s", diff)
 				}
 			}
 		})
@@ -3107,18 +3099,14 @@ func TestListResourceResult(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		in       *tfprotov5.ListResourceResult
-		expected *tfprotov6.ListResourceResult
+		in       tfprotov5.ListResourceResult
+		expected tfprotov6.ListResourceResult
 	}{
-		"nil": {
-			in:       nil,
-			expected: nil,
-		},
 		"all-valid-fields": {
-			in: &tfprotov5.ListResourceResult{
+			in: tfprotov5.ListResourceResult{
 				Diagnostics: testTfprotov5Diagnostics,
 			},
-			expected: &tfprotov6.ListResourceResult{
+			expected: tfprotov6.ListResourceResult{
 				Diagnostics: testTfprotov6Diagnostics,
 			},
 		},

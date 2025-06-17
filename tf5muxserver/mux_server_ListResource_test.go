@@ -44,7 +44,7 @@ func TestMuxServerListResource(t *testing.T) {
 		t.Fatal("muxServer should implement tfprotov5.ProviderServerWithListResource")
 	}
 
-	_, err = listResourceServer.ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
+	_, err = listResourceServer.ListResource(ctx, &tfprotov5.ListResourceRequest{
 		TypeName: "test_list_resource_server1",
 	})
 
@@ -52,15 +52,15 @@ func TestMuxServerListResource(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	if !testServer1.ValidateListResourceConfigCalled["test_list_resource_server1"] {
-		t.Errorf("expected test_list_resource_server1 ValidateListResourceConfig to be called on server1")
+	if !testServer1.ListResourceCalled["test_list_resource_server1"] {
+		t.Errorf("expected test_list_resource_server1 ListResource to be called on server1")
 	}
 
-	if testServer2.ValidateListResourceConfigCalled["test_list_resource_server1"] {
-		t.Errorf("unexpected test_list_resource_server1 ValidateListResourceConfig called on server2")
+	if testServer2.ListResourceCalled["test_list_resource_server1"] {
+		t.Errorf("unexpected test_list_resource_server1 ListResource called on server2")
 	}
 
-	_, err = listResourceServer.ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
+	_, err = listResourceServer.ListResource(ctx, &tfprotov5.ListResourceRequest{
 		TypeName: "test_list_resource_server2",
 	})
 
@@ -68,11 +68,11 @@ func TestMuxServerListResource(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	if testServer1.ValidateListResourceConfigCalled["test_list_resource_server2"] {
-		t.Errorf("unexpected test_list_resource_server2 ValidateListResourceConfig called on server1")
+	if testServer1.ListResourceCalled["test_list_resource_server2"] {
+		t.Errorf("unexpected test_list_resource_server2 ListResource called on server1")
 	}
 
-	if !testServer2.ValidateListResourceConfigCalled["test_list_resource_server2"] {
-		t.Errorf("expected test_list_resource_server2 ValidateListResourceConfig to be called on server2")
+	if !testServer2.ListResourceCalled["test_list_resource_server2"] {
+		t.Errorf("expected test_list_resource_server2 ListResource to be called on server2")
 	}
 }

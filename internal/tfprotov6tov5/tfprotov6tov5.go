@@ -1103,18 +1103,17 @@ func ListResourceServerStream(in *tfprotov6.ListResourceServerStream) *tfprotov5
 	return &tfprotov5.ListResourceServerStream{
 		Results: func(yield func(tfprotov5.ListResourceResult) bool) {
 			for res := range in.Results {
-				yield(*ListResourceResult(&res))
+				if !yield(ListResourceResult(res)) {
+					break
+				}
+				yield(ListResourceResult(res))
 			}
 		},
 	}
 }
 
-func ListResourceResult(in *tfprotov6.ListResourceResult) *tfprotov5.ListResourceResult {
-	if in == nil {
-		return nil
-	}
-
-	return &tfprotov5.ListResourceResult{
+func ListResourceResult(in tfprotov6.ListResourceResult) tfprotov5.ListResourceResult {
+	return tfprotov5.ListResourceResult{
 		DisplayName: in.DisplayName,
 		Resource:    DynamicValue(in.Resource),
 		Identity:    ResourceIdentityData(in.Identity),

@@ -22,6 +22,9 @@ func (s *muxServer) ListResource(ctx context.Context, req *tfprotov6.ListResourc
 		return nil, err
 	}
 
+	// If there is an error diagnostic, the stream will return a single ListResourceResult with the error diagnostic
+	// this should help to make the error more readable and keep the stream from starting if there is a problem.
+
 	if diagnosticsHasError(diags) {
 		return &tfprotov6.ListResourceServerStream{
 			Results: slices.Values([]tfprotov6.ListResourceResult{
