@@ -14,8 +14,8 @@ import (
 
 // GetProviderSchema merges the schemas returned by the
 // tfprotov6.ProviderServers associated with muxServer into a single schema.
-// Resources and data sources must be returned from only one server. Provider
-// and ProviderMeta schemas must be identical between all servers.
+// Resources, data sources, ephemeral resources, list resources, actions, and functions must be returned
+// from only one server. Provider and ProviderMeta schemas must be identical between all servers.
 func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov6.GetProviderSchemaRequest) (*tfprotov6.GetProviderSchemaResponse, error) {
 	rpc := "GetProviderSchema"
 	ctx = logging.InitContext(ctx)
@@ -25,6 +25,7 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov6.GetPro
 	defer s.serverDiscoveryMutex.Unlock()
 
 	resp := &tfprotov6.GetProviderSchemaResponse{
+		ActionSchemas:            make(map[string]*tfprotov6.ActionSchema),
 		DataSourceSchemas:        make(map[string]*tfprotov6.Schema),
 		ListResourceSchemas:      make(map[string]*tfprotov6.Schema),
 		EphemeralResourceSchemas: make(map[string]*tfprotov6.Schema),
@@ -73,6 +74,17 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov6.GetPro
 			} else {
 				resp.ProviderMeta = serverResp.ProviderMeta
 			}
+		}
+
+		for actionType, schema := range serverResp.ActionSchemas {
+			if _, ok := resp.ActionSchemas[actionType]; ok {
+				resp.Diagnostics = append(resp.Diagnostics, actionDuplicateError(actionType))
+
+				continue
+			}
+
+			s.actions[actionType] = server
+			resp.ActionSchemas[actionType] = schema
 		}
 
 		for resourceType, schema := range serverResp.ResourceSchemas {

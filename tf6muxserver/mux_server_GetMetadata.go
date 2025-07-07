@@ -14,8 +14,8 @@ import (
 
 // GetMetadata merges the metadata returned by the
 // tfprotov6.ProviderServers associated with muxServer into a single response.
-// Resources and data sources must be returned from only one server or an error
-// diagnostic is returned.
+// Resources, data sources, ephemeral resources, list resources, actions, and functions must be returned
+// from only one server or an error diagnostic is returned.
 func (s *muxServer) GetMetadata(ctx context.Context, req *tfprotov6.GetMetadataRequest) (*tfprotov6.GetMetadataResponse, error) {
 	rpc := "GetMetadata"
 	ctx = logging.InitContext(ctx)
@@ -25,6 +25,7 @@ func (s *muxServer) GetMetadata(ctx context.Context, req *tfprotov6.GetMetadataR
 	defer s.serverDiscoveryMutex.Unlock()
 
 	resp := &tfprotov6.GetMetadataResponse{
+		Actions:            make([]tfprotov6.ActionMetadata, 0),
 		DataSources:        make([]tfprotov6.DataSourceMetadata, 0),
 		EphemeralResources: make([]tfprotov6.EphemeralResourceMetadata, 0),
 		ListResources:      make([]tfprotov6.ListResourceMetadata, 0),
@@ -44,6 +45,17 @@ func (s *muxServer) GetMetadata(ctx context.Context, req *tfprotov6.GetMetadataR
 		}
 
 		resp.Diagnostics = append(resp.Diagnostics, serverResp.Diagnostics...)
+
+		for _, action := range serverResp.Actions {
+			if actionMetadataContainsTypeName(resp.Actions, action.TypeName) {
+				resp.Diagnostics = append(resp.Diagnostics, actionDuplicateError(action.TypeName))
+
+				continue
+			}
+
+			s.actions[action.TypeName] = server
+			resp.Actions = append(resp.Actions, action)
+		}
 
 		for _, datasource := range serverResp.DataSources {
 			if datasourceMetadataContainsTypeName(resp.DataSources, datasource.TypeName) {
@@ -103,6 +115,16 @@ func (s *muxServer) GetMetadata(ctx context.Context, req *tfprotov6.GetMetadataR
 	}
 
 	return resp, nil
+}
+
+func actionMetadataContainsTypeName(metadatas []tfprotov6.ActionMetadata, typeName string) bool {
+	for _, metadata := range metadatas {
+		if typeName == metadata.TypeName {
+			return true
+		}
+	}
+
+	return false
 }
 
 func datasourceMetadataContainsTypeName(metadatas []tfprotov6.DataSourceMetadata, typeName string) bool {
