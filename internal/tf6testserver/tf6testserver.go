@@ -68,6 +68,10 @@ type TestServer struct {
 	ValidateListResourceConfigCalled map[string]bool
 
 	ListResourceCalled map[string]bool
+
+	PlanActionCalled map[string]bool
+
+	InvokeActionCalled map[string]bool
 }
 
 func (s *TestServer) ProviderServer() tfprotov6.ProviderServer {
@@ -293,5 +297,23 @@ func (s *TestServer) ListResource(_ context.Context, req *tfprotov6.ListResource
 	}
 
 	s.ListResourceCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) PlanAction(ctx context.Context, req *tfprotov6.PlanActionRequest) (*tfprotov6.PlanActionResponse, error) {
+	if s.PlanActionCalled == nil {
+		s.PlanActionCalled = make(map[string]bool)
+	}
+
+	s.PlanActionCalled[req.ActionType] = true
+	return nil, nil
+}
+
+func (s *TestServer) InvokeAction(ctx context.Context, req *tfprotov6.InvokeActionRequest) (*tfprotov6.InvokeActionServerStream, error) {
+	if s.InvokeActionCalled == nil {
+		s.InvokeActionCalled = make(map[string]bool)
+	}
+
+	s.InvokeActionCalled[req.ActionType] = true
 	return nil, nil
 }
