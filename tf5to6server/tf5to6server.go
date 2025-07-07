@@ -341,3 +341,67 @@ func (s v5tov6Server) ListResource(ctx context.Context, req *tfprotov6.ListResou
 
 	return tfprotov5tov6.ListResourceServerStream(v5Resp), nil
 }
+
+func (s v5tov6Server) PlanAction(ctx context.Context, req *tfprotov6.PlanActionRequest) (*tfprotov6.PlanActionResponse, error) {
+	// TODO: Remove and call s.v5Server.PlanAction below directly once interface becomes required
+	actionServer, ok := s.v5Server.(tfprotov5.ActionServer)
+	if !ok {
+		v6Resp := &tfprotov6.PlanActionResponse{
+			Diagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "PlanAction Not Implemented",
+					Detail: "A PlanAction call was received by the provider, however the provider does not implement the RPC. " +
+						"Either upgrade the provider to a version that implements PlanAction or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return v6Resp, nil
+	}
+
+	v5Req := tfprotov6tov5.PlanActionRequest(req)
+
+	// v5Resp, err := s.v5Server.PlanAction(ctx, v5Req)
+	v5Resp, err := actionServer.PlanAction(ctx, v5Req)
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov5tov6.PlanActionResponse(v5Resp), nil
+}
+
+func (s v5tov6Server) InvokeAction(ctx context.Context, req *tfprotov6.InvokeActionRequest) (*tfprotov6.InvokeActionServerStream, error) {
+	// TODO: Remove and call s.v5Server.InvokeAction below directly once interface becomes required
+	actionServer, ok := s.v5Server.(tfprotov5.ActionServer)
+	if !ok {
+		v6Resp := &tfprotov6.InvokeActionServerStream{
+			Events: slices.Values([]tfprotov6.InvokeActionEvent{
+				{
+					Type: tfprotov6.CompletedInvokeActionEventType{
+						Diagnostics: []*tfprotov6.Diagnostic{
+							{
+								Severity: tfprotov6.DiagnosticSeverityError,
+								Summary:  "InvokeAction Not Implemented",
+								Detail: "An InvokeAction call was received by the provider, however the provider does not implement the RPC. " +
+									"Either upgrade the provider to a version that implements InvokeAction or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+							},
+						},
+					},
+				},
+			}),
+		}
+
+		return v6Resp, nil
+	}
+
+	v5Req := tfprotov6tov5.InvokeActionRequest(req)
+
+	// v5Resp, err := s.v5Server.InvokeAction(ctx, v5Req)
+	v5Resp, err := actionServer.InvokeAction(ctx, v5Req)
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov5tov6.InvokeActionServerStream(v5Resp), nil
+}
