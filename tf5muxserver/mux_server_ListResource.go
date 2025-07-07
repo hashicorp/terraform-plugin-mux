@@ -37,8 +37,7 @@ func (s *muxServer) ListResource(ctx context.Context, req *tfprotov5.ListResourc
 	}
 
 	// TODO: Remove and call server.ListResource below directly once interface becomes required.
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	listResourceServer, ok := server.(tfprotov5.ProviderServerWithListResource)
+	listResourceServer, ok := server.(tfprotov5.ListResourceServer)
 	if !ok {
 		resp := &tfprotov5.ListResourceServerStream{
 			Results: slices.Values([]tfprotov5.ListResourceResult{

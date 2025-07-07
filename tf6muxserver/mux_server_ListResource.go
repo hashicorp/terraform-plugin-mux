@@ -5,8 +5,9 @@ package tf6muxserver
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"slices"
+
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
 )
@@ -36,8 +37,7 @@ func (s *muxServer) ListResource(ctx context.Context, req *tfprotov6.ListResourc
 	}
 
 	// TODO: Remove and call server.ListResource below directly once interface becomes required.
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	listResourceServer, ok := server.(tfprotov6.ProviderServerWithListResource)
+	listResourceServer, ok := server.(tfprotov6.ListResourceServer)
 	if !ok {
 		resp := &tfprotov6.ListResourceServerStream{
 			Results: slices.Values([]tfprotov6.ListResourceResult{

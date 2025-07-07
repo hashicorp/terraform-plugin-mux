@@ -284,8 +284,7 @@ func (s v5tov6Server) ValidateResourceConfig(ctx context.Context, req *tfprotov6
 
 func (s v5tov6Server) ValidateListResourceConfig(ctx context.Context, req *tfprotov6.ValidateListResourceConfigRequest) (*tfprotov6.ValidateListResourceConfigResponse, error) {
 	// TODO: Remove and call s.v5Server.ValidateListResourceConfig below directly once interface becomes required
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	listResourceServer, ok := s.v5Server.(tfprotov5.ProviderServerWithListResource)
+	listResourceServer, ok := s.v5Server.(tfprotov5.ListResourceServer)
 	if !ok {
 		v6Resp := &tfprotov6.ValidateListResourceConfigResponse{
 			Diagnostics: []*tfprotov6.Diagnostic{
@@ -313,8 +312,7 @@ func (s v5tov6Server) ValidateListResourceConfig(ctx context.Context, req *tfpro
 
 func (s v5tov6Server) ListResource(ctx context.Context, req *tfprotov6.ListResourceRequest) (*tfprotov6.ListResourceServerStream, error) {
 	// TODO: Remove and call s.v5Server.ListResource below directly once interface becomes required
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	listResourceServer, ok := s.v5Server.(tfprotov5.ProviderServerWithListResource)
+	listResourceServer, ok := s.v5Server.(tfprotov5.ListResourceServer)
 	if !ok {
 		v6Resp := &tfprotov6.ListResourceServerStream{
 			Results: slices.Values([]tfprotov6.ListResourceResult{
