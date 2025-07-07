@@ -5,6 +5,27 @@ package tf5muxserver
 
 import "github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
+func actionDuplicateError(actionType string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "Invalid Provider Server Combination",
+		Detail: "The combined provider has multiple implementations of the same action type across underlying providers. " +
+			"Actions must be implemented by only one underlying provider. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Duplicate action: " + actionType,
+	}
+}
+
+func actionMissingError(actionType string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "Action Not Implemented",
+		Detail: "The combined provider does not implement the requested action. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Missing action: " + actionType,
+	}
+}
+
 func dataSourceDuplicateError(typeName string) *tfprotov5.Diagnostic {
 	return &tfprotov5.Diagnostic{
 		Severity: tfprotov5.DiagnosticSeverityError,
