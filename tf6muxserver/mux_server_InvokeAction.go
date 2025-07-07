@@ -46,7 +46,7 @@ func (s *muxServer) InvokeAction(ctx context.Context, req *tfprotov6.InvokeActio
 							{
 								Severity: tfprotov6.DiagnosticSeverityError,
 								Summary:  "InvokeAction Not Implemented",
-								Detail: "A InvokeAction call was received by the provider, however the provider does not implement InvokeAction. " +
+								Detail: "An InvokeAction call was received by the provider, however the provider does not implement InvokeAction. " +
 									"Either upgrade the provider to a version that implements InvokeAction or this is a bug in Terraform that should be reported to the Terraform maintainers.",
 							},
 						},
