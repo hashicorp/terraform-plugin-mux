@@ -436,7 +436,7 @@ func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer)
 
 type Option func(*muxServer)
 
-func OptServers(servers ...func() tfprotov5.ProviderServer) Option {
+func Servers(servers ...func() tfprotov5.ProviderServer) Option {
 	return func(mux *muxServer) {
 		for _, server := range servers {
 			mux.servers = append(mux.servers, server())
@@ -444,7 +444,7 @@ func OptServers(servers ...func() tfprotov5.ProviderServer) Option {
 	}
 }
 
-func OptInterceptors(interceptors ...Interceptor) Option {
+func Interceptors(interceptors ...Interceptor) Option {
 	return func(mux *muxServer) {
 		mux.interceptors = append(mux.interceptors, interceptors...)
 	}
