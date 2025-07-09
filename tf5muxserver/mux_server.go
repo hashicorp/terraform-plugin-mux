@@ -57,17 +57,11 @@ type muxServer struct {
 	servers []tfprotov5.ProviderServer
 
 	// interceptors []tfprotov5.Interceptor
-	listResourceInterceptors []Interceptor[*tfprotov5.ListResourceRequest]
+	interceptors []Interceptor
 }
 
-type Event byte
-
-const (
-	Before Event = iota
-)
-
-type Interceptor[T any] interface {
-	Call(ctx context.Context, e Event, request T) (newContext context.Context, newRequest T)
+type Interceptor struct {
+	BeforeListResource func(context.Context, *tfprotov5.ListResourceRequest) context.Context
 }
 
 // ProviderServer is a function compatible with tf6server.Serve.
@@ -450,9 +444,9 @@ func OptServers(servers ...func() tfprotov5.ProviderServer) Option {
 	}
 }
 
-func OptListResourceInterceptors(interceptors ...Interceptor[*tfprotov5.ListResourceRequest]) Option {
+func OptInterceptors(interceptors ...Interceptor) Option {
 	return func(mux *muxServer) {
-		mux.listResourceInterceptors = append(mux.listResourceInterceptors, interceptors...)
+		mux.interceptors = append(mux.interceptors, interceptors...)
 	}
 }
 
