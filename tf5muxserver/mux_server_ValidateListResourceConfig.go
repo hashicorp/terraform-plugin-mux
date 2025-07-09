@@ -29,8 +29,7 @@ func (s *muxServer) ValidateListResourceConfig(ctx context.Context, req *tfproto
 	}
 
 	// TODO: Remove and call server.ValidateListResourceConfig below directly once interface becomes required.
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	listResourceServer, ok := server.(tfprotov5.ProviderServerWithListResource)
+	listResourceServer, ok := server.(tfprotov5.ListResourceServer)
 	if !ok {
 		resp := &tfprotov5.ValidateListResourceConfigResponse{
 			Diagnostics: []*tfprotov5.Diagnostic{

@@ -306,6 +306,7 @@ func GetMetadataResponse(in *tfprotov6.GetMetadataResponse) *tfprotov5.GetMetada
 	}
 
 	resp := &tfprotov5.GetMetadataResponse{
+		Actions:            make([]tfprotov5.ActionMetadata, 0, len(in.Actions)),
 		DataSources:        make([]tfprotov5.DataSourceMetadata, 0, len(in.DataSources)),
 		Diagnostics:        Diagnostics(in.Diagnostics),
 		EphemeralResources: make([]tfprotov5.EphemeralResourceMetadata, 0, len(in.Resources)),
@@ -333,6 +334,10 @@ func GetMetadataResponse(in *tfprotov6.GetMetadataResponse) *tfprotov5.GetMetada
 
 	for _, resource := range in.Resources {
 		resp.Resources = append(resp.Resources, ResourceMetadata(resource))
+	}
+
+	for _, action := range in.Actions {
+		resp.Actions = append(resp.Actions, ActionMetadata(action))
 	}
 
 	return resp
@@ -417,7 +422,20 @@ func GetProviderSchemaResponse(in *tfprotov6.GetProviderSchemaResponse) (*tfprot
 		resourceSchemas[k] = v5Schema
 	}
 
+	actionSchemas := make(map[string]*tfprotov5.ActionSchema, len(in.ActionSchemas))
+
+	for k, v := range in.ActionSchemas {
+		actionSchema, err := ActionSchema(v)
+
+		if err != nil {
+			return nil, fmt.Errorf("unable to convert action %q schema: %w", k, err)
+		}
+
+		actionSchemas[k] = actionSchema
+	}
+
 	return &tfprotov5.GetProviderSchemaResponse{
+		ActionSchemas:            actionSchemas,
 		DataSourceSchemas:        dataSourceSchemas,
 		Diagnostics:              Diagnostics(in.Diagnostics),
 		EphemeralResourceSchemas: ephemeralResourceSchemas,
@@ -1118,4 +1136,250 @@ func ListResourceResult(in tfprotov6.ListResourceResult) tfprotov5.ListResourceR
 		Identity:    ResourceIdentityData(in.Identity),
 		Diagnostics: Diagnostics(in.Diagnostics),
 	}
+}
+
+func ActionMetadata(in tfprotov6.ActionMetadata) tfprotov5.ActionMetadata {
+	return tfprotov5.ActionMetadata{
+		TypeName: in.TypeName,
+	}
+}
+
+func ActionSchema(in *tfprotov6.ActionSchema) (*tfprotov5.ActionSchema, error) {
+	if in == nil {
+		return nil, nil
+	}
+
+	v5Schema, err := Schema(in.Schema)
+	if err != nil {
+		return nil, err
+	}
+
+	actionSchema := &tfprotov5.ActionSchema{
+		Schema: v5Schema,
+	}
+
+	switch actionSchemaType := in.Type.(type) {
+	case tfprotov6.UnlinkedActionSchemaType:
+		actionSchema.Type = tfprotov5.UnlinkedActionSchemaType{}
+	case tfprotov6.LifecycleActionSchemaType:
+		actionSchema.Type = tfprotov5.LifecycleActionSchemaType{
+			Executes:       tfprotov5.LifecycleExecutionOrder(actionSchemaType.Executes),
+			LinkedResource: LinkedResourceSchema(actionSchemaType.LinkedResource),
+		}
+	case tfprotov6.LinkedActionSchemaType:
+		actionSchema.Type = tfprotov5.LinkedActionSchemaType{
+			LinkedResources: LinkedResourceSchemas(actionSchemaType.LinkedResources),
+		}
+	default:
+		// It is not currently possible to create tfprotov6.ActionSchemaType
+		// implementations outside the terraform-plugin-go module. If this panic was reached,
+		// it implies that a new event type was introduced and needs to be implemented
+		// as a new case above.
+		panic(fmt.Sprintf("unimplemented tfprotov6.ActionSchemaType type: %T", in.Type))
+	}
+
+	return actionSchema, nil
+}
+
+func LinkedResourceSchemas(in []*tfprotov6.LinkedResourceSchema) []*tfprotov5.LinkedResourceSchema {
+	schemas := make([]*tfprotov5.LinkedResourceSchema, 0, len(in))
+
+	for _, schema := range in {
+		schemas = append(schemas, LinkedResourceSchema(schema))
+	}
+
+	return schemas
+}
+
+func LinkedResourceSchema(in *tfprotov6.LinkedResourceSchema) *tfprotov5.LinkedResourceSchema {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.LinkedResourceSchema{
+		TypeName:    in.TypeName,
+		Description: in.Description,
+	}
+}
+
+func PlanActionRequest(in *tfprotov6.PlanActionRequest) *tfprotov5.PlanActionRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.PlanActionRequest{
+		ActionType:         in.ActionType,
+		LinkedResources:    ProposedLinkedResources(in.LinkedResources),
+		Config:             DynamicValue(in.Config),
+		ClientCapabilities: PlanActionClientCapabilities(in.ClientCapabilities),
+	}
+}
+
+func ProposedLinkedResources(in []*tfprotov6.ProposedLinkedResource) []*tfprotov5.ProposedLinkedResource {
+	if in == nil {
+		return nil
+	}
+
+	linkedResources := make([]*tfprotov5.ProposedLinkedResource, 0, len(in))
+
+	for _, inLinkedResource := range in {
+		if inLinkedResource == nil {
+			linkedResources = append(linkedResources, nil)
+			continue
+		}
+
+		linkedResources = append(linkedResources, &tfprotov5.ProposedLinkedResource{
+			PriorState:    DynamicValue(inLinkedResource.PriorState),
+			PlannedState:  DynamicValue(inLinkedResource.PlannedState),
+			Config:        DynamicValue(inLinkedResource.Config),
+			PriorIdentity: ResourceIdentityData(inLinkedResource.PriorIdentity),
+		})
+	}
+
+	return linkedResources
+}
+
+func PlanActionClientCapabilities(in *tfprotov6.PlanActionClientCapabilities) *tfprotov5.PlanActionClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov5.PlanActionClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+
+	return resp
+}
+
+func PlanActionResponse(in *tfprotov6.PlanActionResponse) *tfprotov5.PlanActionResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.PlanActionResponse{
+		LinkedResources: PlannedLinkedResources(in.LinkedResources),
+		Diagnostics:     Diagnostics(in.Diagnostics),
+		Deferred:        Deferred(in.Deferred),
+	}
+}
+
+func PlannedLinkedResources(in []*tfprotov6.PlannedLinkedResource) []*tfprotov5.PlannedLinkedResource {
+	if in == nil {
+		return nil
+	}
+
+	linkedResources := make([]*tfprotov5.PlannedLinkedResource, 0, len(in))
+
+	for _, inLinkedResource := range in {
+		if inLinkedResource == nil {
+			linkedResources = append(linkedResources, nil)
+			continue
+		}
+
+		linkedResources = append(linkedResources, &tfprotov5.PlannedLinkedResource{
+			PlannedState:    DynamicValue(inLinkedResource.PlannedState),
+			PlannedIdentity: ResourceIdentityData(inLinkedResource.PlannedIdentity),
+		})
+	}
+
+	return linkedResources
+}
+
+func InvokeActionRequest(in *tfprotov6.InvokeActionRequest) *tfprotov5.InvokeActionRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.InvokeActionRequest{
+		ActionType:      in.ActionType,
+		LinkedResources: InvokeLinkedResources(in.LinkedResources),
+		Config:          DynamicValue(in.Config),
+	}
+}
+
+func InvokeLinkedResources(in []*tfprotov6.InvokeLinkedResource) []*tfprotov5.InvokeLinkedResource {
+	if in == nil {
+		return nil
+	}
+
+	linkedResources := make([]*tfprotov5.InvokeLinkedResource, 0, len(in))
+
+	for _, inLinkedResource := range in {
+		if inLinkedResource == nil {
+			linkedResources = append(linkedResources, nil)
+			continue
+		}
+
+		linkedResources = append(linkedResources, &tfprotov5.InvokeLinkedResource{
+			PriorState:      DynamicValue(inLinkedResource.PriorState),
+			PlannedState:    DynamicValue(inLinkedResource.PlannedState),
+			Config:          DynamicValue(inLinkedResource.Config),
+			PlannedIdentity: ResourceIdentityData(inLinkedResource.PlannedIdentity),
+		})
+	}
+
+	return linkedResources
+}
+
+func InvokeActionServerStream(in *tfprotov6.InvokeActionServerStream) *tfprotov5.InvokeActionServerStream {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov5.InvokeActionServerStream{
+		Events: func(yield func(tfprotov5.InvokeActionEvent) bool) {
+			for res := range in.Events {
+				if !yield(InvokeActionEvent(res)) {
+					break
+				}
+			}
+		},
+	}
+}
+
+func InvokeActionEvent(in tfprotov6.InvokeActionEvent) tfprotov5.InvokeActionEvent {
+	switch event := (in.Type).(type) {
+	case tfprotov6.ProgressInvokeActionEventType:
+		return tfprotov5.InvokeActionEvent{
+			Type: tfprotov5.ProgressInvokeActionEventType{
+				Message: event.Message,
+			},
+		}
+	case tfprotov6.CompletedInvokeActionEventType:
+		return tfprotov5.InvokeActionEvent{
+			Type: tfprotov5.CompletedInvokeActionEventType{
+				LinkedResources: NewLinkedResources(event.LinkedResources),
+				Diagnostics:     Diagnostics(event.Diagnostics),
+			},
+		}
+	}
+
+	// It is not currently possible to create tfprotov6.InvokeActionEventType
+	// implementations outside the terraform-plugin-go module. If this panic was reached,
+	// it implies that a new event type was introduced and needs to be implemented
+	// as a new case above.
+	panic(fmt.Sprintf("unimplemented tfprotov6.InvokeActionEventType type: %T", in.Type))
+}
+
+func NewLinkedResources(in []*tfprotov6.NewLinkedResource) []*tfprotov5.NewLinkedResource {
+	if in == nil {
+		return nil
+	}
+
+	linkedResources := make([]*tfprotov5.NewLinkedResource, 0, len(in))
+
+	for _, inLinkedResource := range in {
+		if inLinkedResource == nil {
+			linkedResources = append(linkedResources, nil)
+			continue
+		}
+
+		linkedResources = append(linkedResources, &tfprotov5.NewLinkedResource{
+			NewState:        DynamicValue(inLinkedResource.NewState),
+			NewIdentity:     ResourceIdentityData(inLinkedResource.NewIdentity),
+			RequiresReplace: inLinkedResource.RequiresReplace,
+		})
+	}
+
+	return linkedResources
 }

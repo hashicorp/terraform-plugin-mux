@@ -20,6 +20,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 
 	testCases := map[string]struct {
 		servers                           []func() tfprotov5.ProviderServer
+		expectedActionSchemas             map[string]*tfprotov5.ActionSchema
 		expectedDataSourceSchemas         map[string]*tfprotov5.Schema
 		expectedDiagnostics               []*tfprotov5.Diagnostic
 		expectedEphemeralResourcesSchemas map[string]*tfprotov5.Schema
@@ -128,6 +129,26 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 										},
 									},
 								},
+							},
+						},
+						ActionSchemas: map[string]*tfprotov5.ActionSchema{
+							"test_foo": {
+								Schema: &tfprotov5.Schema{
+									Version: 1,
+									Block: &tfprotov5.SchemaBlock{
+										Version: 1,
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:            "current_time",
+												Type:            tftypes.String,
+												Computed:        true,
+												Description:     "the current time in RFC 3339 format",
+												DescriptionKind: tfprotov5.StringKindPlain,
+											},
+										},
+									},
+								},
+								Type: tfprotov5.UnlinkedActionSchemaType{},
 							},
 						},
 						DataSourceSchemas: map[string]*tfprotov5.Schema{
@@ -313,6 +334,44 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 										},
 									},
 								},
+							},
+						},
+						ActionSchemas: map[string]*tfprotov5.ActionSchema{
+							"test_bar": {
+								Schema: &tfprotov5.Schema{
+									Version: 1,
+									Block: &tfprotov5.SchemaBlock{
+										Version: 1,
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:            "a",
+												Type:            tftypes.Number,
+												Computed:        true,
+												Description:     "some field that's set by the provider",
+												DescriptionKind: tfprotov5.StringKindMarkdown,
+											},
+										},
+									},
+								},
+								Type: tfprotov5.UnlinkedActionSchemaType{},
+							},
+							"test_quux": {
+								Schema: &tfprotov5.Schema{
+									Version: 1,
+									Block: &tfprotov5.SchemaBlock{
+										Version: 1,
+										Attributes: []*tfprotov5.SchemaAttribute{
+											{
+												Name:            "abc",
+												Type:            tftypes.Number,
+												Computed:        true,
+												Description:     "some other field that's set by the provider",
+												DescriptionKind: tfprotov5.StringKindMarkdown,
+											},
+										},
+									},
+								},
+								Type: tfprotov5.UnlinkedActionSchemaType{},
 							},
 						},
 						DataSourceSchemas: map[string]*tfprotov5.Schema{
@@ -512,6 +571,62 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
+			expectedActionSchemas: map[string]*tfprotov5.ActionSchema{
+				"test_foo": {
+					Schema: &tfprotov5.Schema{
+						Version: 1,
+						Block: &tfprotov5.SchemaBlock{
+							Version: 1,
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "current_time",
+									Type:            tftypes.String,
+									Computed:        true,
+									Description:     "the current time in RFC 3339 format",
+									DescriptionKind: tfprotov5.StringKindPlain,
+								},
+							},
+						},
+					},
+					Type: tfprotov5.UnlinkedActionSchemaType{},
+				},
+				"test_bar": {
+					Schema: &tfprotov5.Schema{
+						Version: 1,
+						Block: &tfprotov5.SchemaBlock{
+							Version: 1,
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "a",
+									Type:            tftypes.Number,
+									Computed:        true,
+									Description:     "some field that's set by the provider",
+									DescriptionKind: tfprotov5.StringKindMarkdown,
+								},
+							},
+						},
+					},
+					Type: tfprotov5.UnlinkedActionSchemaType{},
+				},
+				"test_quux": {
+					Schema: &tfprotov5.Schema{
+						Version: 1,
+						Block: &tfprotov5.SchemaBlock{
+							Version: 1,
+							Attributes: []*tfprotov5.SchemaAttribute{
+								{
+									Name:            "abc",
+									Type:            tftypes.Number,
+									Computed:        true,
+									Description:     "some other field that's set by the provider",
+									DescriptionKind: tfprotov5.StringKindMarkdown,
+								},
+							},
+						},
+					},
+					Type: tfprotov5.UnlinkedActionSchemaType{},
+				},
+			},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{
 				"test_foo": {
 					Version: 1,
@@ -690,6 +805,47 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				PlanDestroy:               true,
 			},
 		},
+		"duplicate-action": {
+			servers: []func() tfprotov5.ProviderServer{
+				(&tf5testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ActionSchemas: map[string]*tfprotov5.ActionSchema{
+							"test_foo": {},
+						},
+					},
+				}).ProviderServer,
+				(&tf5testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+						ActionSchemas: map[string]*tfprotov5.ActionSchema{
+							"test_foo": {},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedActionSchemas: map[string]*tfprotov5.ActionSchema{
+				"test_foo": {},
+			},
+			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
+			expectedDiagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same action type across underlying providers. " +
+						"Actions must be implemented by only one underlying provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate action: test_foo",
+				},
+			},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
+			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
+			expectedFunctions:                 map[string]*tfprotov5.Function{},
+			expectedResourceSchemas:           map[string]*tfprotov5.Schema{},
+			expectedServerCapabilities: &tfprotov5.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
+		},
 		"duplicate-data-source-type": {
 			servers: []func() tfprotov5.ProviderServer{
 				(&tf5testserver.TestServer{
@@ -707,6 +863,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas: map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{
 				"test_foo": {},
 			},
@@ -747,6 +904,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -787,6 +945,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -827,6 +986,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -867,6 +1027,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -923,6 +1084,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -1011,6 +1173,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -1088,6 +1251,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:             map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas:         map[string]*tfprotov5.Schema{},
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov5.Schema{},
 			expectedListResourcesSchemas:      map[string]*tfprotov5.Schema{},
@@ -1118,6 +1282,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -1162,6 +1327,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -1201,6 +1367,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				(&tf5testserver.TestServer{}).ProviderServer,
 				(&tf5testserver.TestServer{}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -1245,6 +1412,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -1294,6 +1462,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				}).ProviderServer,
 			},
+			expectedActionSchemas:     map[string]*tfprotov5.ActionSchema{},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{},
 			expectedDiagnostics: []*tfprotov5.Diagnostic{
 				{
@@ -1334,6 +1503,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
+			}
+
+			if diff := cmp.Diff(resp.ActionSchemas, testCase.expectedActionSchemas); diff != "" {
+				t.Errorf("action schemas didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.DataSourceSchemas, testCase.expectedDataSourceSchemas); diff != "" {

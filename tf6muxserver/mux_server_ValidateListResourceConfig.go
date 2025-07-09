@@ -5,6 +5,7 @@ package tf6muxserver
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
@@ -28,8 +29,7 @@ func (s *muxServer) ValidateListResourceConfig(ctx context.Context, req *tfproto
 	}
 
 	// TODO: Remove and call server.ValidateListResourceConfig below directly once interface becomes required.
-	//nolint:staticcheck // Intentionally verifying interface implementation
-	listResourceServer, ok := server.(tfprotov6.ProviderServerWithListResource)
+	listResourceServer, ok := server.(tfprotov6.ListResourceServer)
 	if !ok {
 		resp := &tfprotov6.ValidateListResourceConfigResponse{
 			Diagnostics: []*tfprotov6.Diagnostic{

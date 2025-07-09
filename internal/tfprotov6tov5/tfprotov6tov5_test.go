@@ -21,6 +21,14 @@ import (
 var (
 	testBytes []byte = []byte("test")
 
+	testTfprotov5ActionMetadata tfprotov5.ActionMetadata = tfprotov5.ActionMetadata{
+		TypeName: "test_action",
+	}
+
+	testTfprotov6ActionMetadata tfprotov6.ActionMetadata = tfprotov6.ActionMetadata{
+		TypeName: "test_action",
+	}
+
 	testTfprotov5DataSourceMetadata tfprotov5.DataSourceMetadata = tfprotov5.DataSourceMetadata{
 		TypeName: "test_data_source",
 	}
@@ -947,6 +955,9 @@ func TestGetMetadataResponse(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov6.GetMetadataResponse{
+				Actions: []tfprotov6.ActionMetadata{
+					testTfprotov6ActionMetadata,
+				},
 				DataSources: []tfprotov6.DataSourceMetadata{
 					testTfprotov6DataSourceMetadata,
 				},
@@ -965,6 +976,9 @@ func TestGetMetadataResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetMetadataResponse{
+				Actions: []tfprotov5.ActionMetadata{
+					testTfprotov5ActionMetadata,
+				},
 				DataSources: []tfprotov5.DataSourceMetadata{
 					testTfprotov5DataSourceMetadata,
 				},
@@ -1044,6 +1058,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 		},
 		"all-valid-fields": {
 			in: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{
+					"test_action": {
+						Schema: testTfprotov6Schema,
+						Type:   tfprotov6.UnlinkedActionSchemaType{},
+					},
+				},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
 					"test_data_source": testTfprotov6Schema,
 				},
@@ -1064,6 +1084,12 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				},
 			},
 			expected: &tfprotov5.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov5.ActionSchema{
+					"test_action": {
+						Schema: testTfprotov5Schema,
+						Type:   tfprotov5.UnlinkedActionSchemaType{},
+					},
+				},
 				DataSourceSchemas: map[string]*tfprotov5.Schema{
 					"test_data_source": testTfprotov5Schema,
 				},
@@ -1209,6 +1235,35 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 			},
 			expected:      nil,
 			expectedError: fmt.Errorf("unable to convert resource \"test_resource\" schema: unable to convert attribute \"test_attribute\" schema: %w", tfprotov6tov5.ErrSchemaAttributeNestedTypeNotImplemented),
+		},
+		"action-nested-attribute-error": {
+			in: &tfprotov6.GetProviderSchemaResponse{
+				ActionSchemas: map[string]*tfprotov6.ActionSchema{
+					"test_action": {
+						Schema: &tfprotov6.Schema{
+							Block: &tfprotov6.SchemaBlock{
+								Attributes: []*tfprotov6.SchemaAttribute{
+									{
+										Name: "test_attribute",
+										NestedType: &tfprotov6.SchemaObject{
+											Attributes: []*tfprotov6.SchemaAttribute{
+												{
+													Name:     "test_nested_attribute",
+													Required: true,
+												},
+											},
+										},
+										Required: true,
+									},
+								},
+							},
+						},
+						Type: tfprotov6.UnlinkedActionSchemaType{},
+					},
+				},
+			},
+			expected:      nil,
+			expectedError: fmt.Errorf("unable to convert action \"test_action\" schema: unable to convert attribute \"test_attribute\" schema: %w", tfprotov6tov5.ErrSchemaAttributeNestedTypeNotImplemented),
 		},
 	}
 
@@ -3424,6 +3479,463 @@ func TestListResourceResult(t *testing.T) {
 
 			if diff := cmp.Diff(got, testCase.expected); diff != "" {
 				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestActionSchema(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in            *tfprotov6.ActionSchema
+		expected      *tfprotov5.ActionSchema
+		expectedError error
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"unlinked": {
+			in: &tfprotov6.ActionSchema{
+				Schema: testTfprotov6Schema,
+				Type:   tfprotov6.UnlinkedActionSchemaType{},
+			},
+			expected: &tfprotov5.ActionSchema{
+				Schema: testTfprotov5Schema,
+				Type:   tfprotov5.UnlinkedActionSchemaType{},
+			},
+		},
+		"lifecycle": {
+			in: &tfprotov6.ActionSchema{
+				Schema: testTfprotov6Schema,
+				Type: tfprotov6.LifecycleActionSchemaType{
+					Executes: tfprotov6.LifecycleExecutionOrderAfter,
+					LinkedResource: &tfprotov6.LinkedResourceSchema{
+						TypeName:    "test_resource_linked_1",
+						Description: "This is a linked resource.",
+					},
+				},
+			},
+			expected: &tfprotov5.ActionSchema{
+				Schema: testTfprotov5Schema,
+				Type: tfprotov5.LifecycleActionSchemaType{
+					Executes: tfprotov5.LifecycleExecutionOrderAfter,
+					LinkedResource: &tfprotov5.LinkedResourceSchema{
+						TypeName:    "test_resource_linked_1",
+						Description: "This is a linked resource.",
+					},
+				},
+			},
+		},
+		"linked": {
+			in: &tfprotov6.ActionSchema{
+				Schema: testTfprotov6Schema,
+				Type: tfprotov6.LinkedActionSchemaType{
+					LinkedResources: []*tfprotov6.LinkedResourceSchema{
+						{
+							TypeName:    "test_resource_linked_1",
+							Description: "This is a linked resource.",
+						},
+						{
+							TypeName:    "test_resource_linked_2",
+							Description: "This is also a linked resource.",
+						},
+					},
+				},
+			},
+			expected: &tfprotov5.ActionSchema{
+				Schema: testTfprotov5Schema,
+				Type: tfprotov5.LinkedActionSchemaType{
+					LinkedResources: []*tfprotov5.LinkedResourceSchema{
+						{
+							TypeName:    "test_resource_linked_1",
+							Description: "This is a linked resource.",
+						},
+						{
+							TypeName:    "test_resource_linked_2",
+							Description: "This is also a linked resource.",
+						},
+					},
+				},
+			},
+		},
+		"nested-attribute-error": {
+			in: &tfprotov6.ActionSchema{
+				Schema: &tfprotov6.Schema{
+					Block: &tfprotov6.SchemaBlock{
+						Attributes: []*tfprotov6.SchemaAttribute{
+							{
+								Name: "test_attribute",
+								NestedType: &tfprotov6.SchemaObject{
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:     "test_nested_attribute",
+											Required: true,
+										},
+									},
+								},
+								Required: true,
+							},
+						},
+					},
+				},
+				Type: tfprotov6.UnlinkedActionSchemaType{},
+			},
+			expected:      nil,
+			expectedError: fmt.Errorf("unable to convert attribute \"test_attribute\" schema: %w", tfprotov6tov5.ErrSchemaAttributeNestedTypeNotImplemented),
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := tfprotov6tov5.ActionSchema(testCase.in)
+
+			if err != nil {
+				if testCase.expectedError == nil {
+					t.Fatalf("wanted no error, got unexpected error: %s", err)
+				}
+
+				if !strings.Contains(err.Error(), testCase.expectedError.Error()) {
+					t.Fatalf("expected error %q, got: %s", testCase.expectedError, err)
+				}
+			} else if testCase.expectedError != nil {
+				t.Fatalf("got no error, expected error: %s", testCase.expectedError)
+			}
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestPlanActionRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.PlanActionRequest
+		expected *tfprotov5.PlanActionRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"no-linked-resources": {
+			in: &tfprotov6.PlanActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov6DynamicValue,
+			},
+			expected: &tfprotov5.PlanActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov5DynamicValue,
+			},
+		},
+		"linked-resources": {
+			in: &tfprotov6.PlanActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov6DynamicValue,
+				LinkedResources: []*tfprotov6.ProposedLinkedResource{
+					{
+						PriorState:    &testTfprotov6DynamicValue,
+						PlannedState:  &testTfprotov6DynamicValue,
+						Config:        &testTfprotov6DynamicValue,
+						PriorIdentity: &testTfprotov6ResourceIdentityData,
+					},
+					{
+						PriorState:    &testTfprotov6DynamicValue,
+						PlannedState:  &testTfprotov6DynamicValue,
+						Config:        &testTfprotov6DynamicValue,
+						PriorIdentity: &testTfprotov6ResourceIdentityData,
+					},
+				},
+			},
+			expected: &tfprotov5.PlanActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov5DynamicValue,
+				LinkedResources: []*tfprotov5.ProposedLinkedResource{
+					{
+						PriorState:    &testTfprotov5DynamicValue,
+						PlannedState:  &testTfprotov5DynamicValue,
+						Config:        &testTfprotov5DynamicValue,
+						PriorIdentity: &testTfprotov5ResourceIdentityData,
+					},
+					{
+						PriorState:    &testTfprotov5DynamicValue,
+						PlannedState:  &testTfprotov5DynamicValue,
+						Config:        &testTfprotov5DynamicValue,
+						PriorIdentity: &testTfprotov5ResourceIdentityData,
+					},
+				},
+			},
+		},
+		"client-capabilities-deferral-allowed": {
+			in: &tfprotov6.PlanActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov6DynamicValue,
+				ClientCapabilities: &tfprotov6.PlanActionClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+			expected: &tfprotov5.PlanActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov5DynamicValue,
+				ClientCapabilities: &tfprotov5.PlanActionClientCapabilities{
+					DeferralAllowed: true,
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.PlanActionRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestPlanActionResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.PlanActionResponse
+		expected *tfprotov5.PlanActionResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"no-linked-resources": {
+			in: &tfprotov6.PlanActionResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+			expected: &tfprotov5.PlanActionResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+		},
+		"linked-resources": {
+			in: &tfprotov6.PlanActionResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				LinkedResources: []*tfprotov6.PlannedLinkedResource{
+					{
+						PlannedState:    &testTfprotov6DynamicValue,
+						PlannedIdentity: &testTfprotov6ResourceIdentityData,
+					},
+					{
+						PlannedState:    &testTfprotov6DynamicValue,
+						PlannedIdentity: &testTfprotov6ResourceIdentityData,
+					},
+				},
+			},
+			expected: &tfprotov5.PlanActionResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				LinkedResources: []*tfprotov5.PlannedLinkedResource{
+					{
+						PlannedState:    &testTfprotov5DynamicValue,
+						PlannedIdentity: &testTfprotov5ResourceIdentityData,
+					},
+					{
+						PlannedState:    &testTfprotov5DynamicValue,
+						PlannedIdentity: &testTfprotov5ResourceIdentityData,
+					},
+				},
+			},
+		},
+		"deferred-reason": {
+			in: &tfprotov6.PlanActionResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+				Deferred: &tfprotov6.Deferred{
+					Reason: tfprotov6.DeferredReasonResourceConfigUnknown,
+				},
+			},
+			expected: &tfprotov5.PlanActionResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+				Deferred: &tfprotov5.Deferred{
+					Reason: tfprotov5.DeferredReasonResourceConfigUnknown,
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.PlanActionResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestInvokeActionRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.InvokeActionRequest
+		expected *tfprotov5.InvokeActionRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"no-linked-resources": {
+			in: &tfprotov6.InvokeActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov6DynamicValue,
+			},
+			expected: &tfprotov5.InvokeActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov5DynamicValue,
+			},
+		},
+		"linked-resources": {
+			in: &tfprotov6.InvokeActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov6DynamicValue,
+				LinkedResources: []*tfprotov6.InvokeLinkedResource{
+					{
+						PriorState:      &testTfprotov6DynamicValue,
+						PlannedState:    &testTfprotov6DynamicValue,
+						Config:          &testTfprotov6DynamicValue,
+						PlannedIdentity: &testTfprotov6ResourceIdentityData,
+					},
+					{
+						PriorState:      &testTfprotov6DynamicValue,
+						PlannedState:    &testTfprotov6DynamicValue,
+						Config:          &testTfprotov6DynamicValue,
+						PlannedIdentity: &testTfprotov6ResourceIdentityData,
+					},
+				},
+			},
+			expected: &tfprotov5.InvokeActionRequest{
+				ActionType: "test_action",
+				Config:     &testTfprotov5DynamicValue,
+				LinkedResources: []*tfprotov5.InvokeLinkedResource{
+					{
+						PriorState:      &testTfprotov5DynamicValue,
+						PlannedState:    &testTfprotov5DynamicValue,
+						Config:          &testTfprotov5DynamicValue,
+						PlannedIdentity: &testTfprotov5ResourceIdentityData,
+					},
+					{
+						PriorState:      &testTfprotov5DynamicValue,
+						PlannedState:    &testTfprotov5DynamicValue,
+						Config:          &testTfprotov5DynamicValue,
+						PlannedIdentity: &testTfprotov5ResourceIdentityData,
+					},
+				},
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.InvokeActionRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestInvokeActionServerStream(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov6.InvokeActionServerStream
+		expected *tfprotov5.InvokeActionServerStream
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov6.InvokeActionServerStream{
+				Events: slices.Values([]tfprotov6.InvokeActionEvent{
+					{
+						Type: tfprotov6.ProgressInvokeActionEventType{
+							Message: "in progress",
+						},
+					},
+					{
+						Type: tfprotov6.CompletedInvokeActionEventType{
+							LinkedResources: []*tfprotov6.NewLinkedResource{
+								{
+									NewState:        &testTfprotov6DynamicValue,
+									NewIdentity:     &testTfprotov6ResourceIdentityData,
+									RequiresReplace: true,
+								},
+							},
+							Diagnostics: testTfprotov6Diagnostics,
+						},
+					},
+				}),
+			},
+			expected: &tfprotov5.InvokeActionServerStream{
+				Events: slices.Values([]tfprotov5.InvokeActionEvent{
+					{
+						Type: tfprotov5.ProgressInvokeActionEventType{
+							Message: "in progress",
+						},
+					},
+					{
+						Type: tfprotov5.CompletedInvokeActionEventType{
+							LinkedResources: []*tfprotov5.NewLinkedResource{
+								{
+									NewState:        &testTfprotov5DynamicValue,
+									NewIdentity:     &testTfprotov5ResourceIdentityData,
+									RequiresReplace: true,
+								},
+							},
+							Diagnostics: testTfprotov5Diagnostics,
+						},
+					},
+				}),
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov6tov5.InvokeActionServerStream(testCase.in)
+
+			if got == nil {
+				if diff := cmp.Diff(got, testCase.expected); diff != "" {
+					t.Errorf("unexpected difference: %s", diff)
+				}
+			} else {
+				gotSlice := slices.Collect(got.Events)
+
+				expectedSlice := slices.Collect(got.Events)
+
+				if len(expectedSlice) != len(gotSlice) {
+					t.Fatalf("expected iterator and event iterator lengths do not match")
+				}
+
+				if diff := cmp.Diff(gotSlice, expectedSlice); diff != "" {
+					t.Errorf("unexpected difference: %s", diff)
+				}
 			}
 		})
 	}
