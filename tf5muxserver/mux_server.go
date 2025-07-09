@@ -55,6 +55,19 @@ type muxServer struct {
 
 	// Underlying servers for requests that should be handled by all servers
 	servers []tfprotov5.ProviderServer
+
+	// interceptors []tfprotov5.Interceptor
+	listResourceInterceptors []Interceptor[*tfprotov5.ListResourceRequest]
+}
+
+type Event byte
+
+const (
+	Before Event = iota
+)
+
+type Interceptor[T any] interface {
+	Call(ctx context.Context, e Event, request T) (newContext context.Context, newRequest T)
 }
 
 // ProviderServer is a function compatible with tf6server.Serve.

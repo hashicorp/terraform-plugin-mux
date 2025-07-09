@@ -17,6 +17,10 @@ func (s *muxServer) ListResource(ctx context.Context, req *tfprotov5.ListResourc
 	ctx = logging.InitContext(ctx)
 	ctx = logging.RpcContext(ctx, rpc)
 
+	for _, i := range s.listResourceInterceptors {
+		ctx, req = i.Call(ctx, Before, req)
+	}
+
 	server, diags, err := s.getListResourceServer(ctx, req.TypeName)
 
 	if err != nil {
