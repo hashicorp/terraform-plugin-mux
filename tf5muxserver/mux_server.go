@@ -439,3 +439,48 @@ func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer)
 
 	return &result, nil
 }
+
+type Option func(*muxServer)
+
+func OptServers(servers ...func() tfprotov5.ProviderServer) Option {
+	return func(mux *muxServer) {
+		for _, server := range servers {
+			mux.servers = append(mux.servers, server())
+		}
+	}
+}
+
+func OptListResourceInterceptors(interceptors ...Interceptor[*tfprotov5.ListResourceRequest]) Option {
+	return func(mux *muxServer) {
+		mux.listResourceInterceptors = append(mux.listResourceInterceptors, interceptors...)
+	}
+}
+
+// NewMuxServerWithOptions returns a muxed server that will route gRPC requests between
+// tfprotov5.ProviderServers specified. The GetProviderSchema method of each
+// is called to verify that the overall muxed server is compatible by ensuring:
+//
+//   - All provider schemas exactly match
+//   - All provider meta schemas exactly match
+//   - Only one provider implements each managed resource
+//   - Only one provider implements each data source
+//   - Only one provider implements each function
+//   - Only one provider implements each ephemeral resource
+//   - Only one provider implements each list resource
+//   - Only one provider implements each resource identity
+func NewMuxServerWithOptions(_ context.Context, options ...Option) (*muxServer, error) {
+	result := muxServer{
+		dataSources:          make(map[string]tfprotov5.ProviderServer),
+		ephemeralResources:   make(map[string]tfprotov5.ProviderServer),
+		listResources:        make(map[string]tfprotov5.ProviderServer),
+		functions:            make(map[string]tfprotov5.ProviderServer),
+		resources:            make(map[string]tfprotov5.ProviderServer),
+		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
+	}
+
+	for _, option := range options {
+		option(&result)
+	}
+
+	return &result, nil
+}
