@@ -1126,6 +1126,27 @@ func LinkedResourceSchema(in *tfprotov5.LinkedResourceSchema) *tfprotov6.LinkedR
 	}
 }
 
+func ValidateActionConfigRequest(in *tfprotov5.ValidateActionConfigRequest) *tfprotov6.ValidateActionConfigRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.ValidateActionConfigRequest{
+		Config:     DynamicValue(in.Config),
+		ActionType: in.ActionType,
+	}
+}
+
+func ValidateActionConfigResponse(in *tfprotov5.ValidateActionConfigResponse) *tfprotov6.ValidateActionConfigResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.ValidateActionConfigResponse{
+		Diagnostics: Diagnostics(in.Diagnostics),
+	}
+}
+
 func PlanActionRequest(in *tfprotov5.PlanActionRequest) *tfprotov6.PlanActionRequest {
 	if in == nil {
 		return nil

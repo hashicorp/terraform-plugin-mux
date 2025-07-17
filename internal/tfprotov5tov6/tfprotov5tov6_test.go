@@ -3243,6 +3243,78 @@ func TestActionSchema(t *testing.T) {
 	}
 }
 
+func TestValidateActionConfigRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.ValidateActionConfigRequest
+		expected *tfprotov6.ValidateActionConfigRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.ValidateActionConfigRequest{
+				Config:     &testTfprotov5DynamicValue,
+				ActionType: "test_action",
+			},
+			expected: &tfprotov6.ValidateActionConfigRequest{
+				Config:     &testTfprotov6DynamicValue,
+				ActionType: "test_action",
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.ValidateActionConfigRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestValidateActionConfigResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.ValidateActionConfigResponse
+		expected *tfprotov6.ValidateActionConfigResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.ValidateActionConfigResponse{
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+			expected: &tfprotov6.ValidateActionConfigResponse{
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.ValidateActionConfigResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func TestPlanActionRequest(t *testing.T) {
 	t.Parallel()
 

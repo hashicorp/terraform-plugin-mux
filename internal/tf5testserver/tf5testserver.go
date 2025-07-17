@@ -69,6 +69,8 @@ type TestServer struct {
 
 	ListResourceCalled map[string]bool
 
+	ValidateActionConfigCalled map[string]bool
+
 	PlanActionCalled map[string]bool
 
 	InvokeActionCalled map[string]bool
@@ -297,6 +299,15 @@ func (s *TestServer) ListResource(_ context.Context, req *tfprotov5.ListResource
 	}
 
 	s.ListResourceCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) ValidateActionConfig(_ context.Context, req *tfprotov5.ValidateActionConfigRequest) (*tfprotov5.ValidateActionConfigResponse, error) {
+	if s.ValidateActionConfigCalled == nil {
+		s.ValidateActionConfigCalled = make(map[string]bool)
+	}
+
+	s.ValidateActionConfigCalled[req.ActionType] = true
 	return nil, nil
 }
 
