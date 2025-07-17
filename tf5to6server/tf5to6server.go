@@ -342,6 +342,35 @@ func (s v5tov6Server) ListResource(ctx context.Context, req *tfprotov6.ListResou
 	return tfprotov5tov6.ListResourceServerStream(v5Resp), nil
 }
 
+func (s v5tov6Server) ValidateActionConfig(ctx context.Context, req *tfprotov6.ValidateActionConfigRequest) (*tfprotov6.ValidateActionConfigResponse, error) {
+	// TODO: Remove and call s.v5Server.ValidateActionConfig below directly once interface becomes required
+	actionServer, ok := s.v5Server.(tfprotov5.ActionServer)
+	if !ok {
+		v6Resp := &tfprotov6.ValidateActionConfigResponse{
+			Diagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "ValidateActionConfig Not Implemented",
+					Detail: "A ValidateActionConfig call was received by the provider, however the provider does not implement the RPC. " +
+						"Either upgrade the provider to a version that implements ValidateActionConfig or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return v6Resp, nil
+	}
+
+	v5Req := tfprotov6tov5.ValidateActionConfigRequest(req)
+
+	// v5Resp, err := s.v5Server.ValidateActionConfig(ctx, v5Req)
+	v5Resp, err := actionServer.ValidateActionConfig(ctx, v5Req)
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov5tov6.ValidateActionConfigResponse(v5Resp), nil
+}
+
 func (s v5tov6Server) PlanAction(ctx context.Context, req *tfprotov6.PlanActionRequest) (*tfprotov6.PlanActionResponse, error) {
 	// TODO: Remove and call s.v5Server.PlanAction below directly once interface becomes required
 	actionServer, ok := s.v5Server.(tfprotov5.ActionServer)

@@ -977,6 +977,43 @@ func TestV6ToV5ServerListResource(t *testing.T) {
 	}
 }
 
+func TestV6ToV5ServerValidateActionConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_action": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	actionServer, ok := v5server.(tfprotov5.ProviderServerWithActions)
+	if !ok {
+		t.Fatal("v5server should implement tfprotov5.ProviderServerWithActions")
+	}
+
+	_, err = actionServer.ValidateActionConfig(ctx, &tfprotov5.ValidateActionConfigRequest{
+		ActionType: "test_action",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.ValidateActionConfigCalled["test_action"] {
+		t.Errorf("expected test_action ValidateActionConfig to be called")
+	}
+}
+
 func TestV6ToV5ServerPlanAction(t *testing.T) {
 	t.Parallel()
 
