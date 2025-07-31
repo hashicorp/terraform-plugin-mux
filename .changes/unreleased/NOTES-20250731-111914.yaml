@@ -1,0 +1,5 @@
+kind: NOTES
+body: This alpha pre-release contains the `List Resource` RPC which returns a list of resource identities for a single managed resource type.
+time: 2025-07-31T11:19:14.079083-04:00
+custom:
+    Issue: "313"
