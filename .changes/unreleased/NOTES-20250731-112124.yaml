@@ -1,5 +1,0 @@
-kind: NOTES
-body: This alpha pre-release contains the `Actions` RPC that allows practitioners to specify and invoke non-CRUD, ad-hoc operations that can cause changes to managed resources.
-time: 2025-07-31T11:21:24.403375-04:00
-custom:
-    Issue: "314"
