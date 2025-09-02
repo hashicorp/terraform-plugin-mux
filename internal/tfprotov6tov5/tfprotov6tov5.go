@@ -1158,18 +1158,9 @@ func ActionSchema(in *tfprotov6.ActionSchema) (*tfprotov5.ActionSchema, error) {
 		Schema: v5Schema,
 	}
 
-	switch actionSchemaType := in.Type.(type) {
+	switch in.Type.(type) {
 	case tfprotov6.UnlinkedActionSchemaType:
 		actionSchema.Type = tfprotov5.UnlinkedActionSchemaType{}
-	case tfprotov6.LifecycleActionSchemaType:
-		actionSchema.Type = tfprotov5.LifecycleActionSchemaType{
-			Executes:       tfprotov5.LifecycleExecutionOrder(actionSchemaType.Executes),
-			LinkedResource: LinkedResourceSchema(actionSchemaType.LinkedResource),
-		}
-	case tfprotov6.LinkedActionSchemaType:
-		actionSchema.Type = tfprotov5.LinkedActionSchemaType{
-			LinkedResources: LinkedResourceSchemas(actionSchemaType.LinkedResources),
-		}
 	default:
 		// It is not currently possible to create tfprotov6.ActionSchemaType
 		// implementations outside the terraform-plugin-go module. If this panic was reached,
@@ -1179,27 +1170,6 @@ func ActionSchema(in *tfprotov6.ActionSchema) (*tfprotov5.ActionSchema, error) {
 	}
 
 	return actionSchema, nil
-}
-
-func LinkedResourceSchemas(in []*tfprotov6.LinkedResourceSchema) []*tfprotov5.LinkedResourceSchema {
-	schemas := make([]*tfprotov5.LinkedResourceSchema, 0, len(in))
-
-	for _, schema := range in {
-		schemas = append(schemas, LinkedResourceSchema(schema))
-	}
-
-	return schemas
-}
-
-func LinkedResourceSchema(in *tfprotov6.LinkedResourceSchema) *tfprotov5.LinkedResourceSchema {
-	if in == nil {
-		return nil
-	}
-
-	return &tfprotov5.LinkedResourceSchema{
-		TypeName:    in.TypeName,
-		Description: in.Description,
-	}
 }
 
 func ValidateActionConfigRequest(in *tfprotov6.ValidateActionConfigRequest) *tfprotov5.ValidateActionConfigRequest {
