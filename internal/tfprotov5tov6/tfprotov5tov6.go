@@ -1102,9 +1102,32 @@ func ValidateActionConfigRequest(in *tfprotov5.ValidateActionConfigRequest) *tfp
 	}
 
 	return &tfprotov6.ValidateActionConfigRequest{
-		Config:     DynamicValue(in.Config),
-		ActionType: in.ActionType,
+		Config:          DynamicValue(in.Config),
+		ActionType:      in.ActionType,
+		LinkedResources: LinkedResourceConfigs(in.LinkedResources),
 	}
+}
+
+func LinkedResourceConfigs(in []*tfprotov5.LinkedResourceConfig) []*tfprotov6.LinkedResourceConfig {
+	if in == nil {
+		return nil
+	}
+
+	linkedResources := make([]*tfprotov6.LinkedResourceConfig, 0, len(in))
+
+	for _, inLinkedResource := range in {
+		if inLinkedResource == nil {
+			linkedResources = append(linkedResources, nil)
+			continue
+		}
+
+		linkedResources = append(linkedResources, &tfprotov6.LinkedResourceConfig{
+			TypeName: inLinkedResource.TypeName,
+			Config:   DynamicValue(inLinkedResource.Config),
+		})
+	}
+
+	return linkedResources
 }
 
 func ValidateActionConfigResponse(in *tfprotov5.ValidateActionConfigResponse) *tfprotov6.ValidateActionConfigResponse {

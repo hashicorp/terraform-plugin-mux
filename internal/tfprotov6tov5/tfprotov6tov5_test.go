@@ -3580,6 +3580,24 @@ func TestValidateActionConfigRequest(t *testing.T) {
 				ActionType: "test_action",
 			},
 		},
+		"linked-resources": {
+			in: &tfprotov6.ValidateActionConfigRequest{
+				LinkedResources: []*tfprotov6.LinkedResourceConfig{
+					{
+						TypeName: "test_linked_resource",
+						Config:   &testTfprotov6DynamicValue,
+					},
+				},
+			},
+			expected: &tfprotov5.ValidateActionConfigRequest{
+				LinkedResources: []*tfprotov5.LinkedResourceConfig{
+					{
+						TypeName: "test_linked_resource",
+						Config:   &testTfprotov5DynamicValue,
+					},
+				},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
