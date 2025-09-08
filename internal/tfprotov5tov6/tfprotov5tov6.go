@@ -1082,18 +1082,9 @@ func ActionSchema(in *tfprotov5.ActionSchema) *tfprotov6.ActionSchema {
 		Schema: Schema(in.Schema),
 	}
 
-	switch actionSchemaType := in.Type.(type) {
+	switch in.Type.(type) {
 	case tfprotov5.UnlinkedActionSchemaType:
 		actionSchema.Type = tfprotov6.UnlinkedActionSchemaType{}
-	case tfprotov5.LifecycleActionSchemaType:
-		actionSchema.Type = tfprotov6.LifecycleActionSchemaType{
-			Executes:       tfprotov6.LifecycleExecutionOrder(actionSchemaType.Executes),
-			LinkedResource: LinkedResourceSchema(actionSchemaType.LinkedResource),
-		}
-	case tfprotov5.LinkedActionSchemaType:
-		actionSchema.Type = tfprotov6.LinkedActionSchemaType{
-			LinkedResources: LinkedResourceSchemas(actionSchemaType.LinkedResources),
-		}
 	default:
 		// It is not currently possible to create tfprotov5.ActionSchemaType
 		// implementations outside the terraform-plugin-go module. If this panic was reached,
@@ -1105,36 +1096,38 @@ func ActionSchema(in *tfprotov5.ActionSchema) *tfprotov6.ActionSchema {
 	return actionSchema
 }
 
-func LinkedResourceSchemas(in []*tfprotov5.LinkedResourceSchema) []*tfprotov6.LinkedResourceSchema {
-	schemas := make([]*tfprotov6.LinkedResourceSchema, 0, len(in))
-
-	for _, schema := range in {
-		schemas = append(schemas, LinkedResourceSchema(schema))
-	}
-
-	return schemas
-}
-
-func LinkedResourceSchema(in *tfprotov5.LinkedResourceSchema) *tfprotov6.LinkedResourceSchema {
-	if in == nil {
-		return nil
-	}
-
-	return &tfprotov6.LinkedResourceSchema{
-		TypeName:    in.TypeName,
-		Description: in.Description,
-	}
-}
-
 func ValidateActionConfigRequest(in *tfprotov5.ValidateActionConfigRequest) *tfprotov6.ValidateActionConfigRequest {
 	if in == nil {
 		return nil
 	}
 
 	return &tfprotov6.ValidateActionConfigRequest{
-		Config:     DynamicValue(in.Config),
-		ActionType: in.ActionType,
+		Config:          DynamicValue(in.Config),
+		ActionType:      in.ActionType,
+		LinkedResources: LinkedResourceConfigs(in.LinkedResources),
 	}
+}
+
+func LinkedResourceConfigs(in []*tfprotov5.LinkedResourceConfig) []*tfprotov6.LinkedResourceConfig {
+	if in == nil {
+		return nil
+	}
+
+	linkedResources := make([]*tfprotov6.LinkedResourceConfig, 0, len(in))
+
+	for _, inLinkedResource := range in {
+		if inLinkedResource == nil {
+			linkedResources = append(linkedResources, nil)
+			continue
+		}
+
+		linkedResources = append(linkedResources, &tfprotov6.LinkedResourceConfig{
+			TypeName: inLinkedResource.TypeName,
+			Config:   DynamicValue(inLinkedResource.Config),
+		})
+	}
+
+	return linkedResources
 }
 
 func ValidateActionConfigResponse(in *tfprotov5.ValidateActionConfigResponse) *tfprotov6.ValidateActionConfigResponse {

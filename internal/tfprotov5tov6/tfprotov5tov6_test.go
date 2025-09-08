@@ -3173,60 +3173,6 @@ func TestActionSchema(t *testing.T) {
 				Type:   tfprotov6.UnlinkedActionSchemaType{},
 			},
 		},
-		"lifecycle": {
-			in: &tfprotov5.ActionSchema{
-				Schema: testTfprotov5Schema,
-				Type: tfprotov5.LifecycleActionSchemaType{
-					Executes: tfprotov5.LifecycleExecutionOrderAfter,
-					LinkedResource: &tfprotov5.LinkedResourceSchema{
-						TypeName:    "test_resource_linked_1",
-						Description: "This is a linked resource.",
-					},
-				},
-			},
-			expected: &tfprotov6.ActionSchema{
-				Schema: testTfprotov6Schema,
-				Type: tfprotov6.LifecycleActionSchemaType{
-					Executes: tfprotov6.LifecycleExecutionOrderAfter,
-					LinkedResource: &tfprotov6.LinkedResourceSchema{
-						TypeName:    "test_resource_linked_1",
-						Description: "This is a linked resource.",
-					},
-				},
-			},
-		},
-		"linked": {
-			in: &tfprotov5.ActionSchema{
-				Schema: testTfprotov5Schema,
-				Type: tfprotov5.LinkedActionSchemaType{
-					LinkedResources: []*tfprotov5.LinkedResourceSchema{
-						{
-							TypeName:    "test_resource_linked_1",
-							Description: "This is a linked resource.",
-						},
-						{
-							TypeName:    "test_resource_linked_2",
-							Description: "This is also a linked resource.",
-						},
-					},
-				},
-			},
-			expected: &tfprotov6.ActionSchema{
-				Schema: testTfprotov6Schema,
-				Type: tfprotov6.LinkedActionSchemaType{
-					LinkedResources: []*tfprotov6.LinkedResourceSchema{
-						{
-							TypeName:    "test_resource_linked_1",
-							Description: "This is a linked resource.",
-						},
-						{
-							TypeName:    "test_resource_linked_2",
-							Description: "This is also a linked resource.",
-						},
-					},
-				},
-			},
-		},
 	}
 
 	for name, testCase := range testCases {
@@ -3262,6 +3208,24 @@ func TestValidateActionConfigRequest(t *testing.T) {
 			expected: &tfprotov6.ValidateActionConfigRequest{
 				Config:     &testTfprotov6DynamicValue,
 				ActionType: "test_action",
+			},
+		},
+		"linked-resources": {
+			in: &tfprotov5.ValidateActionConfigRequest{
+				LinkedResources: []*tfprotov5.LinkedResourceConfig{
+					{
+						TypeName: "test_linked_resource",
+						Config:   &testTfprotov5DynamicValue,
+					},
+				},
+			},
+			expected: &tfprotov6.ValidateActionConfigRequest{
+				LinkedResources: []*tfprotov6.LinkedResourceConfig{
+					{
+						TypeName: "test_linked_resource",
+						Config:   &testTfprotov6DynamicValue,
+					},
+				},
 			},
 		},
 	}
