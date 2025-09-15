@@ -1140,14 +1140,25 @@ func PlanActionResponse(in *tfprotov5.PlanActionResponse) *tfprotov6.PlanActionR
 	}
 }
 
+func InvokeActionClientCapabilities(in *tfprotov5.InvokeActionClientCapabilities) *tfprotov6.InvokeActionClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.InvokeActionClientCapabilities{}
+
+	return resp
+}
+
 func InvokeActionRequest(in *tfprotov5.InvokeActionRequest) *tfprotov6.InvokeActionRequest {
 	if in == nil {
 		return nil
 	}
 
 	return &tfprotov6.InvokeActionRequest{
-		ActionType: in.ActionType,
-		Config:     DynamicValue(in.Config),
+		ActionType:         in.ActionType,
+		ClientCapabilities: InvokeActionClientCapabilities(in.ClientCapabilities),
+		Config:             DynamicValue(in.Config),
 	}
 }
 

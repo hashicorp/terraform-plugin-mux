@@ -3748,6 +3748,14 @@ func TestInvokeActionRequest(t *testing.T) {
 				Config:     &testTfprotov5DynamicValue,
 			},
 		},
+		"client-capabilities": {
+			in: &tfprotov6.InvokeActionRequest{
+				ClientCapabilities: &tfprotov6.InvokeActionClientCapabilities{},
+			},
+			expected: &tfprotov5.InvokeActionRequest{
+				ClientCapabilities: &tfprotov5.InvokeActionClientCapabilities{},
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
