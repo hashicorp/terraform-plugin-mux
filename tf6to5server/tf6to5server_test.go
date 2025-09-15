@@ -29,9 +29,7 @@ func TestDowngradeServer(t *testing.T) {
 			v6Server: (&tf6testserver.TestServer{
 				GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
 					ActionSchemas: map[string]*tfprotov6.ActionSchema{
-						"test_action": {
-							Type: tfprotov6.UnlinkedActionSchemaType{},
-						},
+						"test_action": {},
 					},
 					DataSourceSchemas: map[string]*tfprotov6.Schema{
 						"test_data_source": {},
@@ -1021,9 +1019,7 @@ func TestV6ToV5ServerPlanAction(t *testing.T) {
 	v6server := &tf6testserver.TestServer{
 		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
 			ActionSchemas: map[string]*tfprotov6.ActionSchema{
-				"test_action": {
-					Type: tfprotov6.UnlinkedActionSchemaType{},
-				},
+				"test_action": {},
 			},
 		},
 	}
@@ -1060,9 +1056,7 @@ func TestV6ToV5ServerInvokeAction(t *testing.T) {
 	v6server := &tf6testserver.TestServer{
 		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
 			ActionSchemas: map[string]*tfprotov6.ActionSchema{
-				"test_action": {
-					Type: tfprotov6.UnlinkedActionSchemaType{},
-				},
+				"test_action": {},
 			},
 		},
 	}

@@ -148,7 +148,6 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 										},
 									},
 								},
-								Type: tfprotov5.UnlinkedActionSchemaType{},
 							},
 						},
 						DataSourceSchemas: map[string]*tfprotov5.Schema{
@@ -353,7 +352,6 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 										},
 									},
 								},
-								Type: tfprotov5.UnlinkedActionSchemaType{},
 							},
 							"test_quux": {
 								Schema: &tfprotov5.Schema{
@@ -371,7 +369,6 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 										},
 									},
 								},
-								Type: tfprotov5.UnlinkedActionSchemaType{},
 							},
 						},
 						DataSourceSchemas: map[string]*tfprotov5.Schema{
@@ -588,7 +585,6 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
-					Type: tfprotov5.UnlinkedActionSchemaType{},
 				},
 				"test_bar": {
 					Schema: &tfprotov5.Schema{
@@ -606,7 +602,6 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
-					Type: tfprotov5.UnlinkedActionSchemaType{},
 				},
 				"test_quux": {
 					Schema: &tfprotov5.Schema{
@@ -624,7 +619,6 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 							},
 						},
 					},
-					Type: tfprotov5.UnlinkedActionSchemaType{},
 				},
 			},
 			expectedDataSourceSchemas: map[string]*tfprotov5.Schema{

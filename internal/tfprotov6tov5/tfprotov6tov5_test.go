@@ -1061,7 +1061,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ActionSchemas: map[string]*tfprotov6.ActionSchema{
 					"test_action": {
 						Schema: testTfprotov6Schema,
-						Type:   tfprotov6.UnlinkedActionSchemaType{},
 					},
 				},
 				DataSourceSchemas: map[string]*tfprotov6.Schema{
@@ -1087,7 +1086,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 				ActionSchemas: map[string]*tfprotov5.ActionSchema{
 					"test_action": {
 						Schema: testTfprotov5Schema,
-						Type:   tfprotov5.UnlinkedActionSchemaType{},
 					},
 				},
 				DataSourceSchemas: map[string]*tfprotov5.Schema{
@@ -1258,7 +1256,6 @@ func TestGetProviderSchemaResponse(t *testing.T) {
 								},
 							},
 						},
-						Type: tfprotov6.UnlinkedActionSchemaType{},
 					},
 				},
 			},
@@ -3496,14 +3493,12 @@ func TestActionSchema(t *testing.T) {
 			in:       nil,
 			expected: nil,
 		},
-		"unlinked": {
+		"schema": {
 			in: &tfprotov6.ActionSchema{
 				Schema: testTfprotov6Schema,
-				Type:   tfprotov6.UnlinkedActionSchemaType{},
 			},
 			expected: &tfprotov5.ActionSchema{
 				Schema: testTfprotov5Schema,
-				Type:   tfprotov5.UnlinkedActionSchemaType{},
 			},
 		},
 		"nested-attribute-error": {
@@ -3526,7 +3521,6 @@ func TestActionSchema(t *testing.T) {
 						},
 					},
 				},
-				Type: tfprotov6.UnlinkedActionSchemaType{},
 			},
 			expected:      nil,
 			expectedError: fmt.Errorf("unable to convert attribute \"test_attribute\" schema: %w", tfprotov6tov5.ErrSchemaAttributeNestedTypeNotImplemented),
@@ -3578,24 +3572,6 @@ func TestValidateActionConfigRequest(t *testing.T) {
 			expected: &tfprotov5.ValidateActionConfigRequest{
 				Config:     &testTfprotov5DynamicValue,
 				ActionType: "test_action",
-			},
-		},
-		"linked-resources": {
-			in: &tfprotov6.ValidateActionConfigRequest{
-				LinkedResources: []*tfprotov6.LinkedResourceConfig{
-					{
-						TypeName: "test_linked_resource",
-						Config:   &testTfprotov6DynamicValue,
-					},
-				},
-			},
-			expected: &tfprotov5.ValidateActionConfigRequest{
-				LinkedResources: []*tfprotov5.LinkedResourceConfig{
-					{
-						TypeName: "test_linked_resource",
-						Config:   &testTfprotov5DynamicValue,
-					},
-				},
 			},
 		},
 	}
@@ -3660,7 +3636,7 @@ func TestPlanActionRequest(t *testing.T) {
 			in:       nil,
 			expected: nil,
 		},
-		"no-linked-resources": {
+		"all-valid-fields": {
 			in: &tfprotov6.PlanActionRequest{
 				ActionType: "test_action",
 				Config:     &testTfprotov6DynamicValue,
@@ -3668,44 +3644,6 @@ func TestPlanActionRequest(t *testing.T) {
 			expected: &tfprotov5.PlanActionRequest{
 				ActionType: "test_action",
 				Config:     &testTfprotov5DynamicValue,
-			},
-		},
-		"linked-resources": {
-			in: &tfprotov6.PlanActionRequest{
-				ActionType: "test_action",
-				Config:     &testTfprotov6DynamicValue,
-				LinkedResources: []*tfprotov6.ProposedLinkedResource{
-					{
-						PriorState:    &testTfprotov6DynamicValue,
-						PlannedState:  &testTfprotov6DynamicValue,
-						Config:        &testTfprotov6DynamicValue,
-						PriorIdentity: &testTfprotov6ResourceIdentityData,
-					},
-					{
-						PriorState:    &testTfprotov6DynamicValue,
-						PlannedState:  &testTfprotov6DynamicValue,
-						Config:        &testTfprotov6DynamicValue,
-						PriorIdentity: &testTfprotov6ResourceIdentityData,
-					},
-				},
-			},
-			expected: &tfprotov5.PlanActionRequest{
-				ActionType: "test_action",
-				Config:     &testTfprotov5DynamicValue,
-				LinkedResources: []*tfprotov5.ProposedLinkedResource{
-					{
-						PriorState:    &testTfprotov5DynamicValue,
-						PlannedState:  &testTfprotov5DynamicValue,
-						Config:        &testTfprotov5DynamicValue,
-						PriorIdentity: &testTfprotov5ResourceIdentityData,
-					},
-					{
-						PriorState:    &testTfprotov5DynamicValue,
-						PlannedState:  &testTfprotov5DynamicValue,
-						Config:        &testTfprotov5DynamicValue,
-						PriorIdentity: &testTfprotov5ResourceIdentityData,
-					},
-				},
 			},
 		},
 		"client-capabilities-deferral-allowed": {
@@ -3751,40 +3689,12 @@ func TestPlanActionResponse(t *testing.T) {
 			in:       nil,
 			expected: nil,
 		},
-		"no-linked-resources": {
+		"diagnostics": {
 			in: &tfprotov6.PlanActionResponse{
 				Diagnostics: testTfprotov6Diagnostics,
 			},
 			expected: &tfprotov5.PlanActionResponse{
 				Diagnostics: testTfprotov5Diagnostics,
-			},
-		},
-		"linked-resources": {
-			in: &tfprotov6.PlanActionResponse{
-				Diagnostics: testTfprotov6Diagnostics,
-				LinkedResources: []*tfprotov6.PlannedLinkedResource{
-					{
-						PlannedState:    &testTfprotov6DynamicValue,
-						PlannedIdentity: &testTfprotov6ResourceIdentityData,
-					},
-					{
-						PlannedState:    &testTfprotov6DynamicValue,
-						PlannedIdentity: &testTfprotov6ResourceIdentityData,
-					},
-				},
-			},
-			expected: &tfprotov5.PlanActionResponse{
-				Diagnostics: testTfprotov5Diagnostics,
-				LinkedResources: []*tfprotov5.PlannedLinkedResource{
-					{
-						PlannedState:    &testTfprotov5DynamicValue,
-						PlannedIdentity: &testTfprotov5ResourceIdentityData,
-					},
-					{
-						PlannedState:    &testTfprotov5DynamicValue,
-						PlannedIdentity: &testTfprotov5ResourceIdentityData,
-					},
-				},
 			},
 		},
 		"deferred-reason": {
@@ -3828,7 +3738,7 @@ func TestInvokeActionRequest(t *testing.T) {
 			in:       nil,
 			expected: nil,
 		},
-		"no-linked-resources": {
+		"all-valid-fields": {
 			in: &tfprotov6.InvokeActionRequest{
 				ActionType: "test_action",
 				Config:     &testTfprotov6DynamicValue,
@@ -3836,44 +3746,6 @@ func TestInvokeActionRequest(t *testing.T) {
 			expected: &tfprotov5.InvokeActionRequest{
 				ActionType: "test_action",
 				Config:     &testTfprotov5DynamicValue,
-			},
-		},
-		"linked-resources": {
-			in: &tfprotov6.InvokeActionRequest{
-				ActionType: "test_action",
-				Config:     &testTfprotov6DynamicValue,
-				LinkedResources: []*tfprotov6.InvokeLinkedResource{
-					{
-						PriorState:      &testTfprotov6DynamicValue,
-						PlannedState:    &testTfprotov6DynamicValue,
-						Config:          &testTfprotov6DynamicValue,
-						PlannedIdentity: &testTfprotov6ResourceIdentityData,
-					},
-					{
-						PriorState:      &testTfprotov6DynamicValue,
-						PlannedState:    &testTfprotov6DynamicValue,
-						Config:          &testTfprotov6DynamicValue,
-						PlannedIdentity: &testTfprotov6ResourceIdentityData,
-					},
-				},
-			},
-			expected: &tfprotov5.InvokeActionRequest{
-				ActionType: "test_action",
-				Config:     &testTfprotov5DynamicValue,
-				LinkedResources: []*tfprotov5.InvokeLinkedResource{
-					{
-						PriorState:      &testTfprotov5DynamicValue,
-						PlannedState:    &testTfprotov5DynamicValue,
-						Config:          &testTfprotov5DynamicValue,
-						PlannedIdentity: &testTfprotov5ResourceIdentityData,
-					},
-					{
-						PriorState:      &testTfprotov5DynamicValue,
-						PlannedState:    &testTfprotov5DynamicValue,
-						Config:          &testTfprotov5DynamicValue,
-						PlannedIdentity: &testTfprotov5ResourceIdentityData,
-					},
-				},
 			},
 		},
 	}
@@ -3913,13 +3785,6 @@ func TestInvokeActionServerStream(t *testing.T) {
 					},
 					{
 						Type: tfprotov6.CompletedInvokeActionEventType{
-							LinkedResources: []*tfprotov6.NewLinkedResource{
-								{
-									NewState:        &testTfprotov6DynamicValue,
-									NewIdentity:     &testTfprotov6ResourceIdentityData,
-									RequiresReplace: true,
-								},
-							},
 							Diagnostics: testTfprotov6Diagnostics,
 						},
 					},
@@ -3934,13 +3799,6 @@ func TestInvokeActionServerStream(t *testing.T) {
 					},
 					{
 						Type: tfprotov5.CompletedInvokeActionEventType{
-							LinkedResources: []*tfprotov5.NewLinkedResource{
-								{
-									NewState:        &testTfprotov5DynamicValue,
-									NewIdentity:     &testTfprotov5ResourceIdentityData,
-									RequiresReplace: true,
-								},
-							},
 							Diagnostics: testTfprotov5Diagnostics,
 						},
 					},
