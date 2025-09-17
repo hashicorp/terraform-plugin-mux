@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'all: Upgraded mux server implementations to support the new list.'
-time: 2025-09-17T08:17:58.795996+02:00
-custom:
-    Issue: "313"

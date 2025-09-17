@@ -1,3 +1,14 @@
+## 0.21.0 (September 17, 2025)
+
+NOTES:
+
+* all: This Go module has been updated to Go 1.24 per the [Go support policy](https://go.dev/doc/devel/release#policy). It is recommended to review the [Go 1.24 release notes](https://go.dev/doc/go1.24) before upgrading. Any consumers building on earlier Go versions may experience errors. ([#324](https://github.com/hashicorp/terraform-plugin-mux/issues/324))
+
+FEATURES:
+
+* all: Upgraded mux server implementations to support action types. ([#314](https://github.com/hashicorp/terraform-plugin-mux/issues/314))
+* all: Upgraded mux server implementations to support the new list. ([#313](https://github.com/hashicorp/terraform-plugin-mux/issues/313))
+
 ## 0.21.0-alpha.1 (July 31, 2025)
 
 NOTES:
