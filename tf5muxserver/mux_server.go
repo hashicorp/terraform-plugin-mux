@@ -29,6 +29,9 @@ type muxServer struct {
 	// Routing for ephemeral resource types
 	ephemeralResources map[string]tfprotov5.ProviderServer
 
+	// Routing for generating resource configuration
+	generateResourceConfig map[string]tfprotov5.ProviderServer
+
 	// Routing for list resource types
 	listResources map[string]tfprotov5.ProviderServer
 
@@ -63,6 +66,10 @@ type muxServer struct {
 // ProviderServer is a function compatible with tf6server.Serve.
 func (s *muxServer) ProviderServer() tfprotov5.ProviderServer {
 	return s
+}
+
+func (s *muxServer) ProviderServers() []tfprotov5.ProviderServer {
+	return s.servers
 }
 
 func (s *muxServer) getActionServer(ctx context.Context, actionType string) (tfprotov5.ProviderServer, []*tfprotov5.Diagnostic, error) {
@@ -164,6 +171,41 @@ func (s *muxServer) getEphemeralResourceServer(ctx context.Context, typeName str
 	if !ok {
 		return nil, []*tfprotov5.Diagnostic{
 			ephemeralResourceMissingError(typeName),
+		}, nil
+	}
+
+	return server, s.serverDiscoveryDiagnostics, nil
+}
+
+func (s *muxServer) getGenerateResourceConfigServer(ctx context.Context, typeName string) (tfprotov5.ProviderServer, []*tfprotov5.Diagnostic, error) {
+	s.serverDiscoveryMutex.RLock()
+	server, ok := s.resources[typeName]
+	discoveryComplete := s.serverDiscoveryComplete
+	s.serverDiscoveryMutex.RUnlock()
+
+	if discoveryComplete {
+		if ok {
+			return server, s.serverDiscoveryDiagnostics, nil
+		}
+
+		return nil, []*tfprotov5.Diagnostic{
+			generateResourceConfigMissingError(typeName),
+		}, nil
+	}
+
+	err := s.serverDiscovery(ctx)
+
+	if err != nil || diagnosticsHasError(s.serverDiscoveryDiagnostics) {
+		return nil, s.serverDiscoveryDiagnostics, err
+	}
+
+	s.serverDiscoveryMutex.RLock()
+	server, ok = s.resources[typeName]
+	s.serverDiscoveryMutex.RUnlock()
+
+	if !ok {
+		return nil, []*tfprotov5.Diagnostic{
+			generateResourceConfigMissingError(typeName),
 		}, nil
 	}
 

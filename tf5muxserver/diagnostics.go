@@ -68,6 +68,16 @@ func ephemeralResourceMissingError(typeName string) *tfprotov5.Diagnostic {
 	}
 }
 
+func generateResourceConfigMissingError(typeName string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "Generate Resource Config Not Implemented",
+		Detail: "The combined provider does not implement the requested generate resource config for the resource type. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Missing generate resource config for resource type: " + typeName,
+	}
+}
+
 func listResourceDuplicateError(typeName string) *tfprotov5.Diagnostic {
 	return &tfprotov5.Diagnostic{
 		Severity: tfprotov5.DiagnosticSeverityError,
