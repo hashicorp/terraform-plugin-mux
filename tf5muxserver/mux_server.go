@@ -7,10 +7,10 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-mux/internal/logging"
 )
 
@@ -28,9 +28,6 @@ type muxServer struct {
 
 	// Routing for ephemeral resource types
 	ephemeralResources map[string]tfprotov5.ProviderServer
-
-	// Routing for generating resource configuration
-	generateResourceConfig map[string]tfprotov5.ProviderServer
 
 	// Routing for list resource types
 	listResources map[string]tfprotov5.ProviderServer
