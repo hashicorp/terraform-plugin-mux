@@ -797,6 +797,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"duplicate-action": {
@@ -838,6 +839,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"duplicate-data-source-type": {
@@ -879,6 +881,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"duplicate-ephemeral-resource-type": {
@@ -920,6 +923,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"duplicate-list-resource-type": {
@@ -961,6 +965,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"duplicate-function": {
@@ -1002,6 +1007,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"duplicate-resource-type": {
@@ -1043,6 +1049,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"provider-mismatch": {
@@ -1132,6 +1139,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"provider-meta-mismatch": {
@@ -1221,6 +1229,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"server-capabilities": {
@@ -1258,6 +1267,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"error-once": {
@@ -1293,6 +1303,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"error-multiple": {
@@ -1343,6 +1354,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"warning-once": {
@@ -1378,6 +1390,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"warning-multiple": {
@@ -1428,6 +1441,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 		"warning-then-error": {
@@ -1478,6 +1492,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
 				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
 			},
 		},
 	}
