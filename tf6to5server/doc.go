@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2020, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 // Package tf6to5server translates a provider that implements protocol version 6, into one that implements protocol version 5.
