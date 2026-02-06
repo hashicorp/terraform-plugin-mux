@@ -74,6 +74,22 @@ type TestServer struct {
 	PlanActionCalled map[string]bool
 
 	InvokeActionCalled map[string]bool
+
+	ValidateStateStoreConfigCalled map[string]bool
+
+	ConfigureStateStoreCalled map[string]bool
+
+	ReadStateBytesCalled map[string]bool
+
+	WriteStateBytesCalled map[string]bool
+
+	GetStatesCalled map[string]bool
+
+	DeleteStateCalled map[string]bool
+
+	LockStateCalled map[string]bool
+
+	UnlockStateCalled map[string]bool
 }
 
 func (s *TestServer) ProviderServer() tfprotov6.ProviderServer {
@@ -326,5 +342,86 @@ func (s *TestServer) InvokeAction(ctx context.Context, req *tfprotov6.InvokeActi
 	}
 
 	s.InvokeActionCalled[req.ActionType] = true
+	return nil, nil
+}
+
+func (s *TestServer) ValidateStateStoreConfig(_ context.Context, req *tfprotov6.ValidateStateStoreConfigRequest) (*tfprotov6.ValidateStateStoreConfigResponse, error) {
+	if s.ValidateStateStoreConfigCalled == nil {
+		s.ValidateStateStoreConfigCalled = make(map[string]bool)
+	}
+
+	s.ValidateStateStoreConfigCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) ConfigureStateStore(_ context.Context, req *tfprotov6.ConfigureStateStoreRequest) (*tfprotov6.ConfigureStateStoreResponse, error) {
+	if s.ConfigureStateStoreCalled == nil {
+		s.ConfigureStateStoreCalled = make(map[string]bool)
+	}
+
+	s.ConfigureStateStoreCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) ReadStateBytes(_ context.Context, req *tfprotov6.ReadStateBytesRequest) (*tfprotov6.ReadStateBytesStream, error) {
+	if s.ReadStateBytesCalled == nil {
+		s.ReadStateBytesCalled = make(map[string]bool)
+	}
+
+	s.ReadStateBytesCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) WriteStateBytes(_ context.Context, req *tfprotov6.WriteStateBytesStream) (*tfprotov6.WriteStateBytesResponse, error) {
+	if s.WriteStateBytesCalled == nil {
+		s.WriteStateBytesCalled = make(map[string]bool)
+	}
+
+	if req != nil && req.Chunks != nil {
+		for chunk := range req.Chunks {
+			if chunk == nil || chunk.Meta == nil {
+				continue
+			}
+			s.WriteStateBytesCalled[chunk.Meta.TypeName] = true
+			break
+		}
+	}
+
+	return nil, nil
+}
+
+func (s *TestServer) GetStates(_ context.Context, req *tfprotov6.GetStatesRequest) (*tfprotov6.GetStatesResponse, error) {
+	if s.GetStatesCalled == nil {
+		s.GetStatesCalled = make(map[string]bool)
+	}
+
+	s.GetStatesCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) DeleteState(_ context.Context, req *tfprotov6.DeleteStateRequest) (*tfprotov6.DeleteStateResponse, error) {
+	if s.DeleteStateCalled == nil {
+		s.DeleteStateCalled = make(map[string]bool)
+	}
+
+	s.DeleteStateCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) LockState(_ context.Context, req *tfprotov6.LockStateRequest) (*tfprotov6.LockStateResponse, error) {
+	if s.LockStateCalled == nil {
+		s.LockStateCalled = make(map[string]bool)
+	}
+
+	s.LockStateCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) UnlockState(_ context.Context, req *tfprotov6.UnlockStateRequest) (*tfprotov6.UnlockStateResponse, error) {
+	if s.UnlockStateCalled == nil {
+		s.UnlockStateCalled = make(map[string]bool)
+	}
+
+	s.UnlockStateCalled[req.TypeName] = true
 	return nil, nil
 }
