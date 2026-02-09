@@ -43,7 +43,13 @@ func TestMuxServerStateStore_ReadStateBytes(t *testing.T) {
 		t.Fatalf("unexpected error setting up mux server: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().(tfprotov6.StateStoreServer).ReadStateBytes(ctx, &tfprotov6.ReadStateBytesRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := muxServer.ProviderServer().(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	_, err = stateStoreServer.ReadStateBytes(ctx, &tfprotov6.ReadStateBytesRequest{
 		TypeName: "test_statestore_server1",
 	})
 
@@ -59,7 +65,7 @@ func TestMuxServerStateStore_ReadStateBytes(t *testing.T) {
 		t.Errorf("unexpected test_statestore_server1 ReadStateBytes called on server2")
 	}
 
-	_, err = muxServer.ProviderServer().(tfprotov6.StateStoreServer).ReadStateBytes(ctx, &tfprotov6.ReadStateBytesRequest{
+	_, err = stateStoreServer.ReadStateBytes(ctx, &tfprotov6.ReadStateBytesRequest{
 		TypeName: "test_statestore_server2",
 	})
 

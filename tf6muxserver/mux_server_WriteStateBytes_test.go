@@ -43,7 +43,13 @@ func TestMuxServerStateStore_WriteStateBytes(t *testing.T) {
 		t.Fatalf("unexpected error setting up mux server: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().(tfprotov6.StateStoreServer).WriteStateBytes(ctx, writeStateBytesStream("test_statestore_server1"))
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := muxServer.ProviderServer().(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	_, err = stateStoreServer.WriteStateBytes(ctx, writeStateBytesStream("test_statestore_server1"))
 
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
@@ -57,7 +63,7 @@ func TestMuxServerStateStore_WriteStateBytes(t *testing.T) {
 		t.Errorf("unexpected test_statestore_server1 WriteStateBytes called on server2")
 	}
 
-	_, err = muxServer.ProviderServer().(tfprotov6.StateStoreServer).WriteStateBytes(ctx, writeStateBytesStream("test_statestore_server2"))
+	_, err = stateStoreServer.WriteStateBytes(ctx, writeStateBytesStream("test_statestore_server2"))
 
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)

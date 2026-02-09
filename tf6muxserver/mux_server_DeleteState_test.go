@@ -43,7 +43,13 @@ func TestMuxServerStateStore_DeleteState(t *testing.T) {
 		t.Fatalf("unexpected error setting up mux server: %s", err)
 	}
 
-	_, err = muxServer.ProviderServer().(tfprotov6.StateStoreServer).DeleteState(ctx, &tfprotov6.DeleteStateRequest{
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := muxServer.ProviderServer().(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	_, err = stateStoreServer.DeleteState(ctx, &tfprotov6.DeleteStateRequest{
 		TypeName: "test_statestore_server1",
 	})
 
@@ -59,7 +65,7 @@ func TestMuxServerStateStore_DeleteState(t *testing.T) {
 		t.Errorf("unexpected test_statestore_server1 DeleteState called on server2")
 	}
 
-	_, err = muxServer.ProviderServer().(tfprotov6.StateStoreServer).DeleteState(ctx, &tfprotov6.DeleteStateRequest{
+	_, err = stateStoreServer.DeleteState(ctx, &tfprotov6.DeleteStateRequest{
 		TypeName: "test_statestore_server2",
 	})
 
