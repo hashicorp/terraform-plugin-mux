@@ -1002,7 +1002,11 @@ func TestUpgradeServerStateStore_ValidateStateStoreConfig(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	stateStoreServer := s.(tfprotov6.StateStoreServer)
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
 
 	resp, err := stateStoreServer.ValidateStateStoreConfig(ctx, &tfprotov6.ValidateStateStoreConfigRequest{
 		TypeName: "test_statestore",
@@ -1031,7 +1035,11 @@ func TestUpgradeServerStateStore_ConfigureStateStore(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	stateStoreServer := s.(tfprotov6.StateStoreServer)
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
 
 	resp, err := stateStoreServer.ConfigureStateStore(ctx, &tfprotov6.ConfigureStateStoreRequest{
 		TypeName: "test_statestore",
@@ -1060,7 +1068,11 @@ func TestUpgradeServerStateStore_ReadStateBytes(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	stateStoreServer := s.(tfprotov6.StateStoreServer)
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
 
 	resp, err := stateStoreServer.ReadStateBytes(ctx, &tfprotov6.ReadStateBytesRequest{
 		TypeName: "test_statestore",
@@ -1093,7 +1105,11 @@ func TestUpgradeServerStateStore_WriteStateBytes(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	stateStoreServer := s.(tfprotov6.StateStoreServer)
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
 
 	req := &tfprotov6.WriteStateBytesStream{
 		Chunks: func(yield func(*tfprotov6.WriteStateBytesChunk, []*tfprotov6.Diagnostic) bool) {},
@@ -1124,7 +1140,11 @@ func TestUpgradeServerStateStore_GetStates(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	stateStoreServer := s.(tfprotov6.StateStoreServer)
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
 
 	resp, err := stateStoreServer.GetStates(ctx, &tfprotov6.GetStatesRequest{
 		TypeName: "test_statestore",
@@ -1153,7 +1173,11 @@ func TestUpgradeServerStateStore_DeleteState(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	stateStoreServer := s.(tfprotov6.StateStoreServer)
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
 
 	resp, err := stateStoreServer.DeleteState(ctx, &tfprotov6.DeleteStateRequest{
 		TypeName: "test_statestore",
@@ -1182,7 +1206,11 @@ func TestUpgradeServerStateStore_LockState(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	stateStoreServer := s.(tfprotov6.StateStoreServer)
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
 
 	resp, err := stateStoreServer.LockState(ctx, &tfprotov6.LockStateRequest{
 		TypeName: "test_statestore",
@@ -1211,7 +1239,11 @@ func TestUpgradeServerStateStore_UnlockState(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	stateStoreServer := s.(tfprotov6.StateStoreServer)
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
 
 	resp, err := stateStoreServer.UnlockState(ctx, &tfprotov6.UnlockStateRequest{
 		TypeName: "test_statestore",
