@@ -987,3 +987,273 @@ func TestV5ToV6ServerInvokeAction(t *testing.T) {
 		t.Errorf("expected test_action InvokeAction to be called")
 	}
 }
+
+func TestUpgradeServerStateStore_ValidateStateStoreConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{}
+
+	s, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+		return v5server
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	resp, err := stateStoreServer.ValidateStateStoreConfig(ctx, &tfprotov6.ValidateStateStoreConfigRequest{
+		TypeName: "test_statestore",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if len(resp.Diagnostics) == 0 {
+		t.Fatal("expected error diagnostic, got none")
+	}
+}
+
+func TestUpgradeServerStateStore_ConfigureStateStore(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{}
+
+	s, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+		return v5server
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	resp, err := stateStoreServer.ConfigureStateStore(ctx, &tfprotov6.ConfigureStateStoreRequest{
+		TypeName: "test_statestore",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if len(resp.Diagnostics) == 0 {
+		t.Fatal("expected error diagnostic, got none")
+	}
+}
+
+func TestUpgradeServerStateStore_ReadStateBytes(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{}
+
+	s, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+		return v5server
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	resp, err := stateStoreServer.ReadStateBytes(ctx, &tfprotov6.ReadStateBytesRequest{
+		TypeName: "test_statestore",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	for chunk := range resp.Chunks {
+		if len(chunk.Diagnostics) == 0 {
+			t.Fatal("expected error diagnostic, got none")
+		}
+
+		break
+	}
+}
+
+func TestUpgradeServerStateStore_WriteStateBytes(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{}
+
+	s, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+		return v5server
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	req := &tfprotov6.WriteStateBytesStream{
+		Chunks: func(yield func(*tfprotov6.WriteStateBytesChunk, []*tfprotov6.Diagnostic) bool) {},
+	}
+
+	resp, err := stateStoreServer.WriteStateBytes(ctx, req)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if len(resp.Diagnostics) == 0 {
+		t.Fatal("expected error diagnostic, got none")
+	}
+}
+
+func TestUpgradeServerStateStore_GetStates(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{}
+
+	s, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+		return v5server
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	resp, err := stateStoreServer.GetStates(ctx, &tfprotov6.GetStatesRequest{
+		TypeName: "test_statestore",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if len(resp.Diagnostics) == 0 {
+		t.Fatal("expected error diagnostic, got none")
+	}
+}
+
+func TestUpgradeServerStateStore_DeleteState(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{}
+
+	s, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+		return v5server
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	resp, err := stateStoreServer.DeleteState(ctx, &tfprotov6.DeleteStateRequest{
+		TypeName: "test_statestore",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if len(resp.Diagnostics) == 0 {
+		t.Fatal("expected error diagnostic, got none")
+	}
+}
+
+func TestUpgradeServerStateStore_LockState(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{}
+
+	s, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+		return v5server
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	resp, err := stateStoreServer.LockState(ctx, &tfprotov6.LockStateRequest{
+		TypeName: "test_statestore",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if len(resp.Diagnostics) == 0 {
+		t.Fatal("expected error diagnostic, got none")
+	}
+}
+
+func TestUpgradeServerStateStore_UnlockState(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{}
+
+	s, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+		return v5server
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	//nolint:staticcheck // Intentionally verifying interface implementation
+	stateStoreServer, ok := s.(tfprotov6.ProviderServerWithStateStores)
+	if !ok {
+		t.Fatal("muxServer should implement tfprotov6.ProviderServerWithStateStores")
+	}
+
+	resp, err := stateStoreServer.UnlockState(ctx, &tfprotov6.UnlockStateRequest{
+		TypeName: "test_statestore",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if len(resp.Diagnostics) == 0 {
+		t.Fatal("expected error diagnostic, got none")
+	}
+}

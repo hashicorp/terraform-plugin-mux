@@ -29,6 +29,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 		expectedProviderSchema            *tfprotov6.Schema
 		expectedProviderMetaSchema        *tfprotov6.Schema
 		expectedResourceSchemas           map[string]*tfprotov6.Schema
+		expectedStateStoreSchemas         map[string]*tfprotov6.Schema
 		expectedServerCapabilities        *tfprotov6.ServerCapabilities
 	}{
 		"combined": {
@@ -252,6 +253,23 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 								},
 							},
 						},
+						StateStoreSchemas: map[string]*tfprotov6.Schema{
+							"test_statestore_foo": {
+								Version: 1,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:            "location",
+											Type:            tftypes.String,
+											Required:        true,
+											Description:     "the location of the state store",
+											DescriptionKind: tfprotov6.StringKindPlain,
+										},
+									},
+								},
+							},
+						},
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
@@ -443,6 +461,23 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 											Type:            tftypes.String,
 											Computed:        true,
 											Description:     "A generated query name",
+											DescriptionKind: tfprotov6.StringKindPlain,
+										},
+									},
+								},
+							},
+						},
+						StateStoreSchemas: map[string]*tfprotov6.Schema{
+							"test_statestore_bar": {
+								Version: 1,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:            "bucket_name",
+											Type:            tftypes.String,
+											Required:        true,
+											Description:     "the name of the bucket",
 											DescriptionKind: tfprotov6.StringKindPlain,
 										},
 									},
@@ -793,6 +828,38 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
+			expectedStateStoreSchemas: map[string]*tfprotov6.Schema{
+				"test_statestore_foo": {
+					Version: 1,
+					Block: &tfprotov6.SchemaBlock{
+						Version: 1,
+						Attributes: []*tfprotov6.SchemaAttribute{
+							{
+								Name:            "location",
+								Type:            tftypes.String,
+								Required:        true,
+								Description:     "the location of the state store",
+								DescriptionKind: tfprotov6.StringKindPlain,
+							},
+						},
+					},
+				},
+				"test_statestore_bar": {
+					Version: 1,
+					Block: &tfprotov6.SchemaBlock{
+						Version: 1,
+						Attributes: []*tfprotov6.SchemaAttribute{
+							{
+								Name:            "bucket_name",
+								Type:            tftypes.String,
+								Required:        true,
+								Description:     "the name of the bucket",
+								DescriptionKind: tfprotov6.StringKindPlain,
+							},
+						},
+					},
+				},
+			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -834,6 +901,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
 			expectedFunctions:                 map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:         map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -875,6 +943,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
 			expectedFunctions:                 map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:         map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -916,6 +985,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedListResourcesSchemas: map[string]*tfprotov6.Schema{},
 			expectedFunctions:            map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:      map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:    map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -957,6 +1027,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedEphemeralResourcesSchemas: map[string]*tfprotov6.Schema{},
 			expectedFunctions:                 map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:         map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -997,7 +1068,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedFunctions: map[string]*tfprotov6.Function{
 				"test_function": {},
 			},
-			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedResourceSchemas:   map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1039,6 +1111,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedResourceSchemas: map[string]*tfprotov6.Schema{
 				"test_foo": {},
 			},
+			expectedStateStoreSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1127,7 +1200,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
-			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedResourceSchemas:   map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1216,7 +1290,8 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 					},
 				},
 			},
-			expectedResourceSchemas: map[string]*tfprotov6.Schema{},
+			expectedResourceSchemas:   map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1253,6 +1328,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				"test_with_server_capabilities":    {},
 				"test_without_server_capabilities": {},
 			},
+			expectedStateStoreSchemas: map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1288,6 +1364,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
 			expectedFunctions:                 map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:         map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1338,6 +1415,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
 			expectedFunctions:                 map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:         map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1373,6 +1451,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
 			expectedFunctions:                 map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:         map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1423,6 +1502,7 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
 			expectedFunctions:                 map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:         map[string]*tfprotov6.Schema{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1473,6 +1553,49 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
 			expectedFunctions:                 map[string]*tfprotov6.Function{},
 			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas:         map[string]*tfprotov6.Schema{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
+		},
+		"duplicate-state-store-type": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						StateStoreSchemas: map[string]*tfprotov6.Schema{
+							"test_foo": {},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						StateStoreSchemas: map[string]*tfprotov6.Schema{
+							"test_foo": {},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedActionSchemas:             map[string]*tfprotov6.ActionSchema{},
+			expectedDataSourceSchemas:         map[string]*tfprotov6.Schema{},
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov6.Schema{},
+			expectedFunctions:                 map[string]*tfprotov6.Function{},
+			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
+			expectedResourceSchemas:           map[string]*tfprotov6.Schema{},
+			expectedStateStoreSchemas: map[string]*tfprotov6.Schema{
+				"test_foo": {},
+			},
+			expectedDiagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same state store across underlying providers. " +
+						"State stores must be implemented by only one underlying provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate state store: test_foo",
+				},
+			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -1532,6 +1655,10 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 
 			if diff := cmp.Diff(resp.ResourceSchemas, testCase.expectedResourceSchemas); diff != "" {
 				t.Errorf("resource schemas didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.StateStoreSchemas, testCase.expectedStateStoreSchemas); diff != "" {
+				t.Errorf("state store schemas didn't match expectations: %s", diff)
 			}
 
 			if diff := cmp.Diff(resp.ServerCapabilities, testCase.expectedServerCapabilities); diff != "" {

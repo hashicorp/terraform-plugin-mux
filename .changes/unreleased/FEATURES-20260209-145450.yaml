@@ -1,0 +1,5 @@
+kind: FEATURES
+body: 'tf6muxserver: Upgraded mux server implementation to support state store types.'
+time: 2026-02-09T14:54:50.519538-05:00
+custom:
+    Issue: "345"

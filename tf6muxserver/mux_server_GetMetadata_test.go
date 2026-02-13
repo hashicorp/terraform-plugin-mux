@@ -27,6 +27,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 		expectedFunctions          []tfprotov6.FunctionMetadata
 		expectedResources          []tfprotov6.ResourceMetadata
 		expectedServerCapabilities *tfprotov6.ServerCapabilities
+		expectedStateStores        []tfprotov6.StateStoreMetadata
 	}{
 		"combined": {
 			servers: []func() tfprotov6.ProviderServer{
@@ -74,6 +75,11 @@ func TestMuxServerGetMetadata(t *testing.T) {
 								TypeName: "test_bar",
 							},
 						},
+						StateStores: []tfprotov6.StateStoreMetadata{
+							{
+								TypeName: "test_statestore_foo",
+							},
+						},
 					},
 				}).ProviderServer,
 				(&tf6testserver.TestServer{
@@ -112,6 +118,11 @@ func TestMuxServerGetMetadata(t *testing.T) {
 						ListResources: []tfprotov6.ListResourceMetadata{
 							{
 								TypeName: "test_quux",
+							},
+						},
+						StateStores: []tfprotov6.StateStoreMetadata{
+							{
+								TypeName: "test_statestore_quux",
 							},
 						},
 					},
@@ -183,6 +194,14 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					TypeName: "test_quux",
 				},
 			},
+			expectedStateStores: []tfprotov6.StateStoreMetadata{
+				{
+					TypeName: "test_statestore_foo",
+				},
+				{
+					TypeName: "test_statestore_quux",
+				},
+			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -230,6 +249,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedListResources:      []tfprotov6.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov6.FunctionMetadata{},
 			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores:        []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -277,6 +297,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedListResources:      []tfprotov6.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov6.FunctionMetadata{},
 			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores:        []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -324,6 +345,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedListResources: []tfprotov6.ListResourceMetadata{},
 			expectedFunctions:     []tfprotov6.FunctionMetadata{},
 			expectedResources:     []tfprotov6.ResourceMetadata{},
+			expectedStateStores:   []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -371,6 +393,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedEphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
 			expectedFunctions:          []tfprotov6.FunctionMetadata{},
 			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores:        []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -417,7 +440,8 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					Name: "test_function",
 				},
 			},
-			expectedResources: []tfprotov6.ResourceMetadata{},
+			expectedResources:   []tfprotov6.ResourceMetadata{},
+			expectedStateStores: []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -465,6 +489,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					TypeName: "test_foo",
 				},
 			},
+			expectedStateStores: []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -510,6 +535,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 					TypeName: "test_without_server_capabilities",
 				},
 			},
+			expectedStateStores: []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -545,6 +571,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedListResources:      []tfprotov6.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov6.FunctionMetadata{},
 			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores:        []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -595,6 +622,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedListResources:      []tfprotov6.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov6.FunctionMetadata{},
 			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores:        []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -630,6 +658,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedListResources:      []tfprotov6.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov6.FunctionMetadata{},
 			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores:        []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -680,6 +709,7 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedListResources:      []tfprotov6.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov6.FunctionMetadata{},
 			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores:        []tfprotov6.StateStoreMetadata{},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -730,6 +760,55 @@ func TestMuxServerGetMetadata(t *testing.T) {
 			expectedListResources:      []tfprotov6.ListResourceMetadata{},
 			expectedFunctions:          []tfprotov6.FunctionMetadata{},
 			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores:        []tfprotov6.StateStoreMetadata{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+			},
+		},
+		"duplicate-state-store-type": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetMetadataResponse: &tfprotov6.GetMetadataResponse{
+						StateStores: []tfprotov6.StateStoreMetadata{
+							{
+								TypeName: "test_foo",
+							},
+						},
+					},
+				}).ProviderServer,
+				(&tf6testserver.TestServer{
+					GetMetadataResponse: &tfprotov6.GetMetadataResponse{
+						StateStores: []tfprotov6.StateStoreMetadata{
+							{
+								TypeName: "test_foo",
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedActions:     []tfprotov6.ActionMetadata{},
+			expectedDataSources: []tfprotov6.DataSourceMetadata{},
+			expectedDiagnostics: []*tfprotov6.Diagnostic{
+				{
+					Severity: tfprotov6.DiagnosticSeverityError,
+					Summary:  "Invalid Provider Server Combination",
+					Detail: "The combined provider has multiple implementations of the same state store across underlying providers. " +
+						"State stores must be implemented by only one underlying provider. " +
+						"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+						"Duplicate state store: test_foo",
+				},
+			},
+			expectedEphemeralResources: []tfprotov6.EphemeralResourceMetadata{},
+			expectedListResources:      []tfprotov6.ListResourceMetadata{},
+			expectedFunctions:          []tfprotov6.FunctionMetadata{},
+			expectedResources:          []tfprotov6.ResourceMetadata{},
+			expectedStateStores: []tfprotov6.StateStoreMetadata{
+				{
+					TypeName: "test_foo",
+				},
+			},
 			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
 				GetProviderSchemaOptional: true,
 				MoveResourceState:         true,
@@ -785,6 +864,10 @@ func TestMuxServerGetMetadata(t *testing.T) {
 
 			if diff := cmp.Diff(resp.ServerCapabilities, testCase.expectedServerCapabilities); diff != "" {
 				t.Errorf("server capabilities didn't match expectations: %s", diff)
+			}
+
+			if diff := cmp.Diff(resp.StateStores, testCase.expectedStateStores); diff != "" {
+				t.Errorf("state stores didn't match expectations: %s", diff)
 			}
 		})
 	}
