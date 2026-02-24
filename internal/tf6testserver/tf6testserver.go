@@ -90,6 +90,8 @@ type TestServer struct {
 	LockStateCalled map[string]bool
 
 	UnlockStateCalled map[string]bool
+
+	GenerateResourceConfigCalled map[string]bool
 }
 
 func (s *TestServer) ProviderServer() tfprotov6.ProviderServer {
@@ -423,5 +425,14 @@ func (s *TestServer) UnlockState(_ context.Context, req *tfprotov6.UnlockStateRe
 	}
 
 	s.UnlockStateCalled[req.TypeName] = true
+	return nil, nil
+}
+
+func (s *TestServer) GenerateResourceConfig(ctx context.Context, req *tfprotov6.GenerateResourceConfigRequest) (*tfprotov6.GenerateResourceConfigResponse, error) {
+	if s.GenerateResourceConfigCalled == nil {
+		s.GenerateResourceConfigCalled = make(map[string]bool)
+	}
+
+	s.GenerateResourceConfigCalled[req.TypeName] = true
 	return nil, nil
 }

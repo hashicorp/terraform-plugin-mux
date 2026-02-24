@@ -3475,6 +3475,80 @@ func TestInvokeActionServerStream(t *testing.T) {
 	}
 }
 
+func TestGenerateResourceConfigRequest(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.GenerateResourceConfigRequest
+		expected *tfprotov6.GenerateResourceConfigRequest
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.GenerateResourceConfigRequest{
+				TypeName: "test_resource",
+				State:    &testTfprotov5DynamicValue,
+			},
+			expected: &tfprotov6.GenerateResourceConfigRequest{
+				TypeName: "test_resource",
+				State:    &testTfprotov6DynamicValue,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.GenerateResourceConfigRequest(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
+func TestGenerateResourceConfigResponse(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		in       *tfprotov5.GenerateResourceConfigResponse
+		expected *tfprotov6.GenerateResourceConfigResponse
+	}{
+		"nil": {
+			in:       nil,
+			expected: nil,
+		},
+		"all-valid-fields": {
+			in: &tfprotov5.GenerateResourceConfigResponse{
+				Config:      &testTfprotov5DynamicValue,
+				Diagnostics: testTfprotov5Diagnostics,
+			},
+			expected: &tfprotov6.GenerateResourceConfigResponse{
+				Config:      &testTfprotov6DynamicValue,
+				Diagnostics: testTfprotov6Diagnostics,
+			},
+		},
+	}
+
+	for name, testCase := range testCases {
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tfprotov5tov6.GenerateResourceConfigResponse(testCase.in)
+
+			if diff := cmp.Diff(got, testCase.expected); diff != "" {
+				t.Errorf("unexpected difference: %s", diff)
+			}
+		})
+	}
+}
+
 func pointer[T any](value T) *T {
 	return &value
 }

@@ -557,3 +557,14 @@ func (s v5tov6Server) UnlockState(ctx context.Context, req *tfprotov6.UnlockStat
 		},
 	}, nil
 }
+
+func (s v5tov6Server) GenerateResourceConfig(ctx context.Context, req *tfprotov6.GenerateResourceConfigRequest) (*tfprotov6.GenerateResourceConfigResponse, error) {
+	v5Req := tfprotov6tov5.GenerateResourceConfigRequest(req)
+	v5Resp, err := s.v5Server.GenerateResourceConfig(ctx, v5Req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov5tov6.GenerateResourceConfigResponse(v5Resp), nil
+}

@@ -1085,3 +1085,34 @@ func TestV6ToV5ServerInvokeAction(t *testing.T) {
 		t.Errorf("expected test_action InvokeAction to be called")
 	}
 }
+
+func TestV6ToV5ServerGenerateResourceConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v6server := &tf6testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_resource": {},
+			},
+		},
+	}
+
+	v5server, err := tf6to5server.DowngradeServer(context.Background(), v6server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v5server.GenerateResourceConfig(ctx, &tfprotov5.GenerateResourceConfigRequest{
+		TypeName: "test_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v6server.GenerateResourceConfigCalled["test_resource"] {
+		t.Errorf("expected test_resource GenerateResourceConfig to be called")
+	}
+}

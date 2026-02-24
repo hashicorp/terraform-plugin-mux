@@ -1200,3 +1200,25 @@ func InvokeActionEvent(in tfprotov5.InvokeActionEvent) tfprotov6.InvokeActionEve
 	// as a new case above.
 	panic(fmt.Sprintf("unimplemented tfprotov5.InvokeActionEventType type: %T", in.Type))
 }
+
+func GenerateResourceConfigRequest(in *tfprotov5.GenerateResourceConfigRequest) *tfprotov6.GenerateResourceConfigRequest {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.GenerateResourceConfigRequest{
+		TypeName: in.TypeName,
+		State:    DynamicValue(in.State),
+	}
+}
+
+func GenerateResourceConfigResponse(in *tfprotov5.GenerateResourceConfigResponse) *tfprotov6.GenerateResourceConfigResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &tfprotov6.GenerateResourceConfigResponse{
+		Config:      DynamicValue(in.Config),
+		Diagnostics: Diagnostics(in.Diagnostics),
+	}
+}
