@@ -1,0 +1,5 @@
+kind: FEATURES
+body: Added support for attribute and block level deprecation messages via the `DeprecationMessage` field in protocol version conversion between tfprotov5 and tfprotov6
+time: 2026-02-16T14:34:07.976204+01:00
+custom:
+    Issue: 346
