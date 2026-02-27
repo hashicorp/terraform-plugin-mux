@@ -1,3 +1,10 @@
+## 0.22.0 (February 27, 2026)
+
+FEATURES:
+
+* tf6muxserver: Upgraded mux server implementation to support state store types. ([#345](https://github.com/hashicorp/terraform-plugin-mux/issues/345))
+* Added support for attribute and block level deprecation messages via the `DeprecationMessage` field in protocol version conversion between tfprotov5 and tfprotov6 ([#346](https://github.com/hashicorp/terraform-plugin-mux/issues/346))
+
 ## 0.21.0 (September 17, 2025)
 
 NOTES:
