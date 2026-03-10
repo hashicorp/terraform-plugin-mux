@@ -1257,3 +1257,34 @@ func TestUpgradeServerStateStore_UnlockState(t *testing.T) {
 		t.Fatal("expected error diagnostic, got none")
 	}
 }
+
+func TestV5ToV6ServerGenerateResourceConfig(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	v5server := &tf5testserver.TestServer{
+		GetProviderSchemaResponse: &tfprotov5.GetProviderSchemaResponse{
+			ResourceSchemas: map[string]*tfprotov5.Schema{
+				"test_resource": {},
+			},
+		},
+	}
+
+	v6server, err := tf5to6server.UpgradeServer(context.Background(), v5server.ProviderServer)
+
+	if err != nil {
+		t.Fatalf("unexpected error downgrading server: %s", err)
+	}
+
+	_, err = v6server.GenerateResourceConfig(ctx, &tfprotov6.GenerateResourceConfigRequest{
+		TypeName: "test_resource",
+	})
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !v5server.GenerateResourceConfigCalled["test_resource"] {
+		t.Errorf("expected test_resource GenerateResourceConfig to be called")
+	}
+}

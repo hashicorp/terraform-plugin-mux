@@ -445,3 +445,14 @@ func (s v6tov5Server) InvokeAction(ctx context.Context, req *tfprotov5.InvokeAct
 
 	return tfprotov6tov5.InvokeActionServerStream(v6Resp), nil
 }
+
+func (s v6tov5Server) GenerateResourceConfig(ctx context.Context, req *tfprotov5.GenerateResourceConfigRequest) (*tfprotov5.GenerateResourceConfigResponse, error) {
+	v6Req := tfprotov5tov6.GenerateResourceConfigRequest(req)
+	v6Resp, err := s.v6Server.GenerateResourceConfig(ctx, v6Req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tfprotov6tov5.GenerateResourceConfigResponse(v6Resp), nil
+}

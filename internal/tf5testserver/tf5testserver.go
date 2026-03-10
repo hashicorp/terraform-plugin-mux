@@ -74,6 +74,8 @@ type TestServer struct {
 	PlanActionCalled map[string]bool
 
 	InvokeActionCalled map[string]bool
+
+	GenerateResourceConfigCalled map[string]bool
 }
 
 func (s *TestServer) ProviderServer() tfprotov5.ProviderServer {
@@ -326,5 +328,14 @@ func (s *TestServer) InvokeAction(ctx context.Context, req *tfprotov5.InvokeActi
 	}
 
 	s.InvokeActionCalled[req.ActionType] = true
+	return nil, nil
+}
+
+func (s *TestServer) GenerateResourceConfig(ctx context.Context, req *tfprotov5.GenerateResourceConfigRequest) (*tfprotov5.GenerateResourceConfigResponse, error) {
+	if s.GenerateResourceConfigCalled == nil {
+		s.GenerateResourceConfigCalled = make(map[string]bool)
+	}
+
+	s.GenerateResourceConfigCalled[req.TypeName] = true
 	return nil, nil
 }
