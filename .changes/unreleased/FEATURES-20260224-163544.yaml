@@ -1,5 +1,0 @@
-kind: FEATURES
-body: 'all: Upgraded protocols and added types to support `GenerateResourceConfig` RPC.'
-time: 2026-02-24T16:35:44.444092-05:00
-custom:
-    Issue: "350"
