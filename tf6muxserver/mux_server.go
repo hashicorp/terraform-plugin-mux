@@ -15,6 +15,7 @@ import (
 )
 
 var _ tfprotov6.ProviderServer = &muxServer{}
+var _ tfprotov6.ProviderServerWithCodeMigrations = &muxServer{}
 
 // muxServer is a gRPC server implementation that stands in front of other
 // gRPC servers, routing requests to them as if they were a single server. It
