@@ -3,6 +3,7 @@
 NOTES:
 
 * This Go module has been updated to Go 1.25 per the [Go support policy](https://golang.org/doc/devel/release.html#policy). Any consumers building on earlier Go versions may experience errors. ([#355](https://github.com/hashicorp/terraform-plugin-mux/issues/355))
+* all: To prevent compilation errors, ensure your Go module is updated to at least terraform-plugin-framework@v1.19.0, terraform-plugin-go@v0.31.1, terraform-plugin-sdk/v2@v2.40.0, and terraform-plugin-testing@v1.15.0 before upgrading this dependency. (#607)
 
 FEATURES:
 
