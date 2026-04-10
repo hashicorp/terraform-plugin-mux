@@ -1,0 +1,5 @@
+kind: ENHANCEMENTS
+body: 'tf5to6server: add `translate` package containing schema translator helper methods'
+time: 2026-04-10T17:22:06.754051-04:00
+custom:
+    Issue: "352"
