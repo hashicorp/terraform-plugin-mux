@@ -1,3 +1,9 @@
+## 0.23.1 (April 13, 2026)
+
+ENHANCEMENTS:
+
+* tf5to6server: add `translate` package containing schema translator helper methods ([#352](https://github.com/hashicorp/terraform-plugin-mux/issues/352))
+
 ## 0.23.0 (March 10, 2026)
 
 NOTES:
