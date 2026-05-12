@@ -3221,6 +3221,20 @@ func TestValidateResourceTypeConfigRequest(t *testing.T) {
 				TypeName: "test_resource",
 			},
 		},
+		"client-capabilities-computed-blocks-allowed": {
+			in: &tfprotov6.ValidateResourceConfigRequest{
+				ClientCapabilities: &tfprotov6.ValidateResourceConfigClientCapabilities{
+					ComputedBlocksAllowed: true,
+				},
+				Config:   &testTfprotov6DynamicValue,
+				TypeName: "test_resource",
+			},
+			expected: &tfprotov5.ValidateResourceTypeConfigRequest{
+				ClientCapabilities: &tfprotov5.ValidateResourceTypeConfigClientCapabilities{},
+				Config:             &testTfprotov5DynamicValue,
+				TypeName:           "test_resource",
+			},
+		},
 	}
 
 	for name, testCase := range testCases {
