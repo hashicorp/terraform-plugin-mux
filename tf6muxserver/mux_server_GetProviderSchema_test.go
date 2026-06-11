@@ -1576,6 +1576,108 @@ func TestMuxServerGetProviderSchema(t *testing.T) {
 				GenerateResourceConfig:    true,
 			},
 		},
+		// Ensures GetProviderSchema preserves nested block schemas with computed attributes.
+		"computed-nested-block-schema": {
+			servers: []func() tfprotov6.ProviderServer{
+				(&tf6testserver.TestServer{
+					GetProviderSchemaResponse: &tfprotov6.GetProviderSchemaResponse{
+						ResourceSchemas: map[string]*tfprotov6.Schema{
+							"test_computed_resource": {
+								Version: 1,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									BlockTypes: []*tfprotov6.SchemaNestedBlock{
+										{
+											TypeName: "items",
+											Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+											Block: &tfprotov6.SchemaBlock{
+												Version: 1,
+												Attributes: []*tfprotov6.SchemaAttribute{
+													{
+														Name:     "id",
+														Type:     tftypes.String,
+														Computed: true,
+													},
+												},
+												BlockTypes: []*tfprotov6.SchemaNestedBlock{
+													{
+														TypeName: "metadata",
+														Nesting:  tfprotov6.SchemaNestedBlockNestingModeMap,
+														Block: &tfprotov6.SchemaBlock{
+															Version: 1,
+															Attributes: []*tfprotov6.SchemaAttribute{
+																{
+																	Name:     "value",
+																	Type:     tftypes.String,
+																	Computed: true,
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				}).ProviderServer,
+			},
+			expectedActionSchemas:             map[string]*tfprotov6.ActionSchema{},
+			expectedDataSourceSchemas:         map[string]*tfprotov6.Schema{},
+			expectedDiagnostics:               nil,
+			expectedEphemeralResourcesSchemas: map[string]*tfprotov6.Schema{},
+			expectedFunctions:                 map[string]*tfprotov6.Function{},
+			expectedListResourcesSchemas:      map[string]*tfprotov6.Schema{},
+			expectedResourceSchemas: map[string]*tfprotov6.Schema{
+				"test_computed_resource": {
+					Version: 1,
+					Block: &tfprotov6.SchemaBlock{
+						Version: 1,
+						BlockTypes: []*tfprotov6.SchemaNestedBlock{
+							{
+								TypeName: "items",
+								Nesting:  tfprotov6.SchemaNestedBlockNestingModeList,
+								Block: &tfprotov6.SchemaBlock{
+									Version: 1,
+									Attributes: []*tfprotov6.SchemaAttribute{
+										{
+											Name:     "id",
+											Type:     tftypes.String,
+											Computed: true,
+										},
+									},
+									BlockTypes: []*tfprotov6.SchemaNestedBlock{
+										{
+											TypeName: "metadata",
+											Nesting:  tfprotov6.SchemaNestedBlockNestingModeMap,
+											Block: &tfprotov6.SchemaBlock{
+												Version: 1,
+												Attributes: []*tfprotov6.SchemaAttribute{
+													{
+														Name:     "value",
+														Type:     tftypes.String,
+														Computed: true,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedStateStoreSchemas: map[string]*tfprotov6.Schema{},
+			expectedServerCapabilities: &tfprotov6.ServerCapabilities{
+				GetProviderSchemaOptional: true,
+				MoveResourceState:         true,
+				PlanDestroy:               true,
+				GenerateResourceConfig:    true,
+			},
+		},
 		"duplicate-state-store-type": {
 			servers: []func() tfprotov6.ProviderServer{
 				(&tf6testserver.TestServer{
