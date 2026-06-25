@@ -40,6 +40,9 @@ func TestMuxServerValidateResourceConfig(t *testing.T) {
 	}
 
 	_, err = muxServer.ProviderServer().ValidateResourceConfig(ctx, &tfprotov6.ValidateResourceConfigRequest{
+		ClientCapabilities: &tfprotov6.ValidateResourceConfigClientCapabilities{
+			ComputedBlocksAllowed: true,
+		},
 		TypeName: "test_resource_server1",
 	})
 
@@ -49,6 +52,11 @@ func TestMuxServerValidateResourceConfig(t *testing.T) {
 
 	if !testServer1.ValidateResourceConfigCalled["test_resource_server1"] {
 		t.Errorf("expected test_resource_server1 ValidateResourceConfig to be called on server1")
+	}
+
+	if testServer1.ValidateResourceConfigRequest["test_resource_server1"].ClientCapabilities == nil ||
+		!testServer1.ValidateResourceConfigRequest["test_resource_server1"].ClientCapabilities.ComputedBlocksAllowed {
+		t.Errorf("expected test_resource_server1 ValidateResourceConfig to pass through computed blocks capability")
 	}
 
 	if testServer2.ValidateResourceConfigCalled["test_resource_server1"] {

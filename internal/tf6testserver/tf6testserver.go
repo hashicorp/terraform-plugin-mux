@@ -63,7 +63,8 @@ type TestServer struct {
 	ValidateProviderConfigCalled   bool
 	ValidateProviderConfigResponse *tfprotov6.ValidateProviderConfigResponse
 
-	ValidateResourceConfigCalled map[string]bool
+	ValidateResourceConfigCalled  map[string]bool
+	ValidateResourceConfigRequest map[string]*tfprotov6.ValidateResourceConfigRequest
 
 	ValidateListResourceConfigCalled map[string]bool
 
@@ -293,7 +294,12 @@ func (s *TestServer) ValidateResourceConfig(_ context.Context, req *tfprotov6.Va
 		s.ValidateResourceConfigCalled = make(map[string]bool)
 	}
 
+	if s.ValidateResourceConfigRequest == nil {
+		s.ValidateResourceConfigRequest = make(map[string]*tfprotov6.ValidateResourceConfigRequest)
+	}
+
 	s.ValidateResourceConfigCalled[req.TypeName] = true
+	s.ValidateResourceConfigRequest[req.TypeName] = req
 	return nil, nil
 }
 
